@@ -44,7 +44,7 @@ class PirateWorld {
 		let h = oCanvas.height;
 		let cellSize = this.cellSize();
 		let m = PirateWorld.getViewPointMetrics(this._xView, this._yView, w, h, cellSize, this.oWorldDef.preload);
-		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2);
+		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
 		if (nNewSize !== this._cache.size()) {
 			this._cache.size(nNewSize);
 			this._wwio.emit('options', {

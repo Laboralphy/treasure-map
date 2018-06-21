@@ -721,7 +721,7 @@ class PirateWorld {
 		let h = oCanvas.height;
 		let cellSize = this.cellSize();
 		let m = PirateWorld.getViewPointMetrics(this._xView, this._yView, w, h, cellSize, this.oWorldDef.preload);
-		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2);
+		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
 		if (nNewSize !== this._cache.size()) {
 			this._cache.size(nNewSize);
 			this._wwio.emit('options', {
@@ -4339,18 +4339,27 @@ class Cache2D {
 		}
 	}
 
-	push(x, y, payload) {
+	trim() {
 		let c = this._cache;
-		if (!this.getMetaData(x, y)) {
-			c.push({
-				x, y, payload
-			});
-		}
+		c.sort((a, b) => b.n - a.n);
 		let aDelete = [];
 		while (c.length > this._cacheSize) {
 			aDelete.push(c.shift());
 		}
 		return aDelete;
+	}
+
+	push(x, y, payload) {
+		let c = this._cache;
+		let md = this.getMetaData(x, y);
+		if (!md) {
+			c.push({
+				x, y, n: 0, payload
+			});
+		} else {
+			++md.n;
+		}
+		return this.trim();
 	}
 }
 
