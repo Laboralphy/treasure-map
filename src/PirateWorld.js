@@ -1,9 +1,9 @@
 import o876 from './o876';
 import WorldGenerator from './WorldGenerator';
 import Webworkio from 'webworkio';
-import CanvasHelper from './CanvasHelper';
 import WorldTile from './WorldTile';
 
+const CanvasHelper = o876.CanvasHelper;
 const CLUSTER_SIZE = 16;
 
 class PirateWorld {

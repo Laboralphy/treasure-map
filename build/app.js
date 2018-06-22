@@ -581,57 +581,6 @@ module.exports = Webworkio;
 
 /***/ }),
 
-/***/ "./src/CanvasHelper.js":
-/*!*****************************!*\
-  !*** ./src/CanvasHelper.js ***!
-  \*****************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-class CanvasHelper {
-    /**
-     * fabrique et renvoie un canvas
-     * @param w {number} taille
-     * @param h {number} taille
-     * @return {HTMLCanvasElement}
-     * @private
-     */
-    static create(w, h) {
-        let c = document.createElement('canvas');
-        c.width = w;
-        c.height = h;
-        return c;
-    }
-
-    static clone(c, wZoom = 1, hZoom = 1) {
-        let oCanvas = CanvasHelper.create(c.width * wZoom | 0, c.height * hZoom | 0);
-        oCanvas.getContext('2d').drawImage(
-            c,
-            0,
-            0,
-            c.width,
-            c.height,
-            0,
-            0,
-            oCanvas.width,
-            oCanvas.height
-        );
-        return oCanvas;
-    }
-
-    static draw(oDest, oSource, x, y) {
-        if (oSource) {
-			oDest.getContext('2d').drawImage(oSource, x, y);
-        }
-    }
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (CanvasHelper);
-
-/***/ }),
-
 /***/ "./src/Indicators.js":
 /*!***************************!*\
   !*** ./src/Indicators.js ***!
@@ -673,14 +622,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WorldGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WorldGenerator */ "./src/WorldGenerator.js");
 /* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! webworkio */ "./node_modules/webworkio/index.js");
 /* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(webworkio__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _CanvasHelper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./CanvasHelper */ "./src/CanvasHelper.js");
-/* harmony import */ var _WorldTile__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./WorldTile */ "./src/WorldTile.js");
+/* harmony import */ var _WorldTile__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WorldTile */ "./src/WorldTile.js");
 
 
 
 
 
-
+const CanvasHelper = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
 const CLUSTER_SIZE = 16;
 
 class PirateWorld {
@@ -755,7 +703,7 @@ class PirateWorld {
 	async fetchTile(x, y) {
 		return new Promise(resolve => {
 			// verification en cache
-			let oWorldTile = new _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"](x, y, this.cellSize(), {
+			let oWorldTile = new _WorldTile__WEBPACK_IMPORTED_MODULE_3__["default"](x, y, this.cellSize(), {
 				scale: this.oWorldDef.scale,
 				drawGrid: this.oWorldDef.drawGrid,
 				drawCoords: this.oWorldDef.drawCoords
@@ -826,7 +774,7 @@ class PirateWorld {
 						wt.colormap = null;
 					}
 					if (wt.isPainted() && wt.isMapped()) {
-						_CanvasHelper__WEBPACK_IMPORTED_MODULE_3__["default"].draw(oCanvas, wt.canvas, xScreen, yScreen);
+						CanvasHelper.draw(oCanvas, wt.canvas, xScreen, yScreen);
 					}
 				}
 				xTilePix += cellSize;
@@ -1150,11 +1098,10 @@ class WorldGenerator {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
 /* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./CanvasHelper */ "./src/CanvasHelper.js");
-
 
 const Perlin = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
 const Rainbow = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
+const CanvasHelper = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
 
 /**
  * Construction des clipart utilisé pour égayer la map
@@ -1173,7 +1120,7 @@ function _buildCliparts() {
     let c, ctx;
 
     // vague
-    c = _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__["default"].create(MESH_SIZE, MESH_SIZE);
+    c = CanvasHelper.create(MESH_SIZE, MESH_SIZE);
     ctx = c.getContext('2d');
     ctx.fillStyle = 'rgba(57, 25, 7, 0.2)';
     ctx.strokeStyle = 'rgba(154, 117, 61, 0.75)';
@@ -1186,7 +1133,7 @@ function _buildCliparts() {
     cliparts.wave = c;
 
     // forest
-    c = _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__["default"].create(MESH_SIZE, MESH_SIZE);
+    c = CanvasHelper.create(MESH_SIZE, MESH_SIZE);
     ctx = c.getContext('2d');
     ctx.fillStyle = 'rgba(57, 25, 7, 0.2)';
     ctx.strokeStyle = 'rgba(154, 117, 61, 0.75)';
@@ -1199,7 +1146,7 @@ function _buildCliparts() {
     cliparts.forest = c;
 
     // herbe
-    c = _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__["default"].create(MESH_SIZE, MESH_SIZE);
+    c = CanvasHelper.create(MESH_SIZE, MESH_SIZE);
     ctx = c.getContext('2d');
     ctx.fillStyle = 'rgba(57, 25, 7, 0.2)';
     ctx.strokeStyle = 'rgba(154, 117, 61, 0.75)';
@@ -1212,7 +1159,7 @@ function _buildCliparts() {
     cliparts.grass = c;
 
     // Montagne
-    c = _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__["default"].create(MESH_SIZE, MESH_SIZE);
+    c = CanvasHelper.create(MESH_SIZE, MESH_SIZE);
     ctx = c.getContext('2d');
     ctx.fillStyle = 'rgba(57, 25, 7, 0.2)';
     ctx.strokeStyle = 'rgba(154, 117, 61, 0.75)';
@@ -1372,7 +1319,7 @@ class WorldTile {
         let colormap = this.colormap;
         let physicmap = this.physicmap;
         let cellSize = this.size;
-        let tile = _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__["default"].create(cellSize / scale, cellSize / scale);
+        let tile = CanvasHelper.create(cellSize / scale, cellSize / scale);
         this.canvas = tile;
         let ctx = tile.getContext('2d');
         let oImageData = ctx.createImageData(tile.width, tile.height);
@@ -1380,7 +1327,7 @@ class WorldTile {
         colormap.forEach((x, i) => buffer32[i] = x);
         ctx.putImageData(oImageData, 0, 0);
         if (scale !== 1) {
-            this.canvas = tile = _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__["default"].clone(tile, scale, scale);
+            this.canvas = tile = CanvasHelper.clone(tile, scale, scale);
         }
         this.paintTerrainType(xCurs, yCurs, tile, physicmap);
         this.paintLinesCoordinates(xCurs, yCurs, tile, physicmap);
@@ -1405,49 +1352,28 @@ class WorldTile {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _PirateWorld__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PirateWorld */ "./src/PirateWorld.js");
-/* harmony import */ var _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./CanvasHelper */ "./src/CanvasHelper.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _PirateWorld__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PirateWorld */ "./src/PirateWorld.js");
 /* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
 
 
 
+const CanvasHelper = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
 
 
-function kbHandler(event) {
-	switch (event.key) {
-		case 'ArrowUp':
-			pwrunner.view(document.querySelector('.world'), X, Y -= 16);
-			break;
+let oCvsOffscreen;
 
-		case 'ArrowDown':
-			pwrunner.view(document.querySelector('.world'), X, Y += 16);
-			break;
 
-		case 'ArrowLeft':
-			pwrunner.view(document.querySelector('.world'), X -= 16, Y);
-			break;
+let pwrunner, X, Y;
 
-		case 'ArrowRight':
-			pwrunner.view(document.querySelector('.world'), X += 16, Y);
-			break;
 
-		case ' ':
-			bFreeze = !bFreeze;
-			break;
 
-		default:
-			console.log('key', event.key);
-			break;
-	}
-}
-
-let pwrunner, X, Y, bFreeze = false;
 
 function main4() {
-	window.addEventListener('keydown', kbHandler);
 	window.addEventListener('resize', windowResize);
 	windowResize();
-	pwrunner = this.world = new _PirateWorld__WEBPACK_IMPORTED_MODULE_0__["default"]({
+	pwrunner = this.world = new _PirateWorld__WEBPACK_IMPORTED_MODULE_1__["default"]({
 		cellSize: 256,
 		hexSize: 16,
 		scale: 2,
@@ -1463,81 +1389,22 @@ function main4() {
 	window.pwrunner = pwrunner;
 	X = 27 * 256;
 	Y = 0;
+
 	let cvs = document.querySelector('.world');
-	pwrunner.preloadTiles(X, Y, cvs.width, cvs.height).then(() => {
-		console.log('starting scrolling');
+	let oImage;
+	loadImage('images/sprites/balloon_0.png').then(img => {
+		oImage = img;
+		return pwrunner.preloadTiles(X, Y, cvs.width, cvs.height);
+	}).then(() => {
 		setInterval(() => {
-			if (!bFreeze) {
-				//X += 2;
-				//Y++;
-			}
-			pwrunner.view(cvs, X, Y);
+			Y++;
+			pwrunner.view(oCvsOffscreen, X, Y);
+			oCvsOffscreen.getContext('2d').drawImage(oImage, (cvs.width - oImage.naturalWidth) >> 1, (cvs.height - oImage.naturalHeight) >> 1);
+			requestAnimationFrame(() => {
+				cvs.getContext('2d').drawImage(oCvsOffscreen, 0, 0);
+			});
 		}, 32);
 	});
-}
-
-
-function main3() {
-	pwrunner = this.world = new _PirateWorld__WEBPACK_IMPORTED_MODULE_0__["default"]({
-		cellSize: 8,
-        scale: 1,
-		hexSize: 16,
-		hexSpace: 4,
-		seed: 0.111,
-		preload: 2,
-		drawGrid: false,
-		drawCoords: false,
-		service: '../build/worker.js'
-	});
-
-	X = 960;
-	Y = -40;
-	async function fetchAndRenderTiles(oCanvas, xTile, yTile) {
-		for (let y = 0; y < (oCanvas.height / pwrunner.cellSize()); ++y) {
-			for (let x = 0; x < (oCanvas.width / pwrunner.cellSize()); ++x) {
-				let wt = await pwrunner.fetchTile(X + x + xTile, Y + y + yTile);
-				wt.paint();
-				_CanvasHelper__WEBPACK_IMPORTED_MODULE_1__["default"].draw(oCanvas, wt.canvas, (x + xTile) * pwrunner.cellSize(), (y + yTile) * pwrunner.cellSize());
-			}
-		}
-	}
-
-	let cvs = document.querySelector('.world');
-	fetchAndRenderTiles(cvs, 0, 0).then(() => console.log('done.'));
-	window.addEventListener('keydown', kbHandler);
-}
-
-
-function main2() {
-    pwrunner = this.world = new _PirateWorld__WEBPACK_IMPORTED_MODULE_0__["default"]({
-        seed: 0.111,
-        preload: 2,
-        scale: 2,
-        cellSize: 64,
-        hexSize: 16,
-        drawGrid: true,
-        drawCoords: false,
-        service: '../build/worker.js'
-    });
-
-    X = 960;
-    Y = -40;
-    async function fetchAndRenderTiles(oCanvas, xTile, yTile) {
-        for (let y = 0; y < (oCanvas.height / pwrunner.cellSize()); ++y) {
-            for (let x = 0; x < (oCanvas.width / pwrunner.cellSize()); ++x) {
-                let wt = await pwrunner.fetchTile(X + x + xTile, Y + y + yTile);
-                wt.paint();
-                _CanvasHelper__WEBPACK_IMPORTED_MODULE_1__["default"].draw(oCanvas,
-					wt.canvas,
-					(x + xTile) * pwrunner.cellSize(),
-					(y + yTile) * pwrunner.cellSize()
-				);
-            }
-        }
-    }
-
-    let cvs = document.querySelector('.world');
-    fetchAndRenderTiles(cvs, 0, 0).then(() => console.log('done.'));
 }
 
 function windowResize() {
@@ -1546,10 +1413,162 @@ function windowResize() {
 	let wWin = window.innerWidth;
 	oCanvas.height = hWin - 64;
 	oCanvas.width = wWin - 64;
+	oCvsOffscreen = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper.clone(oCanvas);
 }
 
 window.addEventListener('load', main4);
 
+
+/***/ }),
+
+/***/ "./src/o876/ArrayHelper.js":
+/*!*********************************!*\
+  !*** ./src/o876/ArrayHelper.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+class ArrayHelper {
+	/**
+	 * Turns an array-like-structure into an array (a real one)
+	 */
+	static array(subject) {
+		const LENGTH_PROPERTY = 'length';
+		if (Array.isArray(subject)) {
+			return subject;
+		}
+		if (typeof subject === 'object') {
+			// is there a length property ?
+			let bLength = LENGTH_PROPERTY in subject;
+			// extracting keys minus "length" property
+			let aKeys = Object
+				.keys(subject)
+				.filter(k => k !== LENGTH_PROPERTY);
+			if (aKeys.some(k => isNaN(k))) {
+				return false;
+			}
+			if ((bLength) && (subject[LENGTH_PROPERTY] !== aKeys.length)) {
+				return false;
+			}
+			if (aKeys
+				.map(k => parseInt(k))
+				.sort((k1, k2) => k1 - k2)
+				.every((k, i) => k === i)) {
+				return bLength
+					? Array.prototype.slice.call(subject, 0)
+					: aKeys.map(k => subject[k]);
+			}
+		}
+		return false;
+	}
+
+	static catsort(aInput, {cat, sort = null}) {
+		let oOutput = {};
+		aInput.forEach(e => {
+			let sCat = cat(e);
+			if (!(sCat in oOutput)) {
+				oOutput[sCat] = [];
+			}
+			oOutput[sCat].push(e);
+		});
+		if (typeof sort === 'function') {
+			for (let sCat in oOutput) {
+				oOutput[sCat] = oOutput[sCat].sort(sort)
+			}
+		}
+		return oOutput;
+	}
+
+	/**
+	 * Remove all duplicate entries in the specified array. This will not modify the array ; a new one
+	 * @param aArray
+	 * @returns {*}
+	 */
+	static uniq(aArray) {
+		return aArray.filter((x, i, a) => a.indexOf(x) === i)
+	}
+
+	/**
+	 * quickly clones an array into a new one
+	 * this method is mainly used for turning "arguments" pseudo array into a real array
+	 * @param a {Array|Object}
+	 * @return {Array}
+	 */
+	static clone(a) {
+		return Array.prototype.slice.call(a, 0)
+	}
+
+}
+
+module.exports = ArrayHelper;
+
+/***/ }),
+
+/***/ "./src/o876/CanvasHelper.js":
+/*!**********************************!*\
+  !*** ./src/o876/CanvasHelper.js ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+const SpellBook = __webpack_require__(/*! ./SpellBook */ "./src/o876/SpellBook.js");
+class CanvasHelper {
+    /**
+     * fabrique et renvoie un canvas
+     * @param w {number} taille
+     * @param h {number} taille
+     * @return {HTMLCanvasElement}
+     * @private
+     */
+    static create(w, h) {
+        let c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        return c;
+    }
+
+    static clone(c, wZoom = 1, hZoom = 1) {
+        let oCanvas = CanvasHelper.create(c.width * wZoom | 0, c.height * hZoom | 0);
+        oCanvas.getContext('2d').drawImage(
+            c,
+            0,
+            0,
+            c.width,
+            c.height,
+            0,
+            0,
+            oCanvas.width,
+            oCanvas.height
+        );
+        return oCanvas;
+    }
+
+    static draw(oDestCvs, ...args) {
+        let ctx, aArgs = [...args];
+        switch (SpellBook.typeMap(aArgs)) {
+            case 'onn':
+            case 'onnnnnn':
+            case 'onnnnnnnn':
+                oDestCvs.getContext('2d').drawImage(...args);
+                break;
+
+            case 'onnn':
+            case 'onnnnnnn':
+            case 'onnnnnnnnn':
+                let ctx = oDestCvs.getContext('2d');
+                let globAlpha = ctx.globalAlpha;
+                ctx.globalAlpha = aArgs[1];
+                ctx.drawImage(...args);
+                ctx.globalAlpha = globAlpha;
+                break;
+
+            default:
+                throw new Error('could not do anything with this parameters');
+        }
+    }
+}
+
+module.exports = CanvasHelper;
 
 /***/ }),
 
@@ -1565,6 +1584,7 @@ window.addEventListener('load', main4);
  */
 
 const SB = __webpack_require__(/*! ./SpellBook */ "./src/o876/SpellBook.js");
+const AH = __webpack_require__(/*! ./ArrayHelper */ "./src/o876/ArrayHelper.js");
 /**
  * this class is similar to the node.js Emitter system
  * it emits events
@@ -1590,7 +1610,7 @@ module.exports = class Emitter {
      * @return {*}
      */
     trigger(sEvent, params) {
-        let aArgs = SB.array(arguments);
+        let aArgs = AH.array(arguments);
         aArgs.shift();
         let eh = this._oEventHandlers;
         if (sEvent in eh) {
@@ -1686,6 +1706,69 @@ module.exports = class Emitter {
 		return this;
 	}
 };
+
+/***/ }),
+
+/***/ "./src/o876/PixelProcessor.js":
+/*!************************************!*\
+  !*** ./src/o876/PixelProcessor.js ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+class PixelProcessor {
+
+    static process(oCanvas, cb) {
+        let ctx = oCanvas.getContext('2d');
+        let oImageData = ctx.createImageData(oCanvas.width, oCanvas.height);
+        let pixels = new Uint32Array(oImageData.data.buffer);
+        let h = oCanvas.height;
+        let w = oCanvas.width;
+        let oPixelCtx = {
+            pixel: (x, y) => {
+                let nOffset = y * w + x;
+                let p = pixels[nOffset];
+                return {
+                    r: p & 0xFF,
+                    g: (p >> 8) & 0xFF,
+                    b: (p >> 16) & 0xFF,
+                    a: (p >> 24) & 0xFF
+                }
+            },
+            width: w,
+            height: h,
+            x: 0,
+            y: 0,
+            color: {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 255
+            }
+        };
+        let aColors = [];
+        for (let y = 0; y < h; ++y) {
+            for (let x = 0; x < w; ++x) {
+                let nOffset = y * w + x;
+				let p = pixels[nOffset];
+                oPixelCtx.x = x;
+                oPixelCtx.y = y;
+                oPixelCtx.color.r = p && 0xFF;
+                oPixelCtx.color.g = (p >> 8) && 0xFF;
+                oPixelCtx.color.b = (p >> 16) && 0xFF;
+                oPixelCtx.color.a = (p >> 24) && 0xFF;
+                cb(oPixelCtx);
+                aColors.push({...oPixelCtx.color});
+            }
+        }
+        aColors.forEach((c, i) => {
+            pixels[i] = c.r | (c.g << 8) | (c.b << 16) | (c.a << 24);
+        });
+        ctx.putImageData(oImageData, 0, 0);
+    }
+}
+
+module.exports = PixelProcessor;
 
 /***/ }),
 
@@ -2213,81 +2296,15 @@ module.exports = class Random {
   !*** ./src/o876/SpellBook.js ***!
   \*******************************/
 /*! no static exports found */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Created by ralphy on 07/09/17.
  */
 
+const ArrayHelper = __webpack_require__(/*! ./ArrayHelper */ "./src/o876/ArrayHelper.js");
+
 class SpellBook {
-    /**
-     * Turns an array-like-structure into an array (a real one)
-     */
-    static array(subject) {
-        const LENGTH_PROPERTY = 'length';
-        if (Array.isArray(subject)) {
-            return subject;
-        }
-        if (typeof subject === 'object') {
-            // is there a length property ?
-            let bLength = LENGTH_PROPERTY in subject;
-            // extracting keys minus "length" property
-            let aKeys = Object
-                .keys(subject)
-                .filter(k => k !== LENGTH_PROPERTY);
-            if (aKeys.some(k => isNaN(k))) {
-                return false;
-            }
-            if ((bLength) && (subject[LENGTH_PROPERTY] !== aKeys.length)) {
-                return false;
-            }
-            if (aKeys
-                .map(k => parseInt(k))
-                .sort((k1, k2) => k1 - k2)
-                .every((k, i) => k === i)) {
-                return bLength
-                    ? Array.prototype.slice.call(subject, 0)
-                    : aKeys.map(k => subject[k]);
-            }
-        }
-        return false;
-    }
-
-    static catsortArray(aInput, {cat, sort = null}) {
-    	let oOutput = {};
-    	aInput.forEach(e => {
-    		let sCat = cat(e);
-    		if (!(sCat in oOutput)) {
-    			oOutput[sCat] = [];
-			}
-			oOutput[sCat].push(e);
-		});
-    	if (typeof sort === 'function') {
-			for (let sCat in oOutput) {
-				oOutput[sCat] = oOutput[sCat].sort(sort)
-			}
-		}
-		return oOutput;
-	}
-
-	/**
-	 * élimine tout les doubloons de l'array spécifié. Ne modifie par l'array, mais renvoie un nouveau tableau
-	 * @param aArray
-	 * @returns {*}
-	 */
-	static uniqArray(aArray) {
-    	return aArray.filter((x, i, a) => a.indexOf(x) === i)
-	}
-
-    /**
-     * quickly clones an array into a new one
-     * this method is mainly used for turning "arguments" pseudo array into a real array
-     * @param a {Array|Object}
-     * @return {Array}
-     */
-    static cloneArray(a) {
-        return Array.prototype.slice.call(a, 0)
-    }
 
 	/**
 	 * Renvoie le type d'une variable (différencie les Tableau Array des objet}
@@ -2333,7 +2350,7 @@ class SpellBook {
      * @return {string}
      */
     static typeMap(aArgs) {
-		return this.cloneArray(aArgs).map(function(x) {
+		return ArrayHelper.clone(aArgs).map(function(x) {
 			return SpellBook.typeof(x);
 		}).join('');
     }
@@ -2423,6 +2440,8 @@ const SB = __webpack_require__(/*! ../../SpellBook */ "./src/o876/SpellBook.js")
  * 	max: maximum iteration (act as watch dog)
  * })
  * pf.find(xfrom, yfrom, xto, yto)
+ *
+ * it is restricted to squared grids
  */
 module.exports = class Astar {
 	constructor() {
@@ -2444,10 +2463,10 @@ module.exports = class Astar {
 		this.emitter = new Emitter();
 	}
 
-    on() { this.emitter.on(...arguments); return this; }
-    off() { this.emitter.off(...arguments); return this; }
-    one() { this.emitter.one(...arguments); return this; }
-    trigger() { this.emitter.trigger(...arguments); return this; }
+    on(...args) { this.emitter.on(...args); return this; }
+    off(...args) { this.emitter.off(...args); return this; }
+    one(...args) { this.emitter.one(...args); return this; }
+    trigger(...args) { this.emitter.trigger(...args); return this; }
 
     /**
 	 * modifies a cell value
@@ -3063,6 +3082,132 @@ module.exports = class Easing {
 
 /***/ }),
 
+/***/ "./src/o876/algorithms/NameCrafter.js":
+/*!********************************************!*\
+  !*** ./src/o876/algorithms/NameCrafter.js ***!
+  \********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * A partir d'une liste de mots, cette classe peut générer de nouveaux mots ressemblant à ceux de la liste
+ */
+const Random = __webpack_require__(/*! ../Random */ "./src/o876/Random.js");
+
+class NameCrafter {
+
+    constructor() {
+        this._random = new Random();
+        this._registries = {};
+        this.MAX_TRIES = 1024;
+    }
+
+    /**
+     * Ajoute une lettre à la liste des lettres du pattern du registre spécifié
+     * @param oRegistry
+     * @param pattern
+     * @param letter
+     */
+    pushLetter(oRegistry, pattern, letter) {
+        if (!(pattern in oRegistry)) {
+            oRegistry[pattern] = letter;
+        } else {
+            oRegistry[pattern] += letter;
+        }
+    }
+
+    /**
+     * Chargement d'une liste et indexation
+     * @param aList {string[]}
+     * @param n {number}
+     * @return {*}
+     */
+    indexListProb(aList, n) {
+        let oRegistry = {};
+        aList.forEach(word => {
+            word = word.replace(/[^a-z]+/gi, '');
+            if (word.length > n) {
+                for (let i = 0; i < word.length - n; ++i) {
+                    let letter = word.charAt(i + n);
+                    let pattern = word.substr(i, n);
+                    this.pushLetter(oRegistry, pattern, letter);
+                }
+            }
+        });
+        return oRegistry;
+    }
+
+    indexListInitial(aList, n) {
+        return aList.map(word => word.substr(0, n))
+    }
+
+    indexListFinal(aList, n) {
+        let oRegistry = {};
+        aList.forEach(word => {
+            this.pushLetter(oRegistry, word.substr(-n - 1, n), word.substr(-1));
+        });
+        return oRegistry;
+    }
+
+    indexList(aList, nPatternLength) {
+        if (aList.length === 0) {
+            throw new Error('nothing to index, the list is empty');
+        }
+        this._list = aList = aList.filter(word => !!word);
+        this._registries = {
+            initial: this.indexListInitial(aList, nPatternLength),
+            prob: this.indexListProb(aList, nPatternLength),
+            final: this.indexListFinal(aList, nPatternLength)
+        };
+    }
+
+    hasBeenIndexed() {
+        let regInitial = this._registries.initial;
+        let regProb = this._registries.prob;
+        let regFinal = this._registries.final;
+        return regInitial && regProb && regFinal;
+    }
+
+    generate(nLength, nPatternLength) {
+		let random = this._random;
+		let regInitial = this._registries.initial;
+		let regProb = this._registries.prob;
+		let regFinal = this._registries.final;
+		if (!this.hasBeenIndexed()) {
+			throw new Error('you must initialize registries by indexing a list');
+		}
+		let nTries = this.MAX_TRIES;
+		let nFails = 0;
+        while(nFails < nTries) {
+			let sPattern = this._random.randPick(regInitial);
+			let sResult = sPattern;
+			while (sResult.length < (nLength - 1)) {
+				let p = regProb[sPattern] ? random.randPick(regProb[sPattern]) : '';
+				if (p) {
+					sResult += p;
+					sPattern = sResult.substr(-nPatternLength);
+				} else {
+					sPattern = '';
+				    break;
+                }
+			}
+            if (regFinal[sPattern]) {
+				sResult += random.randPick(regFinal[sPattern]);
+			} else {
+				continue;
+			}
+			if (!this._list.includes(sResult)) {
+				return sResult;
+            }
+		}
+		throw new Error('could not generate any name after ' + this.MAX_TRIES + ' tries... the initial list may be two small...');
+    }
+}
+
+module.exports = NameCrafter;
+
+/***/ }),
+
 /***/ "./src/o876/algorithms/Perlin.js":
 /*!***************************************!*\
   !*** ./src/o876/algorithms/Perlin.js ***!
@@ -3469,132 +3614,6 @@ module.exports = class SquareSpiral {
 
 /***/ }),
 
-/***/ "./src/o876/algorithms/UnivGeneList.js":
-/*!*********************************************!*\
-  !*** ./src/o876/algorithms/UnivGeneList.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * A partir d'une liste de mots, cette classe peut générer de nouveaux mots ressemblant à ceux de la liste
- */
-const Random = __webpack_require__(/*! ../Random */ "./src/o876/Random.js");
-
-class UnivGeneList {
-
-    constructor() {
-        this._random = new Random();
-        this._registries = {};
-        this._exclusions = [];
-    }
-
-    /**
-     * Ajoute une lettre à la liste des lettres du pattern du registre spécifié
-     * @param oRegistry
-     * @param pattern
-     * @param letter
-     */
-    pushLetter(oRegistry, pattern, letter) {
-        if (!(pattern in oRegistry)) {
-            oRegistry[pattern] = letter;
-        } else {
-            oRegistry[pattern] += letter;
-        }
-    }
-
-    /**
-     * Chargement d'une liste et indexation
-     * @param aList {string[]}
-     * @param n {number}
-     * @return {*}
-     */
-    indexListProb(aList, n) {
-        const ALPHA = ('abcdefghijklmnopqrstuvwxyz').split('');
-        let oRegistry = {};
-        aList.forEach(word => {
-            word = word.replace(/[^a-z]+/g, '');
-            if (word.length > n) {
-                for (let i = 0; i < word.length - n; ++i) {
-                    let letter = word.charAt(i + n);
-                    let pattern = word.substr(i, n);
-                    this.pushLetter(oRegistry, pattern, letter);
-                }
-            }
-        });
-        return oRegistry;
-    }
-
-    indexListInitial(aList, n) {
-        return aList.map(word => word.substr(0, n))
-    }
-
-    indexListFinal(aList, n) {
-        let oRegistry = {};
-        aList.forEach(word => {
-            this.pushLetter(oRegistry, word.substr(-n - 1, n), word.substr(-1));
-        });
-        return oRegistry;
-    }
-
-    indexList(aList, nPatternLength) {
-        if (aList.length === 0) {
-            throw new Error('nothing to index, the list is empty');
-        }
-        aList = aList.filter(word => !!word);
-        this._registries = {
-            initial: this.indexListInitial(aList, nPatternLength),
-            prob: this.indexListProb(aList, nPatternLength),
-            final: this.indexListFinal(aList, nPatternLength)
-        };
-    }
-
-    hasBeenIndexed() {
-        let regInitial = this._registries.initial;
-        let regProb = this._registries.prob;
-        let regFinal = this._registries.final;
-        return regInitial && regProb && regFinal;
-    }
-
-    exclude(aList) {
-        this._exclusions = this._exclusions.concat(aList);
-    }
-
-    generate(nLength, nPatternLength) {
-        let random = this._random;
-        let regInitial = this._registries.initial;
-        let regProb = this._registries.prob;
-        let regFinal = this._registries.final;
-        if (!this.hasBeenIndexed()) {
-            throw new Error('you must initialize registries by indexing a list');
-        }
-        let sPattern = this._random.randPick(regInitial);
-        let sResult = sPattern;
-        while (sResult.length < (nLength - 1)) {
-            let p = regProb[sPattern] ? random.randPick(regProb[sPattern]) : '';
-            if (p) {
-                sResult += p;
-                sPattern = sResult.substr(-nPatternLength);
-            } else {
-                return '';
-            }
-        }
-        if (regFinal[sPattern]) {
-            sResult += random.randPick(regFinal[sPattern]);
-        } else if (regProb[sPattern]) {
-            sResult += random.randPick(regProb[sPattern]);
-        }
-        if (this._exclusions.includes(sResult)) {
-            return '';
-        }
-        return sResult;
-    }
-}
-
-module.exports = UnivGeneList;
-
-/***/ }),
-
 /***/ "./src/o876/algorithms/index.js":
 /*!**************************************!*\
   !*** ./src/o876/algorithms/index.js ***!
@@ -3607,7 +3626,7 @@ const Easing = __webpack_require__(/*! ./Easing */ "./src/o876/algorithms/Easing
 const Perlin = __webpack_require__(/*! ./Perlin */ "./src/o876/algorithms/Perlin.js");
 const SquareSpiral = __webpack_require__(/*! ./SquareSpiral */ "./src/o876/algorithms/SquareSpiral.js");
 const Astar = __webpack_require__(/*! ./Astar */ "./src/o876/algorithms/Astar/index.js");
-const UnivGeneList = __webpack_require__(/*! ./UnivGeneList */ "./src/o876/algorithms/UnivGeneList.js");
+const NameCrafter = __webpack_require__(/*! ./NameCrafter */ "./src/o876/algorithms/NameCrafter.js");
 
 module.exports = {
     Bresenham,
@@ -3615,7 +3634,7 @@ module.exports = {
     Perlin,
     SquareSpiral,
     Astar,
-    UnivGeneList
+	NameCrafter
 };
 
 
@@ -4272,13 +4291,16 @@ module.exports = {
 
 const geometry = __webpack_require__(/*! ./geometry */ "./src/o876/geometry/index.js");
 const algorithms = __webpack_require__(/*! ./algorithms */ "./src/o876/algorithms/index.js");
+const collider = __webpack_require__(/*! ./collider */ "./src/o876/collider/index.js");
+const structures = __webpack_require__(/*! ./structures */ "./src/o876/structures/index.js");
+
 const SpellBook = __webpack_require__(/*! ./SpellBook */ "./src/o876/SpellBook.js");
 const Random = __webpack_require__(/*! ./Random */ "./src/o876/Random.js");
 const Rainbow = __webpack_require__(/*! ./Rainbow */ "./src/o876/Rainbow.js");
 const Emitter = __webpack_require__(/*! ./Emitter */ "./src/o876/Emitter.js");
-const collider = __webpack_require__(/*! ./collider */ "./src/o876/collider/index.js");
-const structures = __webpack_require__(/*! ./structures */ "./src/o876/structures/index.js");
-const Cache2D = __webpack_require__(/*! ./structures/Cache2D */ "./src/o876/structures/Cache2D.js");
+const ArrayHelper = __webpack_require__(/*! ./ArrayHelper */ "./src/o876/ArrayHelper.js");
+const PixelProcessor = __webpack_require__(/*! ./PixelProcessor */ "./src/o876/PixelProcessor.js");
+const CanvasHelper = __webpack_require__(/*! ./CanvasHelper */ "./src/o876/CanvasHelper.js");
 
 module.exports = {
 
@@ -4292,7 +4314,10 @@ module.exports = {
 	SpellBook,
 	Random,
 	Rainbow,
-	Emitter
+	Emitter,
+	ArrayHelper,
+	PixelProcessor,
+	CanvasHelper
 };
 
 /***/ }),

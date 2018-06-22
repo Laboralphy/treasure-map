@@ -1,40 +1,18 @@
+import o876 from './o876'
 import PirateWorld from './PirateWorld';
-import CanvasHelper from './CanvasHelper';
 import Indicators from './Indicators';
+const CanvasHelper = o876.CanvasHelper;
 
 
-function kbHandler(event) {
-	switch (event.key) {
-		case 'ArrowUp':
-			pwrunner.view(document.querySelector('.world'), X, Y -= 16);
-			break;
+let oCvsOffscreen;
 
-		case 'ArrowDown':
-			pwrunner.view(document.querySelector('.world'), X, Y += 16);
-			break;
 
-		case 'ArrowLeft':
-			pwrunner.view(document.querySelector('.world'), X -= 16, Y);
-			break;
+let pwrunner, X, Y;
 
-		case 'ArrowRight':
-			pwrunner.view(document.querySelector('.world'), X += 16, Y);
-			break;
 
-		case ' ':
-			bFreeze = !bFreeze;
-			break;
 
-		default:
-			console.log('key', event.key);
-			break;
-	}
-}
-
-let pwrunner, X, Y, bFreeze = false;
 
 function main4() {
-	window.addEventListener('keydown', kbHandler);
 	window.addEventListener('resize', windowResize);
 	windowResize();
 	pwrunner = this.world = new PirateWorld({
@@ -53,81 +31,22 @@ function main4() {
 	window.pwrunner = pwrunner;
 	X = 27 * 256;
 	Y = 0;
+
 	let cvs = document.querySelector('.world');
-	pwrunner.preloadTiles(X, Y, cvs.width, cvs.height).then(() => {
-		console.log('starting scrolling');
+	let oImage;
+	loadImage('images/sprites/balloon_0.png').then(img => {
+		oImage = img;
+		return pwrunner.preloadTiles(X, Y, cvs.width, cvs.height);
+	}).then(() => {
 		setInterval(() => {
-			if (!bFreeze) {
-				//X += 2;
-				//Y++;
-			}
-			pwrunner.view(cvs, X, Y);
+			Y++;
+			pwrunner.view(oCvsOffscreen, X, Y);
+			oCvsOffscreen.getContext('2d').drawImage(oImage, (cvs.width - oImage.naturalWidth) >> 1, (cvs.height - oImage.naturalHeight) >> 1);
+			requestAnimationFrame(() => {
+				cvs.getContext('2d').drawImage(oCvsOffscreen, 0, 0);
+			});
 		}, 32);
 	});
-}
-
-
-function main3() {
-	pwrunner = this.world = new PirateWorld({
-		cellSize: 8,
-        scale: 1,
-		hexSize: 16,
-		hexSpace: 4,
-		seed: 0.111,
-		preload: 2,
-		drawGrid: false,
-		drawCoords: false,
-		service: '../build/worker.js'
-	});
-
-	X = 960;
-	Y = -40;
-	async function fetchAndRenderTiles(oCanvas, xTile, yTile) {
-		for (let y = 0; y < (oCanvas.height / pwrunner.cellSize()); ++y) {
-			for (let x = 0; x < (oCanvas.width / pwrunner.cellSize()); ++x) {
-				let wt = await pwrunner.fetchTile(X + x + xTile, Y + y + yTile);
-				wt.paint();
-				CanvasHelper.draw(oCanvas, wt.canvas, (x + xTile) * pwrunner.cellSize(), (y + yTile) * pwrunner.cellSize());
-			}
-		}
-	}
-
-	let cvs = document.querySelector('.world');
-	fetchAndRenderTiles(cvs, 0, 0).then(() => console.log('done.'));
-	window.addEventListener('keydown', kbHandler);
-}
-
-
-function main2() {
-    pwrunner = this.world = new PirateWorld({
-        seed: 0.111,
-        preload: 2,
-        scale: 2,
-        cellSize: 64,
-        hexSize: 16,
-        drawGrid: true,
-        drawCoords: false,
-        service: '../build/worker.js'
-    });
-
-    X = 960;
-    Y = -40;
-    async function fetchAndRenderTiles(oCanvas, xTile, yTile) {
-        for (let y = 0; y < (oCanvas.height / pwrunner.cellSize()); ++y) {
-            for (let x = 0; x < (oCanvas.width / pwrunner.cellSize()); ++x) {
-                let wt = await pwrunner.fetchTile(X + x + xTile, Y + y + yTile);
-                wt.paint();
-                CanvasHelper.draw(oCanvas,
-					wt.canvas,
-					(x + xTile) * pwrunner.cellSize(),
-					(y + yTile) * pwrunner.cellSize()
-				);
-            }
-        }
-    }
-
-    let cvs = document.querySelector('.world');
-    fetchAndRenderTiles(cvs, 0, 0).then(() => console.log('done.'));
 }
 
 function windowResize() {
@@ -136,6 +55,7 @@ function windowResize() {
 	let wWin = window.innerWidth;
 	oCanvas.height = hWin - 64;
 	oCanvas.width = wWin - 64;
+	oCvsOffscreen = o876.CanvasHelper.clone(oCanvas);
 }
 
 window.addEventListener('load', main4);
