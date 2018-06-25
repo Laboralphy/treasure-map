@@ -1,4 +1,4 @@
-import o876 from './o876';
+import o876 from '../../o876/index';
 const Rainbow = o876.Rainbow;
 
 function _buildGradient() {

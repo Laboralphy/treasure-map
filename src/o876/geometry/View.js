@@ -35,3 +35,5 @@ class View {
 		return [p0, p1];
 	}
 }
+
+module.exports = View;

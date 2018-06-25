@@ -581,6 +581,72 @@ module.exports = Webworkio;
 
 /***/ }),
 
+/***/ "./src/Game.js":
+/*!*********************!*\
+  !*** ./src/Game.js ***!
+  \*********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _osge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./osge */ "./src/osge/index.js");
+/* harmony import */ var _cartography__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cartography */ "./src/cartography/index.js");
+/* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
+
+
+
+
+const SpriteLayer = _osge__WEBPACK_IMPORTED_MODULE_0__["default"].SpriteLayer;
+
+
+class Game extends _osge__WEBPACK_IMPORTED_MODULE_0__["default"].Game {
+
+    constructor() {
+        super();
+        this.carto = new _cartography__WEBPACK_IMPORTED_MODULE_1__["default"]({
+            cellSize: 256,
+            hexSize: 16,
+            scale: 2,
+            seed: 0.111,
+            preload: 1,
+            drawGrid: true,
+            drawCoords: true,
+            service: '../build/worker.js',
+            progress: _Indicators__WEBPACK_IMPORTED_MODULE_2__["default"].progress,
+            verbose: false
+        });
+    }
+
+    async init() {
+        super.init();
+        this.canvas(document.querySelector('.world'));
+        // ballon
+        let oBalloonSprite = new _osge__WEBPACK_IMPORTED_MODULE_0__["default"].Sprite();
+        oBalloonSprite.image = await this.loadImage('images/sprites/balloon_0.png');
+        oBalloonSprite.frameHeight = oBalloonSprite.image.naturalHeight;
+        oBalloonSprite.frameWidth = oBalloonSprite.image.naturalWidth;
+        oBalloonSprite.reference.x = oBalloonSprite.frameWidth >> 1;
+        oBalloonSprite.reference.y = oBalloonSprite.frameHeight - 16;
+        this.sprites.push(oBalloonSprite);
+
+        let sl = new SpriteLayer();
+        sl.sprites.push(oBalloonSprite);
+        this.layers.push(sl);
+    }
+
+    update() {
+        super.update();
+        let v = this.view.points()[0];
+		let c = this.renderCanvas;
+        this.carto.view(c, v);
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (Game);
+
+/***/ }),
+
 /***/ "./src/Indicators.js":
 /*!***************************!*\
   !*** ./src/Indicators.js ***!
@@ -608,500 +674,21 @@ class Indicators {
 
 /***/ }),
 
-/***/ "./src/PirateWorld.js":
-/*!****************************!*\
-  !*** ./src/PirateWorld.js ***!
-  \****************************/
+/***/ "./src/cartography/WorldTile.js":
+/*!**************************************!*\
+  !*** ./src/cartography/WorldTile.js ***!
+  \**************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _WorldGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WorldGenerator */ "./src/WorldGenerator.js");
-/* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! webworkio */ "./node_modules/webworkio/index.js");
-/* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(webworkio__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _WorldTile__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WorldTile */ "./src/WorldTile.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
 
-
-
-
-
-const CanvasHelper = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
-const CLUSTER_SIZE = 16;
-
-class PirateWorld {
-	constructor(wgd) {
-		this.oWorldDef = wgd;
-		this._cache = new _o876__WEBPACK_IMPORTED_MODULE_0___default.a.structures.Cache2D({size: 64});
-        this._wwio = new webworkio__WEBPACK_IMPORTED_MODULE_2___default.a();
-        this._wwio.worker(wgd.service);
-        this._wwio.emit('init', {
-        	seed: wgd.seed,
-			cellSize: wgd.cellSize,
-			clusterSize: CLUSTER_SIZE,
-			hexSize: wgd.hexSize,
-			hexSpacing: wgd.hexSpacing,
-            scale: wgd.scale
-        });
-
-        this._xView = null;
-        this._yView = null;
-		this._fetching = false;
-	}
-
-	log(...args) {
-        if (this.oWorldDef.verbose) {
-            console.log('[world]', ...args);
-        }
-	}
-
-	progress(n100) {
-        this.log('fetching tiles', n100.toString() + '%');
-		if (typeof this.oWorldDef.progress === 'function') {
-            this.oWorldDef.progress(n100);
-		}
-	}
-
-	adjustCacheSize(oCanvas) {
-		let w = oCanvas.width;
-		let h = oCanvas.height;
-		let cellSize = this.cellSize();
-		let m = PirateWorld.getViewPointMetrics(this._xView, this._yView, w, h, cellSize, this.oWorldDef.preload);
-		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
-		if (nNewSize !== this._cache.size()) {
-			this._cache.size(nNewSize);
-			this._wwio.emit('options', {
-				cacheSize: nNewSize
-			});
-			this.log('adjusting cache size :', nNewSize);
-		}
-	}
-
-	view(oCanvas, x, y) {
-		this.adjustCacheSize(oCanvas);
-		if (!this._fetching) {
-			this._fetching = true;
-			this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
-				this._fetching = false;
-				if (tileFetched) {
-					this.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
-				}
-			});
-		}
-		this._xView = x;
-		this._yView = y;
-		this.renderTiles(oCanvas, x, y);
-	}
-
-	cellSize() {
-		return this.oWorldDef.cellSize;
-	}
-
-
-	async fetchTile(x, y) {
-		return new Promise(resolve => {
-			// verification en cache
-			let oWorldTile = new _WorldTile__WEBPACK_IMPORTED_MODULE_3__["default"](x, y, this.cellSize(), {
-				scale: this.oWorldDef.scale,
-				drawGrid: this.oWorldDef.drawGrid,
-				drawCoords: this.oWorldDef.drawCoords
-			});
-			this._cache.push(x, y, oWorldTile).forEach(wt => !!wt && (typeof wt.free === 'function') && wt.free());
-			oWorldTile.lock();
-			this._wwio.emit('tile', {...oWorldTile.getCoords()}, result => {
-				oWorldTile.colormap = result.tile.colormap;
-				oWorldTile.physicmap = result.tile.physicmap;
-				oWorldTile.unlock();
-				resolve(oWorldTile);
-			});
-		});
-	}
-
-	async preloadTiles(x, y, w, h) {
-		let tStart = performance.now();
-		let cellSize = this.cellSize();
-		let m = PirateWorld.getViewPointMetrics(x, y, w, h, cellSize, this.oWorldDef.preload);
-		let yTilePix = 0;
-		let nTileCount = (m.yTo - m.yFrom + 1) * (m.xTo - m.xFrom + 1);
-		let iTile = 0;
-		let nTileFetched = 0;
-		let n100;
-		for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
-			let xTilePix = 0;
-			for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
-				let wt = this._cache.getPayload(xTile, yTile);
-				if (!wt) {
-					// pas encore créée
-                    n100 = (100 * iTile / nTileCount | 0);
-					this.progress(n100);
-					++nTileFetched;
-					wt = await this.fetchTile(xTile, yTile);
-				}
-				// si la tile est partiellement visible il faut la dessiner
-				xTilePix += cellSize;
-				++iTile;
-			}
-			yTilePix += cellSize;
-		}
-		if (nTileFetched) {
-			n100 = 100;
-			this.progress(n100);
-		}
-		return {
-			tileFetched: nTileFetched,
-			timeElapsed: (performance.now() - tStart | 0) / 1000
-		};
-	}
-
-	renderTiles(oCanvas, x, y) {
-		let w = oCanvas.width;
-		let h = oCanvas.height;
-		let cellSize = this.cellSize();
-		let m = PirateWorld.getViewPointMetrics(x, y, w, h, cellSize, 0);
-		let yTilePix = 0;
-		for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
-			let xTilePix = 0;
-			for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
-				let wt = this._cache.getPayload(xTile, yTile);
-				if (wt) {
-					let xScreen = m.xOfs + xTilePix;
-					let yScreen = m.yOfs + yTilePix;
-					// si la tile est partiellement visible il faut la dessiner
-					if (!wt.isPainted() && wt.isMapped()) {
-						wt.paint();
-						wt.colormap = null;
-					}
-					if (wt.isPainted() && wt.isMapped()) {
-						CanvasHelper.draw(oCanvas, wt.canvas, xScreen, yScreen);
-					}
-				}
-				xTilePix += cellSize;
-			}
-			yTilePix += cellSize;
-		}
-    }
-
-    /**
-	 * A partire d'une coordonée centrée sur un rectangle de longueur et largeur spécifiées
-	 * determiner les différente coordonnée de tuiles à calculer
-     * @param x {number} coordonnée du centre du view point
-     * @param y {number}
-     * @param width {number} taille du viewpoint
-     * @param height {number}
-     * @param nBorder {number} taille de la bordure de securité
-     * @return {{xFrom: number, yFrom: number, xTo: *, yTo: *, xOfs: number, yOfs: number}}
-     */
-	static getViewPointMetrics(x, y, width, height, cellSize, nBorder) {
-        let x0 = x - (width >> 1);
-        let y0 = y - (height >> 1);
-        let xFrom = Math.floor(x0 / cellSize) - nBorder;
-        let yFrom = Math.floor(y0 / cellSize) - nBorder;
-        let xTo = Math.floor((x0 + width - 1) / cellSize) + (nBorder);
-        let yTo = Math.floor((y0 + height - 1) / cellSize) + (nBorder);
-        let xOfs = _WorldGenerator__WEBPACK_IMPORTED_MODULE_1__["default"]._mod(x0, cellSize);
-        let yOfs = _WorldGenerator__WEBPACK_IMPORTED_MODULE_1__["default"]._mod(y0, cellSize);
-		return {
-			xFrom,
-			yFrom,
-			xTo,
-			yTo,
-			xOfs: -xOfs - nBorder * cellSize,
-			yOfs: -yOfs - nBorder * cellSize
-		};
-	}
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (PirateWorld);
-
-/***/ }),
-
-/***/ "./src/WorldGenerator.js":
-/*!*******************************!*\
-  !*** ./src/WorldGenerator.js ***!
-  \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _palette__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./palette */ "./src/palette.js");
-
-const Perlin = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
-
-
-const GRADIENT = Object(_palette__WEBPACK_IMPORTED_MODULE_1__["default"])();
-
-class WorldGenerator {
-	constructor(options) {
-		let pcell = new Perlin();
-		pcell.size(options.cellSize / options.scale);
-		pcell.seed(options.seed);
-
-		// le scale ne va agir que sur la physique map
-
-		let pclust = new Perlin();
-		pclust.size(options.clusterSize);
-		pclust.seed(options.seed);
-
-		// les cellule, détail jusqu'au pixel
-		// défini l'élévaltion finale du terrain
-		this._perlinCell = pcell;
-
-		// les cluster, détail jusqu'au cellule
-		// défini l'élévation de base de la cellule correspondante
-		this._perlinCluster = pclust;
-		this._cache = new _o876__WEBPACK_IMPORTED_MODULE_0___default.a.structures.Cache2D({size: options.cacheSize || 64});
-		this._hexSize = options.hexSize || 16;
-		this._hexSpacing = options.hexSpacing || 6;
-		this._scale = options.scale || 1;
-	}
-
-	options(options) {
-		this._cache.size(options.cacheSize || 64);
-	}
-
-	static _mod(n, d) {
-		return _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod(n, d);
-	}
-
-	/**
-	 * Génération d'un cluster
-	 * @param x {number} coordonnées
-	 * @param y {number} du cluster
-	 */
-	generateCluster(x, y) {
-		return this._perlinCluster.generate(x, y);
-	}
-
-
-	_cellFilter15(base, value) {
-		if (base < 0.5) {
-			return value * base;
-		} else {
-			return Math.min(0.99, value * base * 1.5) ;
-		}
-	}
-
-	_cellFilterBinary(base, value) {
-		if (base < 0.5) {
-			return value * 0.5;
-		} else {
-			return value * 0.5 + 0.5;
-		}
-	}
-
-	_cellFilterMed(base, value) {
-		return (base + value) / 2;
-	}
-
-	_cellFilterMinMax(base, value) {
-		if (base < 0.45) {
-			return base * value;
-		} else {
-			return Math.max(0, Math.min(0.99, 1.333333333 * (base - value / 4)));
-		}
-	}
-
-	_cellDepthModulator(x, y, xg, yg, meshSize) {
-		let c = this._hexSpacing;
-		let bInHexagon = this._isOnHexaMesh(xg, yg, meshSize, c);
-		if (!bInHexagon) {
-			return 1;
-		}
-		if (this._isOnHexaMesh(xg, yg, meshSize, c >> 2)) {
-			return 0.333;
-		} else if (this._isOnHexaMesh(xg, yg, meshSize, c >> 1)) {
-			return 0.555;
-		} else {
-			return 0.777;
-		}
-	}
-
-
-    /**
-     * Renvoie true si le point spécifié se trouve sur les lignes d'un maillage hexagonal
-     * @param x {number} coordonnées du point à tester
-     * @param y {number}
-     * @param nSize {number} taille du maillage
-     * @param nThickness {number} épaisseur des ligne du maillage
-     * @returns {boolean}
-     */
-    _isOnHexaMesh(x, y, nSize, nThickness) {
-        const lte = (n, a) => (n - nThickness) <= a * nSize;
-        const gte = (n, a) => (n + nThickness) >= a * nSize;
-        const lt = (n, a) => (n + nThickness) < a * nSize;
-        const gt = (n, a) => (n - nThickness) > a * nSize;
-        const bte = (n, a, b) => gte(n, a) && lte(n, b);
-        const bt = (n, a, b) => gt(n, a) && lt(n, b);
-        const ar = (a, b) => Math.abs(a - b) < nThickness;
-        const mod = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod;
-
-        let s2 = 2 * nSize;
-        let s4 = 4 * nSize;
-        let s6 = 6 * nSize;
-        let s8 = 8 * nSize;
-
-        let ymod6 = mod(y, s6);
-
-        let xmod4 = mod(x, s4);
-        let xmod6 = mod(x, s6);
-        let xmod8 = mod(x, s8);
-
-		const TRIPLE_HEXA = true;
-
-        // permet de créer des zone triple-hexa pour faire varier la continentalité
-        if (TRIPLE_HEXA && bt(xmod8, 2, 5) && bte(ymod6 - nThickness, 2, 5)) {
-            return false;
-        }
-        // permet de créer des zone triple-hexa pour faire varier la continentalité
-        if (TRIPLE_HEXA && bt(xmod8, 4, 6) && bte(ymod6 - nThickness, 2, 5)) {
-            return false;
-        }
-
-        if ((lte(xmod4, 0) || gte(xmod4, 4)) && bte(ymod6, 2, 4)) {
-            return true;
-        }
-        if (bte(xmod4, 2, 2) && (bte(ymod6, 0, 1) || bte(ymod6, 5, 6))) {
-            return true;
-        }
-
-        let p6 = mod(Math.floor(0.5 * x), s6);
-        let p6i = mod(Math.floor(-0.5 * x), s6);
-
-        let q60 = ymod6;
-        let q62 = mod(y + s2, s6);
-        let q64 = mod(y + s4, s6);
-
-
-        if (bte(xmod6, 0, 2) && (ar(p6, q62) || ar(p6i, q64))) {
-            return true;
-        }
-
-        if (bte(xmod6, 2, 4) && (ar(p6, q60) || ar(p6i, q60))) {
-            return true;
-        }
-
-        if (bte(xmod6, 4, 6) && (ar(p6, q64) || ar(p6i, q62))) {
-            return true;
-        }
-
-        return false;
-    }
-
-    _cellProcess(xPix, yPix, xg, yg, base, cell) {
-        return this._cellFilterMinMax(base, cell) *
-            this._cellDepthModulator(xPix, yPix, xg, yg, this._hexSize);
-    }
-
-    /**
-     * Permet d'indexer des zone physique de terrain (déduite à partir de l'altitude min et l'altitude max
-     * @param data
-     * @param meshSize
-     * @returns {Array}
-     */
-    buildCellPhysicMap(data, meshSize) {
-        let aMap = [];
-        function disc(n) {
-            if (n < 0.5) {
-                return 1;
-            }
-            if (n < 0.65) {
-                return 2;
-            }
-            if (n < 0.75) {
-                return 3;
-            }
-            if (n < 0.85) {
-                return 4;
-            }
-            return 5;
-        }
-        data.forEach((row, y) => {
-            let yMesh = Math.floor(y / meshSize);
-            if (!aMap[yMesh]) {
-                aMap[yMesh] = [];
-            }
-            row.forEach((cell, x) => {
-                let xMesh = Math.floor(x / meshSize);
-                if (!aMap[yMesh][xMesh]) {
-                    aMap[yMesh][xMesh] = {
-                        min: 5,
-                        max: 0,
-                        type: 0
-                    };
-                }
-                let m = aMap[yMesh][xMesh];
-                m.min = Math.min(m.min, cell);
-                m.max = Math.max(m.max, cell);
-                m.type = disc(m.min) * 10 + disc(m.max);
-            });
-        });
-        return aMap;
-    }
-
-    computeCell(xCurs, yCurs) {
-        const MESH_SIZE = 16 / this._scale;
-        let clusterSize = this._perlinCluster.size();
-        let heightMap = this._perlinCell.generate(
-            xCurs,
-            yCurs, {
-                noise: (xg, yg, cellData) => {
-                    let xCluster = Math.floor(xg / clusterSize);
-                    let yCluster = Math.floor(yg / clusterSize);
-                    let xClusterMod = WorldGenerator._mod(xg, clusterSize);
-                    let yClusterMod = WorldGenerator._mod(yg, clusterSize);
-                    let data = this.generateCluster(xCluster, yCluster);
-                    return cellData.map((row, y) =>
-                        row.map((cell, x) =>
-                            this._cellProcess(x, y, xg, yg, data[yClusterMod][xClusterMod], cell)
-                        )
-                    );
-                }
-            }
-        );
-        let colorMap = Perlin.colorize(heightMap, GRADIENT);
-        let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
-        return {
-            x: xCurs,
-            y: yCurs,
-            colormap: colorMap,
-            physicmap: physicMap
-        };
-	}
-
-	computeCellCache(xCurs, yCurs) {
-		let payload = this._cache.getPayload(xCurs, yCurs);
-		if (!payload) {
-			payload = this.computeCell(xCurs, yCurs);
-            this._cache.push(xCurs, yCurs, payload).forEach(wt => !!wt && (typeof wt.free === 'function') && wt.free());
-		}
-		return payload;
-	}
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (WorldGenerator);
-
-/***/ }),
-
-/***/ "./src/WorldTile.js":
-/*!**************************!*\
-  !*** ./src/WorldTile.js ***!
-  \**************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-
-const Perlin = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
-const Rainbow = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
-const CanvasHelper = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
+const Perlin = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
+const Rainbow = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
+const CanvasHelper = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
 
 /**
  * Construction des clipart utilisé pour égayer la map
@@ -1343,6 +930,521 @@ class WorldTile {
 
 /***/ }),
 
+/***/ "./src/cartography/index.js":
+/*!**********************************!*\
+  !*** ./src/cartography/index.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./worker/WorldGenerator */ "./src/cartography/worker/WorldGenerator.js");
+/* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! webworkio */ "./node_modules/webworkio/index.js");
+/* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(webworkio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _WorldTile__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WorldTile */ "./src/cartography/WorldTile.js");
+
+
+
+
+
+const CanvasHelper = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
+const CLUSTER_SIZE = 16;
+
+class Cartography {
+	constructor(wgd) {
+		this.oWorldDef = wgd;
+		this._cache = new _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.structures.Cache2D({size: 64});
+        this._wwio = new webworkio__WEBPACK_IMPORTED_MODULE_2___default.a();
+        this._wwio.worker(wgd.service);
+        this._wwio.emit('init', {
+        	seed: wgd.seed,
+			cellSize: wgd.cellSize,
+			clusterSize: CLUSTER_SIZE,
+			hexSize: wgd.hexSize,
+			hexSpacing: wgd.hexSpacing,
+            scale: wgd.scale
+        });
+
+        this._view = new _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector();
+		this._fetching = false;
+	}
+
+	log(...args) {
+        if (this.oWorldDef.verbose) {
+            console.log('[world]', ...args);
+        }
+	}
+
+	progress(n100) {
+        this.log('fetching tiles', n100.toString() + '%');
+		if (typeof this.oWorldDef.progress === 'function') {
+            this.oWorldDef.progress(n100);
+		}
+	}
+
+	adjustCacheSize(oCanvas) {
+		let w = oCanvas.width;
+		let h = oCanvas.height;
+		let cellSize = this.cellSize();
+		let m = Cartography.getViewPointMetrics(this._xView, this._yView, w, h, cellSize, this.oWorldDef.preload);
+		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
+		if (nNewSize !== this._cache.size()) {
+			this._cache.size(nNewSize);
+			this._wwio.emit('options', {
+				cacheSize: nNewSize
+			});
+			this.log('adjusting cache size :', nNewSize);
+		}
+	}
+
+	getView() {
+		return this._view;
+	}
+
+	view(oCanvas, vView) {
+		let x = vView.x;
+		let y = vView.y;
+		this.adjustCacheSize(oCanvas);
+		if (!this._fetching) {
+			this._fetching = true;
+			this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
+				this._fetching = false;
+				if (tileFetched) {
+					this.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
+				}
+			});
+		}
+		this._view.set(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1));
+		this.renderTiles(oCanvas, x, y);
+	}
+
+	cellSize() {
+		return this.oWorldDef.cellSize;
+	}
+
+
+	async fetchTile(x, y) {
+		return new Promise(resolve => {
+			// verification en cache
+			let oWorldTile = new _WorldTile__WEBPACK_IMPORTED_MODULE_3__["default"](x, y, this.cellSize(), {
+				scale: this.oWorldDef.scale,
+				drawGrid: this.oWorldDef.drawGrid,
+				drawCoords: this.oWorldDef.drawCoords
+			});
+			this._cache.push(x, y, oWorldTile).forEach(wt => !!wt && (typeof wt.free === 'function') && wt.free());
+			oWorldTile.lock();
+			this._wwio.emit('tile', {...oWorldTile.getCoords()}, result => {
+				oWorldTile.colormap = result.tile.colormap;
+				oWorldTile.physicmap = result.tile.physicmap;
+				oWorldTile.unlock();
+				resolve(oWorldTile);
+			});
+		});
+	}
+
+	async preloadTiles(x, y, w, h) {
+		let tStart = performance.now();
+		let cellSize = this.cellSize();
+		let m = Cartography.getViewPointMetrics(x, y, w, h, cellSize, this.oWorldDef.preload);
+		let yTilePix = 0;
+		let nTileCount = (m.yTo - m.yFrom + 1) * (m.xTo - m.xFrom + 1);
+		let iTile = 0;
+		let nTileFetched = 0;
+		let n100;
+		for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
+			let xTilePix = 0;
+			for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
+				let wt = this._cache.getPayload(xTile, yTile);
+				if (!wt) {
+					// pas encore créée
+                    n100 = (100 * iTile / nTileCount | 0);
+					this.progress(n100);
+					++nTileFetched;
+					wt = await this.fetchTile(xTile, yTile);
+				}
+				// si la tile est partiellement visible il faut la dessiner
+				xTilePix += cellSize;
+				++iTile;
+			}
+			yTilePix += cellSize;
+		}
+		if (nTileFetched) {
+			n100 = 100;
+			this.progress(n100);
+		}
+		return {
+			tileFetched: nTileFetched,
+			timeElapsed: (performance.now() - tStart | 0) / 1000
+		};
+	}
+
+	renderTiles(oCanvas, x, y) {
+		let w = oCanvas.width;
+		let h = oCanvas.height;
+		let cellSize = this.cellSize();
+		let m = Cartography.getViewPointMetrics(x, y, w, h, cellSize, 0);
+		let yTilePix = 0;
+		for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
+			let xTilePix = 0;
+			for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
+				let wt = this._cache.getPayload(xTile, yTile);
+				if (wt) {
+					let xScreen = m.xOfs + xTilePix;
+					let yScreen = m.yOfs + yTilePix;
+					// si la tile est partiellement visible il faut la dessiner
+					if (!wt.isPainted() && wt.isMapped()) {
+						wt.paint();
+						wt.colormap = null;
+					}
+					if (wt.isPainted() && wt.isMapped()) {
+                        oCanvas.getContext('2d').drawImage(wt.canvas, xScreen, yScreen);
+					}
+				}
+				xTilePix += cellSize;
+			}
+			yTilePix += cellSize;
+		}
+    }
+
+    /**
+	 * A partire d'une coordonée centrée sur un rectangle de longueur et largeur spécifiées
+	 * determiner les différente coordonnée de tuiles à calculer
+     * @param x {number} coordonnée du centre du view point
+     * @param y {number}
+     * @param width {number} taille du viewpoint
+     * @param height {number}
+     * @param nBorder {number} taille de la bordure de securité
+     * @return {{xFrom: number, yFrom: number, xTo: *, yTo: *, xOfs: number, yOfs: number}}
+     */
+	static getViewPointMetrics(x, y, width, height, cellSize, nBorder) {
+        let x0 = x - (width >> 1);
+        let y0 = y - (height >> 1);
+        let xFrom = Math.floor(x0 / cellSize) - nBorder;
+        let yFrom = Math.floor(y0 / cellSize) - nBorder;
+        let xTo = Math.floor((x0 + width - 1) / cellSize) + (nBorder);
+        let yTo = Math.floor((y0 + height - 1) / cellSize) + (nBorder);
+        let xOfs = _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1__["default"]._mod(x0, cellSize);
+        let yOfs = _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1__["default"]._mod(y0, cellSize);
+		return {
+			xFrom,
+			yFrom,
+			xTo,
+			yTo,
+			xOfs: -xOfs - nBorder * cellSize,
+			yOfs: -yOfs - nBorder * cellSize
+		};
+	}
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (Cartography);
+
+/***/ }),
+
+/***/ "./src/cartography/worker/WorldGenerator.js":
+/*!**************************************************!*\
+  !*** ./src/cartography/worker/WorldGenerator.js ***!
+  \**************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _palette__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./palette */ "./src/cartography/worker/palette.js");
+
+const Perlin = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
+
+
+const GRADIENT = Object(_palette__WEBPACK_IMPORTED_MODULE_1__["default"])();
+
+class WorldGenerator {
+	constructor(options) {
+		let pcell = new Perlin();
+		pcell.size(options.cellSize / options.scale);
+		pcell.seed(options.seed);
+
+		// le scale ne va agir que sur la physique map
+
+		let pclust = new Perlin();
+		pclust.size(options.clusterSize);
+		pclust.seed(options.seed);
+
+		// les cellule, détail jusqu'au pixel
+		// défini l'élévaltion finale du terrain
+		this._perlinCell = pcell;
+
+		// les cluster, détail jusqu'au cellule
+		// défini l'élévation de base de la cellule correspondante
+		this._perlinCluster = pclust;
+		this._cache = new _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.structures.Cache2D({size: options.cacheSize || 64});
+		this._hexSize = options.hexSize || 16;
+		this._hexSpacing = options.hexSpacing || 6;
+		this._scale = options.scale || 1;
+	}
+
+	options(options) {
+		this._cache.size(options.cacheSize || 64);
+	}
+
+	static _mod(n, d) {
+		return _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod(n, d);
+	}
+
+	/**
+	 * Génération d'un cluster
+	 * @param x {number} coordonnées
+	 * @param y {number} du cluster
+	 */
+	generateCluster(x, y) {
+		return this._perlinCluster.generate(x, y);
+	}
+
+
+	_cellFilter15(base, value) {
+		if (base < 0.5) {
+			return value * base;
+		} else {
+			return Math.min(0.99, value * base * 1.5) ;
+		}
+	}
+
+	_cellFilterBinary(base, value) {
+		if (base < 0.5) {
+			return value * 0.5;
+		} else {
+			return value * 0.5 + 0.5;
+		}
+	}
+
+	_cellFilterMed(base, value) {
+		return (base + value) / 2;
+	}
+
+	_cellFilterMinMax(base, value) {
+		if (base < 0.45) {
+			return base * value;
+		} else {
+			return Math.max(0, Math.min(0.99, 1.333333333 * (base - value / 4)));
+		}
+	}
+
+	_cellDepthModulator(x, y, xg, yg, meshSize) {
+		let c = this._hexSpacing;
+		let bInHexagon = this._isOnHexaMesh(xg, yg, meshSize, c);
+		if (!bInHexagon) {
+			return 1;
+		}
+		if (this._isOnHexaMesh(xg, yg, meshSize, c >> 2)) {
+			return 0.333;
+		} else if (this._isOnHexaMesh(xg, yg, meshSize, c >> 1)) {
+			return 0.555;
+		} else {
+			return 0.777;
+		}
+	}
+
+
+    /**
+     * Renvoie true si le point spécifié se trouve sur les lignes d'un maillage hexagonal
+     * @param x {number} coordonnées du point à tester
+     * @param y {number}
+     * @param nSize {number} taille du maillage
+     * @param nThickness {number} épaisseur des ligne du maillage
+     * @returns {boolean}
+     */
+    _isOnHexaMesh(x, y, nSize, nThickness) {
+        const lte = (n, a) => (n - nThickness) <= a * nSize;
+        const gte = (n, a) => (n + nThickness) >= a * nSize;
+        const lt = (n, a) => (n + nThickness) < a * nSize;
+        const gt = (n, a) => (n - nThickness) > a * nSize;
+        const bte = (n, a, b) => gte(n, a) && lte(n, b);
+        const bt = (n, a, b) => gt(n, a) && lt(n, b);
+        const ar = (a, b) => Math.abs(a - b) < nThickness;
+        const mod = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod;
+
+        let s2 = 2 * nSize;
+        let s4 = 4 * nSize;
+        let s6 = 6 * nSize;
+        let s8 = 8 * nSize;
+
+        let ymod6 = mod(y, s6);
+
+        let xmod4 = mod(x, s4);
+        let xmod6 = mod(x, s6);
+        let xmod8 = mod(x, s8);
+
+		const TRIPLE_HEXA = true;
+
+        // permet de créer des zone triple-hexa pour faire varier la continentalité
+        if (TRIPLE_HEXA && bt(xmod8, 2, 5) && bte(ymod6 - nThickness, 2, 5)) {
+            return false;
+        }
+        // permet de créer des zone triple-hexa pour faire varier la continentalité
+        if (TRIPLE_HEXA && bt(xmod8, 4, 6) && bte(ymod6 - nThickness, 2, 5)) {
+            return false;
+        }
+
+        if ((lte(xmod4, 0) || gte(xmod4, 4)) && bte(ymod6, 2, 4)) {
+            return true;
+        }
+        if (bte(xmod4, 2, 2) && (bte(ymod6, 0, 1) || bte(ymod6, 5, 6))) {
+            return true;
+        }
+
+        let p6 = mod(Math.floor(0.5 * x), s6);
+        let p6i = mod(Math.floor(-0.5 * x), s6);
+
+        let q60 = ymod6;
+        let q62 = mod(y + s2, s6);
+        let q64 = mod(y + s4, s6);
+
+
+        if (bte(xmod6, 0, 2) && (ar(p6, q62) || ar(p6i, q64))) {
+            return true;
+        }
+
+        if (bte(xmod6, 2, 4) && (ar(p6, q60) || ar(p6i, q60))) {
+            return true;
+        }
+
+        if (bte(xmod6, 4, 6) && (ar(p6, q64) || ar(p6i, q62))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    _cellProcess(xPix, yPix, xg, yg, base, cell) {
+        return this._cellFilterMinMax(base, cell) *
+            this._cellDepthModulator(xPix, yPix, xg, yg, this._hexSize);
+    }
+
+    /**
+     * Permet d'indexer des zone physique de terrain (déduite à partir de l'altitude min et l'altitude max
+     * @param data
+     * @param meshSize
+     * @returns {Array}
+     */
+    buildCellPhysicMap(data, meshSize) {
+        let aMap = [];
+        function disc(n) {
+            if (n < 0.5) {
+                return 1;
+            }
+            if (n < 0.65) {
+                return 2;
+            }
+            if (n < 0.75) {
+                return 3;
+            }
+            if (n < 0.85) {
+                return 4;
+            }
+            return 5;
+        }
+        data.forEach((row, y) => {
+            let yMesh = Math.floor(y / meshSize);
+            if (!aMap[yMesh]) {
+                aMap[yMesh] = [];
+            }
+            row.forEach((cell, x) => {
+                let xMesh = Math.floor(x / meshSize);
+                if (!aMap[yMesh][xMesh]) {
+                    aMap[yMesh][xMesh] = {
+                        min: 5,
+                        max: 0,
+                        type: 0
+                    };
+                }
+                let m = aMap[yMesh][xMesh];
+                m.min = Math.min(m.min, cell);
+                m.max = Math.max(m.max, cell);
+                m.type = disc(m.min) * 10 + disc(m.max);
+            });
+        });
+        return aMap;
+    }
+
+    computeCell(xCurs, yCurs) {
+        const MESH_SIZE = 16 / this._scale;
+        let clusterSize = this._perlinCluster.size();
+        let heightMap = this._perlinCell.generate(
+            xCurs,
+            yCurs, {
+                noise: (xg, yg, cellData) => {
+                    let xCluster = Math.floor(xg / clusterSize);
+                    let yCluster = Math.floor(yg / clusterSize);
+                    let xClusterMod = WorldGenerator._mod(xg, clusterSize);
+                    let yClusterMod = WorldGenerator._mod(yg, clusterSize);
+                    let data = this.generateCluster(xCluster, yCluster);
+                    return cellData.map((row, y) =>
+                        row.map((cell, x) =>
+                            this._cellProcess(x, y, xg, yg, data[yClusterMod][xClusterMod], cell)
+                        )
+                    );
+                }
+            }
+        );
+        let colorMap = Perlin.colorize(heightMap, GRADIENT);
+        let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
+        return {
+            x: xCurs,
+            y: yCurs,
+            colormap: colorMap,
+            physicmap: physicMap
+        };
+	}
+
+	computeCellCache(xCurs, yCurs) {
+		let payload = this._cache.getPayload(xCurs, yCurs);
+		if (!payload) {
+			payload = this.computeCell(xCurs, yCurs);
+            this._cache.push(xCurs, yCurs, payload).forEach(wt => !!wt && (typeof wt.free === 'function') && wt.free());
+		}
+		return payload;
+	}
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (WorldGenerator);
+
+/***/ }),
+
+/***/ "./src/cartography/worker/palette.js":
+/*!*******************************************!*\
+  !*** ./src/cartography/worker/palette.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+
+const Rainbow = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
+
+function _buildGradient() {
+    return Rainbow.gradient({
+        0: '#dec673',
+        40: '#efd69c',
+        48: '#d6a563',
+        50: '#572507',
+        55: '#d2a638',
+        75: '#b97735',
+        99: '#efce8c'
+    })
+        .map(x => Rainbow.parse(x))
+        .map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (_buildGradient);
+
+/***/ }),
+
 /***/ "./src/main.js":
 /*!*********************!*\
   !*** ./src/main.js ***!
@@ -1354,26 +1456,18 @@ class WorldTile {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
 /* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _PirateWorld__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PirateWorld */ "./src/PirateWorld.js");
-/* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
-
-
-
-const CanvasHelper = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
-
-
-let oCvsOffscreen;
-
-
-let pwrunner, X, Y;
+/* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
+/* harmony import */ var _Game__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Game */ "./src/Game.js");
 
 
 
 
+
+/*
 function main4() {
 	window.addEventListener('resize', windowResize);
 	windowResize();
-	pwrunner = this.world = new _PirateWorld__WEBPACK_IMPORTED_MODULE_1__["default"]({
+	pwrunner = this.world = new Cartography({
 		cellSize: 256,
 		hexSize: 16,
 		scale: 2,
@@ -1382,8 +1476,8 @@ function main4() {
 		drawGrid: true,
 		drawCoords: true,
 		service: '../build/worker.js',
-		progress: _Indicators__WEBPACK_IMPORTED_MODULE_2__["default"].progress,
-		verbose: true
+		progress: Indicators.progress,
+		verbose: false
 	});
 
 	window.pwrunner = pwrunner;
@@ -1405,18 +1499,29 @@ function main4() {
 			});
 		}, 32);
 	});
+}*/
+
+let game;
+
+function main5() {
+	game = new _Game__WEBPACK_IMPORTED_MODULE_2__["default"]();
+	game.init();
+	window.game = game;
+    window.addEventListener('resize', windowResize);
+    windowResize();
+    game.start();
 }
 
 function windowResize() {
 	let oCanvas = document.querySelector('canvas.world');
 	let hWin = window.innerHeight;
 	let wWin = window.innerWidth;
-	oCanvas.height = hWin - 64;
+	oCanvas.height = hWin - 96;
 	oCanvas.width = wWin - 64;
-	oCvsOffscreen = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper.clone(oCanvas);
+	game.canvas(oCanvas);
 }
 
-window.addEventListener('load', main4);
+window.addEventListener('load', main5);
 
 
 /***/ }),
@@ -1509,9 +1614,8 @@ module.exports = ArrayHelper;
   !*** ./src/o876/CanvasHelper.js ***!
   \**********************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-const SpellBook = __webpack_require__(/*! ./SpellBook */ "./src/o876/SpellBook.js");
 class CanvasHelper {
     /**
      * fabrique et renvoie un canvas
@@ -1541,30 +1645,6 @@ class CanvasHelper {
             oCanvas.height
         );
         return oCanvas;
-    }
-
-    static draw(oDestCvs, ...args) {
-        let ctx, aArgs = [...args];
-        switch (SpellBook.typeMap(aArgs)) {
-            case 'onn':
-            case 'onnnnnn':
-            case 'onnnnnnnn':
-                oDestCvs.getContext('2d').drawImage(...args);
-                break;
-
-            case 'onnn':
-            case 'onnnnnnn':
-            case 'onnnnnnnnn':
-                let ctx = oDestCvs.getContext('2d');
-                let globAlpha = ctx.globalAlpha;
-                ctx.globalAlpha = aArgs[1];
-                ctx.drawImage(...args);
-                ctx.globalAlpha = globAlpha;
-                break;
-
-            default:
-                throw new Error('could not do anything with this parameters');
-        }
     }
 }
 
@@ -3959,7 +4039,7 @@ module.exports = {
 /**
  * A simple helper class
  */
-module.exports = class Helper {
+class Helper {
 	/**
 	 * Distance between 2 points
 	 * @param x1 {Number} point 1 coordinates
@@ -4018,7 +4098,9 @@ module.exports = class Helper {
 	static polar2rect(angle, norm) {
 		return {dx: norm * Math.cos(angle), dy: norm * Math.sin(angle)};
 	}
-};
+}
+
+module.exports = Helper;
 
 /***/ }),
 
@@ -4035,7 +4117,7 @@ module.exports = class Helper {
 
 const Helper = __webpack_require__(/*! ./Helper */ "./src/o876/geometry/Helper.js");
 
-module.exports = class Point {
+class Point {
 	constructor(x, y) {
 		if (typeof x === 'object' && ('x' in x) && ('y' in x)) {
 			this.x = x.x;
@@ -4054,7 +4136,9 @@ module.exports = class Point {
 	distance(p) {
 		return Helper.distance(p.x, p.y, this.x, this.y);
 	}
-};
+}
+
+module.exports = Point;
 
 /***/ }),
 
@@ -4075,7 +4159,7 @@ module.exports = class Point {
 
 const Helper = __webpack_require__(/*! ./Helper.js */ "./src/o876/geometry/Helper.js");
 
-module.exports = class Vector {
+class Vector {
 	/**
 	 * The constructor accepts one two parameters
 	 * If one parameter is given, the constructor will consider it as
@@ -4210,7 +4294,9 @@ module.exports = class Vector {
 		this.set(v.dx, v.dy);
 		return this;
 	}
-};
+}
+
+module.exports = Vector;
 
 /***/ }),
 
@@ -4259,6 +4345,8 @@ class View {
 	}
 }
 
+module.exports = View;
+
 /***/ }),
 
 /***/ "./src/o876/geometry/index.js":
@@ -4271,7 +4359,7 @@ class View {
 const Helper = __webpack_require__(/*! ./Helper */ "./src/o876/geometry/Helper.js");
 const Point = __webpack_require__(/*! ./Point */ "./src/o876/geometry/Point.js");
 const Vector = __webpack_require__(/*! ./Vector */ "./src/o876/geometry/Vector.js");
-const View = __webpack_require__(/*! ../geometry/View */ "./src/o876/geometry/View.js");
+const View = __webpack_require__(/*! ./View */ "./src/o876/geometry/View.js");
 
 module.exports = {
 	Helper,
@@ -4714,35 +4802,411 @@ module.exports = {
 
 /***/ }),
 
-/***/ "./src/palette.js":
-/*!************************!*\
-  !*** ./src/palette.js ***!
-  \************************/
+/***/ "./src/osge/Animation.js":
+/*!*******************************!*\
+  !*** ./src/osge/Animation.js ***!
+  \*******************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+/** Animation : Classe chargée de calculer les frames d'animation
+ * O876 raycaster project
+ * 2012-01-01 Raphaël Marandet
+ */
 
-const Rainbow = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
+const LOOP_NONE = 0;
+const LOOP_FORWARD = 1;
+const LOOP_YOYO = 2;
+const LOOP_RANDOM = 3;
 
-function _buildGradient() {
-    return Rainbow.gradient({
-        0: '#dec673',
-        40: '#efd69c',
-        48: '#d6a563',
-        50: '#572507',
-        55: '#d2a638',
-        75: '#b97735',
-        99: '#efce8c'
-    })
-        .map(x => Rainbow.parse(x))
-        .map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
+class Animation {
+	constructor() {
+		this.start = 0; // frame de début
+		this.index = 0; // index de la frame en cours d'affichage
+		this.count = 1; // nombre total de frames
+		this.duration = 0; // durée de chaque frame, plus la valeur est grande plus l'animation est lente
+		this.time = 0; // temps
+		this.loop = 0; // type de boucle 1: boucle forward; 2: boucle yoyo 3: random
+		this.frame = 0; // Frame actuellement affichée
+		this._loopDir = 1; // direction de la boucle (pour yoyo)
+	  	this._bOver = false;
+	}
+
+	animate(nInc) {
+		if (this.count <= 1 || this.duration === 0) {
+			return this.index + this.start;
+		}
+		this.time += nInc;
+		// Dépassement de duration (pour une seule fois)
+		if (this.time >= this.duration) {
+			this.time -= this.duration;
+			if (this.loop === 3) {
+				this.index = Math.random() * this.count | 0;
+			} else {
+				this.index += this._loopDir;
+			}
+		}
+		// pour les éventuels très gros dépassement de duration (pas de boucle)
+		if (this.time >= this.duration) {
+			this.index += this._loopDir * (this.time / this.duration | 0);
+			this.time %= this.duration;
+		}
+
+		switch (this.loop) {
+			case 0:
+				if (this.index >= this.count) {
+					this.index = this.count - 1;
+					this._bOver = true;
+				}
+				break;
+
+			case 1:
+				if (this.index >= this.count) {
+					this.index = 0;
+				}
+				break;
+
+			case 2:
+				if (this.index >= this.count) {
+					this.index = this.count - 1;
+					this._loopDir = -1;
+				}
+				if (this.index <= 0) {
+					this._loopDir = 1;
+					this.index = 0;
+				}
+				break;
+
+			default:
+				if (this.index >= this.count) {
+					this.index = this.count - 1;
+				}
+		}
+		this.frame = this.index + this.start;
+		return this.frame;
+	}
+
+	reset() {
+		this.index = 0;
+		this.time = 0;
+		this._loopDir = 1;
+		this._bOver = false;
+	}
+
+	isOver() {
+		return this._bOver;
+	}
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (_buildGradient);
+/* harmony default export */ __webpack_exports__["default"] = (Animation);
+
+/***/ }),
+
+/***/ "./src/osge/Game.js":
+/*!**************************!*\
+  !*** ./src/osge/Game.js ***!
+  \**************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Time__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Time */ "./src/osge/Time.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_1__);
+
+
+const View = _o876__WEBPACK_IMPORTED_MODULE_1___default.a.geometry.View;
+
+
+
+class Game {
+
+	constructor() {
+		this._interval = null;
+		this.renderCanvas = null;
+		this.screenCanvas = null;
+		this._time = new _Time__WEBPACK_IMPORTED_MODULE_0__["default"]();
+		this._time.period = 40;
+		this.sprites = [];
+		this.view = new View();
+		this.layers = [];
+	}
+
+	start() {
+		if (this._interval === null) {
+            this._interval = setInterval(() => this.doomloop(), this._time.period);
+		}
+	}
+
+	stop() {
+        if (this._interval) {
+            clearInterval(this._interval);
+        }
+	}
+
+	doomloop() {
+		let n = this._time.process(performance.now());
+		for (let i = 0; i < n; ++i) {
+			this.update();
+        }
+		requestAnimationFrame(() => this.render());
+	}
+
+	forEachLayer(f) {
+		this.layers.forEach(f);
+	}
+
+	canvas(oCanvas) {
+		this.screenCanvas = oCanvas;
+        this.renderCanvas = _o876__WEBPACK_IMPORTED_MODULE_1___default.a.CanvasHelper.clone(oCanvas);
+        let w = oCanvas.width;
+        let h = oCanvas.height;
+        this.view.width(w);
+        this.view.height(h);
+        this.view.offset(new _o876__WEBPACK_IMPORTED_MODULE_1___default.a.geometry.Vector(-(w >> 1), -(h >> 1)));
+	}
+
+	/**
+	 * chargement asynchrone d'une image
+	 * @param sImage {string} url de l'image
+	 * @returns {Promise<Image>}
+	 */
+	async loadImage(sImage) {
+		return new Promise(resolve => {
+			let oImage = new Image();
+			oImage.addEventListener('load', event => resolve(oImage));
+			oImage.setAttribute('src', sImage);
+		});
+	}
+
+	async init() {
+	}
+
+	updateLayer(li) {
+        li.view = this.view;
+        li.update();
+	}
+
+	update() {
+		this.forEachLayer(l => this.updateLayer(l))
+	}
+
+	render() {
+		let sc = this.screenCanvas;
+		if (sc) {
+			let rc = this.renderCanvas;
+			this.forEachLayer(l => {
+				l.render(rc);
+            });
+			let p = this.view.points()[0];
+            sc.getContext('2d')
+				.drawImage(this.renderCanvas, 0, 0);
+		} else {
+			throw new Error('i need a canvas !');
+		}
+	}
+
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (Game);
+
+/***/ }),
+
+/***/ "./src/osge/Layer.js":
+/*!***************************!*\
+  !*** ./src/osge/Layer.js ***!
+  \***************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+
+const View = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.View;
+
+class Layer {
+    constructor() {
+        this.view = new View();
+    }
+
+
+    update() {
+    }
+
+    render(ctx) {
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (Layer);
+
+/***/ }),
+
+/***/ "./src/osge/Sprite.js":
+/*!****************************!*\
+  !*** ./src/osge/Sprite.js ***!
+  \****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _Animation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Animation */ "./src/osge/Animation.js");
+
+
+
+const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+
+class Sprite {
+	constructor() {
+		this.position = new Vector();
+		this.reference = new Vector();
+		this.image = null;
+		this.frameWidth = 0;
+		this.frameHeight = 0;
+		this.animation = new _Animation__WEBPACK_IMPORTED_MODULE_1__["default"]();
+        this._iFrame = 0;
+        this.alpha = 1;
+	}
+
+	animate(nInc) {
+        this._iFrame = this.animation.animate(nInc);
+	}
+
+	draw(ctx, vOffset) {
+		let n = this._iFrame;
+		let w = this.frameWidth;
+		let h = this.frameHeight;
+		let p = this.position.sub(vOffset);
+		let a = this.alpha;
+		if (a) {
+			let fSaveAlpha;
+			if (a !== 1) {
+				fSaveAlpha = ctx.globalAlpha;
+			}
+            ctx.drawImage(
+                this.image,
+                n * w,
+                0,
+                w,
+                h,
+                p.x,
+                p.y,
+                w,
+                h
+            );
+            if (a !== 1) {
+                ctx.globalAlpha = fSaveAlpha;
+            }
+		}
+	}
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (Sprite);
+
+/***/ }),
+
+/***/ "./src/osge/SpriteLayer.js":
+/*!*********************************!*\
+  !*** ./src/osge/SpriteLayer.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Layer */ "./src/osge/Layer.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+class SpriteLayer extends _Layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    constructor() {
+        super();
+        this.sprites = [];
+    }
+
+    render(canvas) {
+        super.render(canvas);
+        let ctx = canvas.getContext('2d');
+        let p = this.view.position();
+        let v = this.sprites;
+        for (let i = 0, l = v.length; i < l; ++i) {
+            let vi = v[i];
+            vi.draw(ctx, p.add(vi.reference));
+        }
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (SpriteLayer);
+
+/***/ }),
+
+/***/ "./src/osge/Time.js":
+/*!**************************!*\
+  !*** ./src/osge/Time.js ***!
+  \**************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+class Time {
+    constructor() {
+        this.period = 0;
+        this._last = 0;
+    }
+
+    process(t) {
+        let n = 0, p = this.period;
+        if (p) {
+            while (this._last <= t) {
+                ++n;
+                this._last += p;
+            }
+            return n;
+        } else {
+            throw new Error('period must be set > 0');
+        }
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (Time);
+
+/***/ }),
+
+/***/ "./src/osge/index.js":
+/*!***************************!*\
+  !*** ./src/osge/index.js ***!
+  \***************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Animation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Animation */ "./src/osge/Animation.js");
+/* harmony import */ var _Sprite__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Sprite */ "./src/osge/Sprite.js");
+/* harmony import */ var _Time__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Time */ "./src/osge/Time.js");
+/* harmony import */ var _Layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Layer */ "./src/osge/Layer.js");
+/* harmony import */ var _Game__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Game */ "./src/osge/Game.js");
+/* harmony import */ var _SpriteLayer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./SpriteLayer */ "./src/osge/SpriteLayer.js");
+
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+	Animation: _Animation__WEBPACK_IMPORTED_MODULE_0__["default"], Sprite: _Sprite__WEBPACK_IMPORTED_MODULE_1__["default"], Time: _Time__WEBPACK_IMPORTED_MODULE_2__["default"], Layer: _Layer__WEBPACK_IMPORTED_MODULE_3__["default"], Game: _Game__WEBPACK_IMPORTED_MODULE_4__["default"], SpriteLayer: _SpriteLayer__WEBPACK_IMPORTED_MODULE_5__["default"]
+});
 
 /***/ })
 

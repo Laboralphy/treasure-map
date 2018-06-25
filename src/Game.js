@@ -1,43 +1,51 @@
 import osge from './osge';
+import Cartography from './cartography';
+import Indicators from './Indicators';
 
-class Game {
-
-	constructor() {
-		this.sprites = [];
-		this.view = new osge.View();
-	}
-
-	/**
-	 * chargement asynchrone d'une image
-	 * @param sImage {string} url de l'image
-	 * @returns {Promise<Image>}
-	 */
-	async loadImage(sImage) {
-		return new Promise(resolve => {
-			let oImage = new Image();
-			oImage.addEventListener('load', event => resolve(oImage));
-			oImage.setAttribute('src', sImage);
-		});
-	}
+const SpriteLayer = osge.SpriteLayer;
 
 
-	async init() {
-		// ballon
-		let oBalloonSprite = new osge.Sprite();
-		oBalloonSprite.image = await this.loadImage('images/sprites/balloon_0.png');
-		oBalloonSprite.frameHeight = oBalloonSprite.image.naturalHeight;
-		oBalloonSprite.frameWidth = oBalloonSprite.image.naturalWidth;
+class Game extends osge.Game {
 
-		this.sprites.push(oBalloonSprite);
-	}
+    constructor() {
+        super();
+        this.carto = new Cartography({
+            cellSize: 256,
+            hexSize: 16,
+            scale: 2,
+            seed: 0.111,
+            preload: 1,
+            drawGrid: true,
+            drawCoords: true,
+            service: '../build/worker.js',
+            progress: Indicators.progress,
+            verbose: false
+        });
+    }
 
-	update() {
+    async init() {
+        super.init();
+        this.canvas(document.querySelector('.world'));
+        // ballon
+        let oBalloonSprite = new osge.Sprite();
+        oBalloonSprite.image = await this.loadImage('images/sprites/balloon_0.png');
+        oBalloonSprite.frameHeight = oBalloonSprite.image.naturalHeight;
+        oBalloonSprite.frameWidth = oBalloonSprite.image.naturalWidth;
+        oBalloonSprite.reference.x = oBalloonSprite.frameWidth >> 1;
+        oBalloonSprite.reference.y = oBalloonSprite.frameHeight - 16;
+        this.sprites.push(oBalloonSprite);
 
-	}
+        let sl = new SpriteLayer();
+        sl.sprites.push(oBalloonSprite);
+        this.layers.push(sl);
+    }
 
-
-	render() {
-
-	}
-
+    update() {
+        super.update();
+        let v = this.view.points()[0];
+		let c = this.renderCanvas;
+        this.carto.view(c, v);
+    }
 }
+
+export default Game;

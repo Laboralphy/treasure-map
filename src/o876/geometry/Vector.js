@@ -8,7 +8,7 @@
 
 const Helper = require('./Helper.js');
 
-module.exports = class Vector {
+class Vector {
 	/**
 	 * The constructor accepts one two parameters
 	 * If one parameter is given, the constructor will consider it as
@@ -143,4 +143,6 @@ module.exports = class Vector {
 		this.set(v.dx, v.dy);
 		return this;
 	}
-};
+}
+
+module.exports = Vector;

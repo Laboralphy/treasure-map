@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./src/service.js");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/cartography/worker/index.js");
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -581,20 +581,20 @@ module.exports = Webworkio;
 
 /***/ }),
 
-/***/ "./src/WorldGenerator.js":
-/*!*******************************!*\
-  !*** ./src/WorldGenerator.js ***!
-  \*******************************/
+/***/ "./src/cartography/worker/WorldGenerator.js":
+/*!**************************************************!*\
+  !*** ./src/cartography/worker/WorldGenerator.js ***!
+  \**************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _palette__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./palette */ "./src/palette.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _palette__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./palette */ "./src/cartography/worker/palette.js");
 
-const Perlin = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
+const Perlin = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
 
 
 const GRADIENT = Object(_palette__WEBPACK_IMPORTED_MODULE_1__["default"])();
@@ -618,7 +618,7 @@ class WorldGenerator {
 		// les cluster, détail jusqu'au cellule
 		// défini l'élévation de base de la cellule correspondante
 		this._perlinCluster = pclust;
-		this._cache = new _o876__WEBPACK_IMPORTED_MODULE_0___default.a.structures.Cache2D({size: options.cacheSize || 64});
+		this._cache = new _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.structures.Cache2D({size: options.cacheSize || 64});
 		this._hexSize = options.hexSize || 16;
 		this._hexSpacing = options.hexSpacing || 6;
 		this._scale = options.scale || 1;
@@ -629,7 +629,7 @@ class WorldGenerator {
 	}
 
 	static _mod(n, d) {
-		return _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod(n, d);
+		return _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod(n, d);
 	}
 
 	/**
@@ -702,7 +702,7 @@ class WorldGenerator {
         const bte = (n, a, b) => gte(n, a) && lte(n, b);
         const bt = (n, a, b) => gt(n, a) && lt(n, b);
         const ar = (a, b) => Math.abs(a - b) < nThickness;
-        const mod = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod;
+        const mod = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod;
 
         let s2 = 2 * nSize;
         let s4 = 4 * nSize;
@@ -851,6 +851,81 @@ class WorldGenerator {
 
 /***/ }),
 
+/***/ "./src/cartography/worker/index.js":
+/*!*****************************************!*\
+  !*** ./src/cartography/worker/index.js ***!
+  \*****************************************/
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _WorldGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WorldGenerator */ "./src/cartography/worker/WorldGenerator.js");
+/* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! webworkio */ "./node_modules/webworkio/index.js");
+/* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(webworkio__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+
+class Index {
+    constructor() {
+        this._generator = null;
+        let wwio = new webworkio__WEBPACK_IMPORTED_MODULE_1___default.a();
+		wwio.worker();
+
+		wwio.on('init', (options) => {
+		    this._generator = new _WorldGenerator__WEBPACK_IMPORTED_MODULE_0__["default"](options);
+        });
+
+		wwio.on('options', (options) => {
+			this._generator.options(options);
+		});
+
+        wwio.on('tile', ({x, y}, cb) => {
+            cb({tile: this._generator.computeCellCache(x, y)});
+        });
+
+		this._wwio = wwio;
+	}
+}
+
+const service = new Index();
+
+
+/***/ }),
+
+/***/ "./src/cartography/worker/palette.js":
+/*!*******************************************!*\
+  !*** ./src/cartography/worker/palette.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+
+const Rainbow = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
+
+function _buildGradient() {
+    return Rainbow.gradient({
+        0: '#dec673',
+        40: '#efd69c',
+        48: '#d6a563',
+        50: '#572507',
+        55: '#d2a638',
+        75: '#b97735',
+        99: '#efce8c'
+    })
+        .map(x => Rainbow.parse(x))
+        .map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (_buildGradient);
+
+/***/ }),
+
 /***/ "./src/o876/ArrayHelper.js":
 /*!*********************************!*\
   !*** ./src/o876/ArrayHelper.js ***!
@@ -939,9 +1014,8 @@ module.exports = ArrayHelper;
   !*** ./src/o876/CanvasHelper.js ***!
   \**********************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-const SpellBook = __webpack_require__(/*! ./SpellBook */ "./src/o876/SpellBook.js");
 class CanvasHelper {
     /**
      * fabrique et renvoie un canvas
@@ -971,30 +1045,6 @@ class CanvasHelper {
             oCanvas.height
         );
         return oCanvas;
-    }
-
-    static draw(oDestCvs, ...args) {
-        let ctx, aArgs = [...args];
-        switch (SpellBook.typeMap(aArgs)) {
-            case 'onn':
-            case 'onnnnnn':
-            case 'onnnnnnnn':
-                oDestCvs.getContext('2d').drawImage(...args);
-                break;
-
-            case 'onnn':
-            case 'onnnnnnn':
-            case 'onnnnnnnnn':
-                let ctx = oDestCvs.getContext('2d');
-                let globAlpha = ctx.globalAlpha;
-                ctx.globalAlpha = aArgs[1];
-                ctx.drawImage(...args);
-                ctx.globalAlpha = globAlpha;
-                break;
-
-            default:
-                throw new Error('could not do anything with this parameters');
-        }
     }
 }
 
@@ -3389,7 +3439,7 @@ module.exports = {
 /**
  * A simple helper class
  */
-module.exports = class Helper {
+class Helper {
 	/**
 	 * Distance between 2 points
 	 * @param x1 {Number} point 1 coordinates
@@ -3448,7 +3498,9 @@ module.exports = class Helper {
 	static polar2rect(angle, norm) {
 		return {dx: norm * Math.cos(angle), dy: norm * Math.sin(angle)};
 	}
-};
+}
+
+module.exports = Helper;
 
 /***/ }),
 
@@ -3465,7 +3517,7 @@ module.exports = class Helper {
 
 const Helper = __webpack_require__(/*! ./Helper */ "./src/o876/geometry/Helper.js");
 
-module.exports = class Point {
+class Point {
 	constructor(x, y) {
 		if (typeof x === 'object' && ('x' in x) && ('y' in x)) {
 			this.x = x.x;
@@ -3484,7 +3536,9 @@ module.exports = class Point {
 	distance(p) {
 		return Helper.distance(p.x, p.y, this.x, this.y);
 	}
-};
+}
+
+module.exports = Point;
 
 /***/ }),
 
@@ -3505,7 +3559,7 @@ module.exports = class Point {
 
 const Helper = __webpack_require__(/*! ./Helper.js */ "./src/o876/geometry/Helper.js");
 
-module.exports = class Vector {
+class Vector {
 	/**
 	 * The constructor accepts one two parameters
 	 * If one parameter is given, the constructor will consider it as
@@ -3640,7 +3694,9 @@ module.exports = class Vector {
 		this.set(v.dx, v.dy);
 		return this;
 	}
-};
+}
+
+module.exports = Vector;
 
 /***/ }),
 
@@ -3689,6 +3745,8 @@ class View {
 	}
 }
 
+module.exports = View;
+
 /***/ }),
 
 /***/ "./src/o876/geometry/index.js":
@@ -3701,7 +3759,7 @@ class View {
 const Helper = __webpack_require__(/*! ./Helper */ "./src/o876/geometry/Helper.js");
 const Point = __webpack_require__(/*! ./Point */ "./src/o876/geometry/Point.js");
 const Vector = __webpack_require__(/*! ./Vector */ "./src/o876/geometry/Vector.js");
-const View = __webpack_require__(/*! ../geometry/View */ "./src/o876/geometry/View.js");
+const View = __webpack_require__(/*! ./View */ "./src/o876/geometry/View.js");
 
 module.exports = {
 	Helper,
@@ -4141,81 +4199,6 @@ const Cache2D = __webpack_require__(/*! ./Cache2D */ "./src/o876/structures/Cach
 module.exports = {
     Grid, TileLayer, Cache2D
 };
-
-/***/ }),
-
-/***/ "./src/palette.js":
-/*!************************!*\
-  !*** ./src/palette.js ***!
-  \************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-
-const Rainbow = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
-
-function _buildGradient() {
-    return Rainbow.gradient({
-        0: '#dec673',
-        40: '#efd69c',
-        48: '#d6a563',
-        50: '#572507',
-        55: '#d2a638',
-        75: '#b97735',
-        99: '#efce8c'
-    })
-        .map(x => Rainbow.parse(x))
-        .map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (_buildGradient);
-
-/***/ }),
-
-/***/ "./src/service.js":
-/*!************************!*\
-  !*** ./src/service.js ***!
-  \************************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _WorldGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WorldGenerator */ "./src/WorldGenerator.js");
-/* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! webworkio */ "./node_modules/webworkio/index.js");
-/* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(webworkio__WEBPACK_IMPORTED_MODULE_1__);
-
-
-
-
-class Service {
-    constructor() {
-        this._generator = null;
-        let wwio = new webworkio__WEBPACK_IMPORTED_MODULE_1___default.a();
-		wwio.worker();
-
-		wwio.on('init', (options) => {
-		    this._generator = new _WorldGenerator__WEBPACK_IMPORTED_MODULE_0__["default"](options);
-        });
-
-		wwio.on('options', (options) => {
-			this._generator.options(options);
-		});
-
-        wwio.on('tile', ({x, y}, cb) => {
-            cb({tile: this._generator.computeCellCache(x, y)});
-        });
-
-		this._wwio = wwio;
-	}
-}
-
-const service = new Service();
-
 
 /***/ })
 

@@ -2,7 +2,7 @@ import WorldGenerator from './WorldGenerator';
 import Webworkio from 'webworkio';
 
 
-class Service {
+class Index {
     constructor() {
         this._generator = null;
         let wwio = new Webworkio();
@@ -24,4 +24,4 @@ class Service {
 	}
 }
 
-const service = new Service();
+const service = new Index();

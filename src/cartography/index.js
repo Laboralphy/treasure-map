@@ -1,12 +1,12 @@
-import o876 from './o876';
-import WorldGenerator from './WorldGenerator';
+import o876 from '../o876/index';
+import WorldGenerator from './worker/WorldGenerator';
 import Webworkio from 'webworkio';
 import WorldTile from './WorldTile';
 
 const CanvasHelper = o876.CanvasHelper;
 const CLUSTER_SIZE = 16;
 
-class PirateWorld {
+class Cartography {
 	constructor(wgd) {
 		this.oWorldDef = wgd;
 		this._cache = new o876.structures.Cache2D({size: 64});
@@ -21,8 +21,7 @@ class PirateWorld {
             scale: wgd.scale
         });
 
-        this._xView = null;
-        this._yView = null;
+        this._view = new o876.geometry.Vector();
 		this._fetching = false;
 	}
 
@@ -43,7 +42,7 @@ class PirateWorld {
 		let w = oCanvas.width;
 		let h = oCanvas.height;
 		let cellSize = this.cellSize();
-		let m = PirateWorld.getViewPointMetrics(this._xView, this._yView, w, h, cellSize, this.oWorldDef.preload);
+		let m = Cartography.getViewPointMetrics(this._xView, this._yView, w, h, cellSize, this.oWorldDef.preload);
 		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
 		if (nNewSize !== this._cache.size()) {
 			this._cache.size(nNewSize);
@@ -54,7 +53,13 @@ class PirateWorld {
 		}
 	}
 
-	view(oCanvas, x, y) {
+	getView() {
+		return this._view;
+	}
+
+	view(oCanvas, vView) {
+		let x = vView.x;
+		let y = vView.y;
 		this.adjustCacheSize(oCanvas);
 		if (!this._fetching) {
 			this._fetching = true;
@@ -65,8 +70,7 @@ class PirateWorld {
 				}
 			});
 		}
-		this._xView = x;
-		this._yView = y;
+		this._view.set(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1));
 		this.renderTiles(oCanvas, x, y);
 	}
 
@@ -97,7 +101,7 @@ class PirateWorld {
 	async preloadTiles(x, y, w, h) {
 		let tStart = performance.now();
 		let cellSize = this.cellSize();
-		let m = PirateWorld.getViewPointMetrics(x, y, w, h, cellSize, this.oWorldDef.preload);
+		let m = Cartography.getViewPointMetrics(x, y, w, h, cellSize, this.oWorldDef.preload);
 		let yTilePix = 0;
 		let nTileCount = (m.yTo - m.yFrom + 1) * (m.xTo - m.xFrom + 1);
 		let iTile = 0;
@@ -134,7 +138,7 @@ class PirateWorld {
 		let w = oCanvas.width;
 		let h = oCanvas.height;
 		let cellSize = this.cellSize();
-		let m = PirateWorld.getViewPointMetrics(x, y, w, h, cellSize, 0);
+		let m = Cartography.getViewPointMetrics(x, y, w, h, cellSize, 0);
 		let yTilePix = 0;
 		for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
 			let xTilePix = 0;
@@ -149,7 +153,7 @@ class PirateWorld {
 						wt.colormap = null;
 					}
 					if (wt.isPainted() && wt.isMapped()) {
-						CanvasHelper.draw(oCanvas, wt.canvas, xScreen, yScreen);
+                        oCanvas.getContext('2d').drawImage(wt.canvas, xScreen, yScreen);
 					}
 				}
 				xTilePix += cellSize;
@@ -188,4 +192,4 @@ class PirateWorld {
 	}
 }
 
-export default PirateWorld;
+export default Cartography;

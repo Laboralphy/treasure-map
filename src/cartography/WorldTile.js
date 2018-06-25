@@ -1,4 +1,4 @@
-import o876 from './o876';
+import o876 from '../o876/index';
 const Perlin = o876.algorithms.Perlin;
 const Rainbow = o876.Rainbow;
 const CanvasHelper = o876.CanvasHelper;

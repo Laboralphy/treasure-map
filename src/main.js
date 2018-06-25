@@ -1,21 +1,13 @@
 import o876 from './o876'
-import PirateWorld from './PirateWorld';
 import Indicators from './Indicators';
-const CanvasHelper = o876.CanvasHelper;
+import Game from './Game';
 
 
-let oCvsOffscreen;
-
-
-let pwrunner, X, Y;
-
-
-
-
+/*
 function main4() {
 	window.addEventListener('resize', windowResize);
 	windowResize();
-	pwrunner = this.world = new PirateWorld({
+	pwrunner = this.world = new Cartography({
 		cellSize: 256,
 		hexSize: 16,
 		scale: 2,
@@ -25,7 +17,7 @@ function main4() {
 		drawCoords: true,
 		service: '../build/worker.js',
 		progress: Indicators.progress,
-		verbose: true
+		verbose: false
 	});
 
 	window.pwrunner = pwrunner;
@@ -47,15 +39,26 @@ function main4() {
 			});
 		}, 32);
 	});
+}*/
+
+let game;
+
+function main5() {
+	game = new Game();
+	game.init();
+	window.game = game;
+    window.addEventListener('resize', windowResize);
+    windowResize();
+    game.start();
 }
 
 function windowResize() {
 	let oCanvas = document.querySelector('canvas.world');
 	let hWin = window.innerHeight;
 	let wWin = window.innerWidth;
-	oCanvas.height = hWin - 64;
+	oCanvas.height = hWin - 96;
 	oCanvas.width = wWin - 64;
-	oCvsOffscreen = o876.CanvasHelper.clone(oCanvas);
+	game.canvas(oCanvas);
 }
 
-window.addEventListener('load', main4);
+window.addEventListener('load', main5);

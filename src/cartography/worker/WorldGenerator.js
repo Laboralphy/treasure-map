@@ -1,4 +1,4 @@
-import o876 from './o876';
+import o876 from '../../o876/index';
 const Perlin = o876.algorithms.Perlin;
 import _buildGradient from './palette';
 
