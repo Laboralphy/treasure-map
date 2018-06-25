@@ -58,8 +58,8 @@ class Cartography {
 	}
 
 	view(oCanvas, vView) {
-		let x = vView.x;
-		let y = vView.y;
+		let x = Math.round(vView.x);
+		let y = Math.round(vView.y);
 		this.adjustCacheSize(oCanvas);
 		if (!this._fetching) {
 			this._fetching = true;

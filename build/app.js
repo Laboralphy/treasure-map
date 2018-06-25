@@ -590,21 +590,24 @@ module.exports = Webworkio;
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _osge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./osge */ "./src/osge/index.js");
-/* harmony import */ var _cartography__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cartography */ "./src/cartography/index.js");
-/* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _osge__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./osge */ "./src/osge/index.js");
+/* harmony import */ var _cartography__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cartography */ "./src/cartography/index.js");
+/* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
 
 
 
 
-const SpriteLayer = _osge__WEBPACK_IMPORTED_MODULE_0__["default"].SpriteLayer;
+
+const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+const SpriteLayer = _osge__WEBPACK_IMPORTED_MODULE_1__["default"].SpriteLayer;
 
 
-class Game extends _osge__WEBPACK_IMPORTED_MODULE_0__["default"].Game {
-
+class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
     constructor() {
         super();
-        this.carto = new _cartography__WEBPACK_IMPORTED_MODULE_1__["default"]({
+        this.carto = new _cartography__WEBPACK_IMPORTED_MODULE_2__["default"]({
             cellSize: 256,
             hexSize: 16,
             scale: 2,
@@ -613,22 +616,70 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_0__["default"].Game {
             drawGrid: true,
             drawCoords: true,
             service: '../build/worker.js',
-            progress: _Indicators__WEBPACK_IMPORTED_MODULE_2__["default"].progress,
+            progress: _Indicators__WEBPACK_IMPORTED_MODULE_3__["default"].progress,
             verbose: false
         });
+        this.state = {
+            entites: [],
+            player: null,
+            view: new Vector()
+        };
+    }
+
+    onClick(event) {
+        let cvs = this.screenCanvas;
+        let click = this.mouse.add(this.carto._view);
+		this.state.player.data.destination.set(click);
+    }
+
+    processThinker(entity) {
+        let thinker = entity.thinker;
+        let pdata = thinker.data;
+        if (!pdata.destination.isEqual(pdata.position)) {
+            let vDiff = pdata.destination.sub(pdata.position);
+            let nDiff = vDiff.distance();
+            if (nDiff > (pdata.maxSpeed * 4)) {
+				let vMove = vDiff.normalize().mul(pdata.maxSpeed);
+				pdata.position.translate(vMove);
+			} else if (nDiff > (pdata.maxSpeed * 2)) {
+				let vMove = vDiff.normalize().mul(pdata.maxSpeed / 2);
+				pdata.position.translate(vMove);
+			} else if (nDiff > (pdata.maxSpeed / 3)) {
+				let vMove = vDiff.normalize().mul(pdata.maxSpeed / 3);
+				pdata.position.translate(vMove);
+			} else {
+                pdata.position.set(pdata.destination);
+            }
+        }
     }
 
     async init() {
+        console.log('INIT');
         super.init();
-        this.canvas(document.querySelector('.world'));
+        let oCanvas = document.querySelector('.world');
+		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
+        this.canvas(oCanvas);
         // ballon
-        let oBalloonSprite = new _osge__WEBPACK_IMPORTED_MODULE_0__["default"].Sprite();
+        let oBalloonSprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
         oBalloonSprite.image = await this.loadImage('images/sprites/balloon_0.png');
         oBalloonSprite.frameHeight = oBalloonSprite.image.naturalHeight;
         oBalloonSprite.frameWidth = oBalloonSprite.image.naturalWidth;
         oBalloonSprite.reference.x = oBalloonSprite.frameWidth >> 1;
         oBalloonSprite.reference.y = oBalloonSprite.frameHeight - 16;
         this.sprites.push(oBalloonSprite);
+        this.state.player = {
+            id: 1,
+            sprite: oBalloonSprite,
+            thinker: __webpack_require__(/*! ./thinkers/balloon */ "./src/thinkers/balloon.js"),
+            data: {
+				position: new Vector(0, 0),
+				destination: new Vector(0, 0),
+				speed: 0,
+                maxSpeed: 2
+            }
+        };
+		this.state.entites.push(this.state.player);
+
 
         let sl = new SpriteLayer();
         sl.sprites.push(oBalloonSprite);
@@ -637,9 +688,10 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_0__["default"].Game {
 
     update() {
         super.update();
-        let v = this.view.points()[0];
+        this.state.thinkers.forEach(th => this.processThinker(th));
+        this.state.view.set(this.state.player.data.position);
 		let c = this.renderCanvas;
-        this.carto.view(c, v);
+        this.carto.view(c, this.state.view);
     }
 }
 
@@ -1005,8 +1057,8 @@ class Cartography {
 	}
 
 	view(oCanvas, vView) {
-		let x = vView.x;
-		let y = vView.y;
+		let x = Math.round(vView.x);
+		let y = Math.round(vView.y);
 		this.adjustCacheSize(oCanvas);
 		if (!this._fetching) {
 			this._fetching = true;
@@ -4232,6 +4284,15 @@ class Vector {
 	}
 
 	/**
+	 * returns true if two vectors are equal
+	 * @param v {Vector}
+	 * @returns {boolean}
+	 */
+	isEqual(v) {
+		return this.x === v.x && this.y === v.y;
+	}
+
+	/**
 	 * return the vector distance
 	 * @return {number}
 	 */
@@ -4312,8 +4373,8 @@ const sb =  __webpack_require__(/*! ../SpellBook */ "./src/o876/SpellBook.js");
 
 class View {
 	constructor() {
-		this._offset = new Vector();
-		this._position = new Vector();
+		this._offset = new Vector(); // offset retranché à la position pour déterminer le point super-gauche
+		this._position = new Vector(); // position de la vue
 		this._width = 0;
 		this._height = 0;
 	}
@@ -4904,6 +4965,55 @@ class Animation {
 
 /***/ }),
 
+/***/ "./src/osge/DOMEvents.js":
+/*!*******************************!*\
+  !*** ./src/osge/DOMEvents.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+class DOMEvents {
+
+	constructor() {
+		this._handlers = [];
+	}
+
+	equals(x, element, event, handler) {
+		return x => x.element === element && x.event === event && x.handler === handler;
+	}
+
+	get(element, event, handler) {
+		return this._handlers.find(x => this.equals(x, element, event, handler));
+	}
+
+	on(element, event, handler) {
+		console.log('add event listener', event, 'on', element);
+		this._handlers.push({
+			element, event, handler
+		});
+		element.addEventListener(event, handler);
+	}
+
+	off(element, event, handler) {
+		if (handler) {
+			element.addEventListener(event, handler);
+			this._handlers = this._handlers.filter(h => !this.equals(h, element, event, handler));
+		} else {
+			this.
+				_handlers
+				.filter(x => forEach(h => x.element === element && x.event === event))
+				.forEach(h => this.off(element, event, h));
+		}
+	}
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (DOMEvents);
+
+
+/***/ }),
+
 /***/ "./src/osge/Game.js":
 /*!**************************!*\
   !*** ./src/osge/Game.js ***!
@@ -4916,9 +5026,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Time__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Time */ "./src/osge/Time.js");
 /* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
 /* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _DOMEvents__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./DOMEvents */ "./src/osge/DOMEvents.js");
+
 
 
 const View = _o876__WEBPACK_IMPORTED_MODULE_1___default.a.geometry.View;
+const Vector = _o876__WEBPACK_IMPORTED_MODULE_1___default.a.geometry.Vector;
 
 
 
@@ -4933,6 +5046,8 @@ class Game {
 		this.sprites = [];
 		this.view = new View();
 		this.layers = [];
+		this.mouse = new Vector();
+		this.domevents = new _DOMEvents__WEBPACK_IMPORTED_MODULE_2__["default"]();
 	}
 
 	start() {
@@ -4959,8 +5074,16 @@ class Game {
 		this.layers.forEach(f);
 	}
 
+	onMouseMove(event) {
+		this.mouse.set(event.offsetX, event.offsetY);
+	}
+
+
 	canvas(oCanvas) {
-		this.screenCanvas = oCanvas;
+		if (this.screenCanvas !== oCanvas) {
+			this.domevents.on(oCanvas, 'mousemove', event => this.onMouseMove(event));
+			this.screenCanvas = oCanvas;
+		}
         this.renderCanvas = _o876__WEBPACK_IMPORTED_MODULE_1___default.a.CanvasHelper.clone(oCanvas);
         let w = oCanvas.width;
         let h = oCanvas.height;
@@ -5008,7 +5131,6 @@ class Game {
 			throw new Error('i need a canvas !');
 		}
 	}
-
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (Game);
@@ -5138,9 +5260,10 @@ class SpriteLayer extends _Layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let ctx = canvas.getContext('2d');
         let p = this.view.position();
         let v = this.sprites;
+        let vo = this.view.position().add(this.view.offset());
         for (let i = 0, l = v.length; i < l; ++i) {
             let vi = v[i];
-            vi.draw(ctx, p.add(vi.reference));
+            vi.draw(ctx, p.add(vi.reference).add(vo));
         }
     }
 }
@@ -5197,6 +5320,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Layer */ "./src/osge/Layer.js");
 /* harmony import */ var _Game__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Game */ "./src/osge/Game.js");
 /* harmony import */ var _SpriteLayer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./SpriteLayer */ "./src/osge/SpriteLayer.js");
+/* harmony import */ var _DOMEvents__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./DOMEvents */ "./src/osge/DOMEvents.js");
+
 
 
 
@@ -5205,8 +5330,21 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	Animation: _Animation__WEBPACK_IMPORTED_MODULE_0__["default"], Sprite: _Sprite__WEBPACK_IMPORTED_MODULE_1__["default"], Time: _Time__WEBPACK_IMPORTED_MODULE_2__["default"], Layer: _Layer__WEBPACK_IMPORTED_MODULE_3__["default"], Game: _Game__WEBPACK_IMPORTED_MODULE_4__["default"], SpriteLayer: _SpriteLayer__WEBPACK_IMPORTED_MODULE_5__["default"]
+	Animation: _Animation__WEBPACK_IMPORTED_MODULE_0__["default"], Sprite: _Sprite__WEBPACK_IMPORTED_MODULE_1__["default"], Time: _Time__WEBPACK_IMPORTED_MODULE_2__["default"], Layer: _Layer__WEBPACK_IMPORTED_MODULE_3__["default"], Game: _Game__WEBPACK_IMPORTED_MODULE_4__["default"], SpriteLayer: _SpriteLayer__WEBPACK_IMPORTED_MODULE_5__["default"], DOMEvents: _DOMEvents__WEBPACK_IMPORTED_MODULE_6__["default"]
 });
+
+/***/ }),
+
+/***/ "./src/thinkers/balloon.js":
+/*!*********************************!*\
+  !*** ./src/thinkers/balloon.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function process(data) {
+
+}
 
 /***/ })
 

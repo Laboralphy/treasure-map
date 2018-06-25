@@ -3632,6 +3632,15 @@ class Vector {
 	}
 
 	/**
+	 * returns true if two vectors are equal
+	 * @param v {Vector}
+	 * @returns {boolean}
+	 */
+	isEqual(v) {
+		return this.x === v.x && this.y === v.y;
+	}
+
+	/**
 	 * return the vector distance
 	 * @return {number}
 	 */
@@ -3712,8 +3721,8 @@ const sb =  __webpack_require__(/*! ../SpellBook */ "./src/o876/SpellBook.js");
 
 class View {
 	constructor() {
-		this._offset = new Vector();
-		this._position = new Vector();
+		this._offset = new Vector(); // offset retranché à la position pour déterminer le point super-gauche
+		this._position = new Vector(); // position de la vue
 		this._width = 0;
 		this._height = 0;
 	}

@@ -81,6 +81,15 @@ class Vector {
 	}
 
 	/**
+	 * returns true if two vectors are equal
+	 * @param v {Vector}
+	 * @returns {boolean}
+	 */
+	isEqual(v) {
+		return this.x === v.x && this.y === v.y;
+	}
+
+	/**
 	 * return the vector distance
 	 * @return {number}
 	 */

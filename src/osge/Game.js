@@ -1,6 +1,8 @@
 import Time from './Time';
 import o876 from '../o876';
+import DOMEvents from './DOMEvents';
 const View = o876.geometry.View;
+const Vector = o876.geometry.Vector;
 
 
 
@@ -15,6 +17,8 @@ class Game {
 		this.sprites = [];
 		this.view = new View();
 		this.layers = [];
+		this.mouse = new Vector();
+		this.domevents = new DOMEvents();
 	}
 
 	start() {
@@ -41,8 +45,16 @@ class Game {
 		this.layers.forEach(f);
 	}
 
+	onMouseMove(event) {
+		this.mouse.set(event.offsetX, event.offsetY);
+	}
+
+
 	canvas(oCanvas) {
-		this.screenCanvas = oCanvas;
+		if (this.screenCanvas !== oCanvas) {
+			this.domevents.on(oCanvas, 'mousemove', event => this.onMouseMove(event));
+			this.screenCanvas = oCanvas;
+		}
         this.renderCanvas = o876.CanvasHelper.clone(oCanvas);
         let w = oCanvas.width;
         let h = oCanvas.height;
@@ -90,7 +102,6 @@ class Game {
 			throw new Error('i need a canvas !');
 		}
 	}
-
 }
 
 export default Game;
