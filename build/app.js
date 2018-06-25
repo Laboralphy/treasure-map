@@ -595,6 +595,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _osge__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./osge */ "./src/osge/index.js");
 /* harmony import */ var _cartography__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cartography */ "./src/cartography/index.js");
 /* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
+/* harmony import */ var _thinkers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./thinkers */ "./src/thinkers/index.js");
+
 
 
 
@@ -620,7 +622,7 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
             verbose: false
         });
         this.state = {
-            entites: [],
+            entities: [],
             player: null,
             view: new Vector()
         };
@@ -633,28 +635,10 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
     }
 
     processThinker(entity) {
-        let thinker = entity.thinker;
-        let pdata = thinker.data;
-        if (!pdata.destination.isEqual(pdata.position)) {
-            let vDiff = pdata.destination.sub(pdata.position);
-            let nDiff = vDiff.distance();
-            if (nDiff > (pdata.maxSpeed * 4)) {
-				let vMove = vDiff.normalize().mul(pdata.maxSpeed);
-				pdata.position.translate(vMove);
-			} else if (nDiff > (pdata.maxSpeed * 2)) {
-				let vMove = vDiff.normalize().mul(pdata.maxSpeed / 2);
-				pdata.position.translate(vMove);
-			} else if (nDiff > (pdata.maxSpeed / 3)) {
-				let vMove = vDiff.normalize().mul(pdata.maxSpeed / 3);
-				pdata.position.translate(vMove);
-			} else {
-                pdata.position.set(pdata.destination);
-            }
-        }
+        entity.thinker(entity);
     }
 
     async init() {
-        console.log('INIT');
         super.init();
         let oCanvas = document.querySelector('.world');
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
@@ -670,16 +654,16 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         this.state.player = {
             id: 1,
             sprite: oBalloonSprite,
-            thinker: __webpack_require__(/*! ./thinkers/balloon */ "./src/thinkers/balloon.js"),
+            thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"].balloon,
             data: {
 				position: new Vector(0, 0),
 				destination: new Vector(0, 0),
 				speed: 0,
+                acc: 0.1,
                 maxSpeed: 2
             }
         };
-		this.state.entites.push(this.state.player);
-
+		this.state.entities.push(this.state.player);
 
         let sl = new SpriteLayer();
         sl.sprites.push(oBalloonSprite);
@@ -688,7 +672,7 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 
     update() {
         super.update();
-        this.state.thinkers.forEach(th => this.processThinker(th));
+        this.state.entities.forEach(th => this.processThinker(th));
         this.state.view.set(this.state.player.data.position);
 		let c = this.renderCanvas;
         this.carto.view(c, this.state.view);
@@ -5339,12 +5323,99 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************!*\
   !*** ./src/thinkers/balloon.js ***!
   \*********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-function process(data) {
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+function process(entity) {
+    let pdata = entity.data;
+    if (!pdata.destination.isEqual(pdata.position)) {
+        let vDiff = pdata.destination.sub(pdata.position);
+        let nDist = vDiff.distance();
 
+        let ms = pdata.maxSpeed;
+        let speed = pdata.speed;
+        let acc = pdata.acc;
+
+        const DECCEL_THRESHOLD_DIST = ms << 2;
+
+        if (nDist < DECCEL_THRESHOLD_DIST) {
+            // en deça d'un certain seuil la vitesse max diminue
+            // proportionnellemnt à la distance restante
+            ms *= nDist / DECCEL_THRESHOLD_DIST;
+        }
+        speed = Math.min(ms, speed + acc);
+        let vNorm = vDiff.normalize();
+        let vMove = vNorm.mul(speed);
+        pdata.speed = speed;
+        pdata.position.translate(vMove);
+    }
 }
+
+/* harmony default export */ __webpack_exports__["default"] = (process);
+
+/***/ }),
+
+/***/ "./src/thinkers/blimp.js":
+/*!*******************************!*\
+  !*** ./src/thinkers/blimp.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+function process(entity) {
+    let pdata = entity.data;
+    if (!pdata.destination.isEqual(pdata.position)) {
+        let vDiff = pdata.destination.sub(pdata.position);
+        let nDist = vDiff.distance();
+        let fAngleNeed = Math.atan2(vDiff.x, vDiff.y);
+        let fAngleCurr = pdata.angle;
+
+
+        let ms = pdata.maxSpeed;
+        let speed = pdata.speed;
+        let acc = pdata.acc;
+
+        const DECCEL_THRESHOLD_DIST = ms << 2;
+
+        if (nDist < DECCEL_THRESHOLD_DIST) {
+            // en deça d'un certain seuil la vitesse max diminue
+            // proportionnellemnt à la distance restante
+            ms *= nDist / DECCEL_THRESHOLD_DIST;
+        }
+        speed = Math.min(ms, speed + acc);
+        let vNorm = vDiff.normalize();
+        let vMove = vNorm.mul(speed);
+        pdata.speed = speed;
+        pdata.position.translate(vMove);
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (process);
+
+/***/ }),
+
+/***/ "./src/thinkers/index.js":
+/*!*******************************!*\
+  !*** ./src/thinkers/index.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _balloon__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./balloon */ "./src/thinkers/balloon.js");
+/* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./blimp */ "./src/thinkers/blimp.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    balloon: _balloon__WEBPACK_IMPORTED_MODULE_0__["default"],
+    blimp: _blimp__WEBPACK_IMPORTED_MODULE_1__["default"]
+});
 
 /***/ })
 

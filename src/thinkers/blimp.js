@@ -3,6 +3,9 @@ function process(entity) {
     if (!pdata.destination.isEqual(pdata.position)) {
         let vDiff = pdata.destination.sub(pdata.position);
         let nDist = vDiff.distance();
+        let fAngleNeed = Math.atan2(vDiff.x, vDiff.y);
+        let fAngleCurr = pdata.angle;
+
 
         let ms = pdata.maxSpeed;
         let speed = pdata.speed;
