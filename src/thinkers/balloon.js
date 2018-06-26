@@ -1,3 +1,8 @@
+/**
+ * Ce thinker déplace l'entité en accélérant au départ, et en reduisant la vitesse peu avat l'arrivée
+ * de manière à avoir un mouvement fluide.
+ * @param entity
+ */
 function process(entity) {
     let pdata = entity.data;
     if (!pdata.destination.isEqual(pdata.position)) {
@@ -6,7 +11,7 @@ function process(entity) {
 
         let ms = pdata.maxSpeed;
         let speed = pdata.speed;
-        let acc = pdata.acc;
+        let acc = pdata.enginePower;
 
         const DECCEL_THRESHOLD_DIST = ms << 2;
 

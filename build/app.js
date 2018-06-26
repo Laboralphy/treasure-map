@@ -644,29 +644,30 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
         this.canvas(oCanvas);
         // ballon
-        let oBalloonSprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
-        oBalloonSprite.image = await this.loadImage('images/sprites/balloon_0.png');
-        oBalloonSprite.frameHeight = oBalloonSprite.image.naturalHeight;
-        oBalloonSprite.frameWidth = oBalloonSprite.image.naturalWidth;
-        oBalloonSprite.reference.x = oBalloonSprite.frameWidth >> 1;
-        oBalloonSprite.reference.y = oBalloonSprite.frameHeight - 16;
-        this.sprites.push(oBalloonSprite);
+        let oBlimpSprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
+		oBlimpSprite.image = await this.loadImage('images/sprites/blimp_0.png');
+        oBlimpSprite.frameHeight = oBlimpSprite.image.naturalHeight;
+        oBlimpSprite.frameWidth = oBlimpSprite.image.naturalWidth / 16;
+        oBlimpSprite.reference.x = oBlimpSprite.frameWidth >> 1;
+        oBlimpSprite.reference.y = oBlimpSprite.frameHeight - 32;
+        this.sprites.push(oBlimpSprite);
         this.state.player = {
             id: 1,
-            sprite: oBalloonSprite,
-            thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"].balloon,
+            sprite: oBlimpSprite,
+            thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"].blimp,
             data: {
-				position: new Vector(0, 0),
-				destination: new Vector(0, 0),
-				speed: 0,
-                acc: 0.1,
-                maxSpeed: 2
+                angle: 0,                               // angle de cap
+				angleSpeed: 0.05,
+				position: new Vector(0, 0),             // position actuelle
+				destination: new Vector(0, 0),          // position vers laquelle on se dirige
+                enginePower: 0.1,                       // inc/dec de la vitesse du moteur
+				speed: 0,                               // vitesse actuelle
+                maxSpeed: 2                    // vitesse max
             }
         };
 		this.state.entities.push(this.state.player);
-
         let sl = new SpriteLayer();
-        sl.sprites.push(oBalloonSprite);
+        sl.sprites.push(oBlimpSprite);
         this.layers.push(sl);
     }
 
@@ -1460,24 +1461,50 @@ class WorldGenerator {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
 /* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _consts_colors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../consts/colors */ "./src/consts/colors.js");
+
 
 const Rainbow = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
 
 function _buildGradient() {
     return Rainbow.gradient({
-        0: '#dec673',
-        40: '#efd69c',
-        48: '#d6a563',
-        50: '#572507',
-        55: '#d2a638',
-        75: '#b97735',
-        99: '#efce8c'
+        0: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].abyss,
+        40: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].depth,
+        48: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].shallow,
+        50: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].shore,
+        55: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].land,
+        75: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].highland,
+        99: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].summit
     })
         .map(x => Rainbow.parse(x))
         .map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (_buildGradient);
+
+/***/ }),
+
+/***/ "./src/consts/colors.js":
+/*!******************************!*\
+  !*** ./src/consts/colors.js ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const COLORS = {
+	abyss: '#dec673',
+	depth: '#efd69c',
+	shallow: '#d6a563',
+	shore: '#572507',
+	land: '#d2a638',
+	highland: '#b97735',
+	summit: '#efce8c'
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (COLORS);
+
 
 /***/ }),
 
@@ -1541,11 +1568,12 @@ let game;
 
 function main5() {
 	game = new _Game__WEBPACK_IMPORTED_MODULE_2__["default"]();
-	game.init();
-	window.game = game;
-    window.addEventListener('resize', windowResize);
-    windowResize();
-    game.start();
+	game.init().then(resolve => {
+		window.game = game;
+		window.addEventListener('resize', windowResize);
+		windowResize();
+		game.start();
+	});
 }
 
 function windowResize() {
@@ -1849,7 +1877,7 @@ class PixelProcessor {
                     g: (p >> 8) & 0xFF,
                     b: (p >> 16) & 0xFF,
                     a: (p >> 24) & 0xFF
-                }
+                };
             },
             width: w,
             height: h,
@@ -1874,6 +1902,9 @@ class PixelProcessor {
                 oPixelCtx.color.b = (p >> 16) && 0xFF;
                 oPixelCtx.color.a = (p >> 24) && 0xFF;
                 cb(oPixelCtx);
+                if (!oPixelCtx.color) {
+                    throw new Error('pixelprocessor : callback destroyed the color');
+                }
                 aColors.push({...oPixelCtx.color});
             }
         }
@@ -2064,6 +2095,11 @@ module.exports = class Rainbow {
 	static rgba(xData) {
 		return Rainbow._buildRGBAFromStructure(Rainbow.parse(xData));
 	}
+
+	static int32(xData) {
+		let x = Rainbow.parse(xData);
+		return xData.r || (xData.g << 8) || (xData.b << 16) || (xData.a << 24);
+	}
 	
 	/**
 	 * Analyse une valeur d'entrée pour construire une structure avec les 
@@ -2136,8 +2172,9 @@ module.exports = class Rainbow {
 			return {
 				r: (x1.r + x2.r) >> 1,
 				g: (x1.g + x2.g) >> 1,
-				b: (x1.b + x2.b) >> 1
-			};			
+				b: (x1.b + x2.b) >> 1,
+				a: (x1.a + x2.a) >> 1,
+			};
 		}
 		
 		function fillArray(a, x1, x2, n1, n2) {
@@ -2202,24 +2239,27 @@ module.exports = class Rainbow {
 	}
 
 	static _buildStructureFromInt(n) {
-		let r = (n >> 16) & 0xFF;
+		let a = (n >> 24) & 0xFF;
+		let b = (n >> 16) & 0xFF;
 		let g = (n >> 8) & 0xFF;
-		let b = n & 0xFF;
-		return {r: r, g: g, b: b};
+		let r = n & 0xFF;
+		return {r, g, b, a};
 	}
 	
 	static _buildStructureFromString3(s) {
 		let r = parseInt('0x' + s[0] + s[0]);
 		let g = parseInt('0x' + s[1] + s[1]);
 		let b = parseInt('0x' + s[2] + s[2]);
-		return {r: r, g: g, b: b};
+		let a = 255;
+		return {r, g, b, a};
 	}
 
 	static _buildStructureFromString6(s) {
 		let r = parseInt('0x' + s[0] + s[1]);
 		let g = parseInt('0x' + s[2] + s[3]);
 		let b = parseInt('0x' + s[4] + s[5]);
-		return {r: r, g: g, b: b};
+		let a = 255;
+		return {r, g, b, a};
 	}
 
 	static _buildRGBAFromStructure(oData) {
@@ -2248,6 +2288,13 @@ module.exports = class Rainbow {
 		c.r = Rainbow.byte(f * c.r);
 		c.g = Rainbow.byte(f * c.g);
 		c.b = Rainbow.byte(f * c.b);
+		return c;
+	}
+
+	static grayscale(color) {
+		let c = Rainbow.parse(color);
+		let n = Math.round((c.r * 30 + c.g * 59 + c.b * 11) / 100);
+		c.r = c.g = c.b = n;
 		return c;
 	}
 };
@@ -5048,6 +5095,9 @@ class Game {
 
 	doomloop() {
 		let n = this._time.process(performance.now());
+		if (n > 10) {
+			n = 10;
+		}
 		for (let i = 0; i < n; ++i) {
 			this.update();
         }
@@ -5328,6 +5378,11 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/**
+ * Ce thinker déplace l'entité en accélérant au départ, et en reduisant la vitesse peu avat l'arrivée
+ * de manière à avoir un mouvement fluide.
+ * @param entity
+ */
 function process(entity) {
     let pdata = entity.data;
     if (!pdata.destination.isEqual(pdata.position)) {
@@ -5336,7 +5391,7 @@ function process(entity) {
 
         let ms = pdata.maxSpeed;
         let speed = pdata.speed;
-        let acc = pdata.acc;
+        let acc = pdata.enginePower;
 
         const DECCEL_THRESHOLD_DIST = ms << 2;
 
@@ -5366,31 +5421,44 @@ function process(entity) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+
+
+const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+
+/**
+ * Le blimp dispose des variables suivantes
+ *
+ * blimp.angleSpeed // vitesse de modification de l'angle
+ * blimp.angle
+ *
+ * @param entity
+ */
 function process(entity) {
     let pdata = entity.data;
     if (!pdata.destination.isEqual(pdata.position)) {
-        let vDiff = pdata.destination.sub(pdata.position);
-        let nDist = vDiff.distance();
-        let fAngleNeed = Math.atan2(vDiff.x, vDiff.y);
-        let fAngleCurr = pdata.angle;
-
-
-        let ms = pdata.maxSpeed;
-        let speed = pdata.speed;
-        let acc = pdata.acc;
-
-        const DECCEL_THRESHOLD_DIST = ms << 2;
-
-        if (nDist < DECCEL_THRESHOLD_DIST) {
-            // en deça d'un certain seuil la vitesse max diminue
-            // proportionnellemnt à la distance restante
-            ms *= nDist / DECCEL_THRESHOLD_DIST;
+        if (pdata.destination.sub(pdata.position).distance() <= pdata.maxSpeed) {
+			pdata.position.set(pdata.destination);
+			return;
         }
-        speed = Math.min(ms, speed + acc);
-        let vNorm = vDiff.normalize();
-        let vMove = vNorm.mul(speed);
-        pdata.speed = speed;
+        // angle de destination
+        let fAngleDest = pdata.destination.sub(pdata.position).angle();
+        let fAngleCurr = pdata.angle;
+        let fAngleDiff = fAngleDest - fAngleCurr;
+        let fAngleMod;
+        if (Math.abs(fAngleDiff) >= Math.PI) {
+			fAngleMod = Math.sign(fAngleDiff) * pdata.angleSpeed;
+        } else {
+			fAngleMod = -Math.sign(fAngleDiff) * pdata.angleSpeed;
+		}
+        pdata.angle += fAngleMod;
+        let vMove = new Vector();
+        vMove.fromPolar(pdata.angle, pdata.maxSpeed);
         pdata.position.translate(vMove);
+
+        // changer le sprite
+		entity.sprite._iFrame = ((16 * pdata.angle / (2 * Math.PI) | 0) + 16) % 16;
     }
 }
 

@@ -46,29 +46,30 @@ class Game extends osge.Game {
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
         this.canvas(oCanvas);
         // ballon
-        let oBalloonSprite = new osge.Sprite();
-        oBalloonSprite.image = await this.loadImage('images/sprites/balloon_0.png');
-        oBalloonSprite.frameHeight = oBalloonSprite.image.naturalHeight;
-        oBalloonSprite.frameWidth = oBalloonSprite.image.naturalWidth;
-        oBalloonSprite.reference.x = oBalloonSprite.frameWidth >> 1;
-        oBalloonSprite.reference.y = oBalloonSprite.frameHeight - 16;
-        this.sprites.push(oBalloonSprite);
+        let oBlimpSprite = new osge.Sprite();
+		oBlimpSprite.image = await this.loadImage('images/sprites/blimp_0.png');
+        oBlimpSprite.frameHeight = oBlimpSprite.image.naturalHeight;
+        oBlimpSprite.frameWidth = oBlimpSprite.image.naturalWidth / 16;
+        oBlimpSprite.reference.x = oBlimpSprite.frameWidth >> 1;
+        oBlimpSprite.reference.y = oBlimpSprite.frameHeight - 32;
+        this.sprites.push(oBlimpSprite);
         this.state.player = {
             id: 1,
-            sprite: oBalloonSprite,
-            thinker: THINKERS.balloon,
+            sprite: oBlimpSprite,
+            thinker: THINKERS.blimp,
             data: {
-				position: new Vector(0, 0),
-				destination: new Vector(0, 0),
-				speed: 0,
-                acc: 0.1,
-                maxSpeed: 2
+                angle: 0,                               // angle de cap
+				angleSpeed: 0.05,
+				position: new Vector(0, 0),             // position actuelle
+				destination: new Vector(0, 0),          // position vers laquelle on se dirige
+                enginePower: 0.1,                       // inc/dec de la vitesse du moteur
+				speed: 0,                               // vitesse actuelle
+                maxSpeed: 2                    // vitesse max
             }
         };
 		this.state.entities.push(this.state.player);
-
         let sl = new SpriteLayer();
-        sl.sprites.push(oBalloonSprite);
+        sl.sprites.push(oBlimpSprite);
         this.layers.push(sl);
     }
 

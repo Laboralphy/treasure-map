@@ -35,6 +35,9 @@ class Game {
 
 	doomloop() {
 		let n = this._time.process(performance.now());
+		if (n > 10) {
+			n = 10;
+		}
 		for (let i = 0; i < n; ++i) {
 			this.update();
         }

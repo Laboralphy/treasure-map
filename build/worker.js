@@ -905,24 +905,50 @@ const service = new Index();
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
 /* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _consts_colors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../consts/colors */ "./src/consts/colors.js");
+
 
 const Rainbow = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
 
 function _buildGradient() {
     return Rainbow.gradient({
-        0: '#dec673',
-        40: '#efd69c',
-        48: '#d6a563',
-        50: '#572507',
-        55: '#d2a638',
-        75: '#b97735',
-        99: '#efce8c'
+        0: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].abyss,
+        40: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].depth,
+        48: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].shallow,
+        50: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].shore,
+        55: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].land,
+        75: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].highland,
+        99: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].summit
     })
         .map(x => Rainbow.parse(x))
         .map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (_buildGradient);
+
+/***/ }),
+
+/***/ "./src/consts/colors.js":
+/*!******************************!*\
+  !*** ./src/consts/colors.js ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const COLORS = {
+	abyss: '#dec673',
+	depth: '#efd69c',
+	shallow: '#d6a563',
+	shore: '#572507',
+	land: '#d2a638',
+	highland: '#b97735',
+	summit: '#efce8c'
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (COLORS);
+
 
 /***/ }),
 
@@ -1213,7 +1239,7 @@ class PixelProcessor {
                     g: (p >> 8) & 0xFF,
                     b: (p >> 16) & 0xFF,
                     a: (p >> 24) & 0xFF
-                }
+                };
             },
             width: w,
             height: h,
@@ -1238,6 +1264,9 @@ class PixelProcessor {
                 oPixelCtx.color.b = (p >> 16) && 0xFF;
                 oPixelCtx.color.a = (p >> 24) && 0xFF;
                 cb(oPixelCtx);
+                if (!oPixelCtx.color) {
+                    throw new Error('pixelprocessor : callback destroyed the color');
+                }
                 aColors.push({...oPixelCtx.color});
             }
         }
@@ -1428,6 +1457,11 @@ module.exports = class Rainbow {
 	static rgba(xData) {
 		return Rainbow._buildRGBAFromStructure(Rainbow.parse(xData));
 	}
+
+	static int32(xData) {
+		let x = Rainbow.parse(xData);
+		return xData.r || (xData.g << 8) || (xData.b << 16) || (xData.a << 24);
+	}
 	
 	/**
 	 * Analyse une valeur d'entrée pour construire une structure avec les 
@@ -1500,8 +1534,9 @@ module.exports = class Rainbow {
 			return {
 				r: (x1.r + x2.r) >> 1,
 				g: (x1.g + x2.g) >> 1,
-				b: (x1.b + x2.b) >> 1
-			};			
+				b: (x1.b + x2.b) >> 1,
+				a: (x1.a + x2.a) >> 1,
+			};
 		}
 		
 		function fillArray(a, x1, x2, n1, n2) {
@@ -1566,24 +1601,27 @@ module.exports = class Rainbow {
 	}
 
 	static _buildStructureFromInt(n) {
-		let r = (n >> 16) & 0xFF;
+		let a = (n >> 24) & 0xFF;
+		let b = (n >> 16) & 0xFF;
 		let g = (n >> 8) & 0xFF;
-		let b = n & 0xFF;
-		return {r: r, g: g, b: b};
+		let r = n & 0xFF;
+		return {r, g, b, a};
 	}
 	
 	static _buildStructureFromString3(s) {
 		let r = parseInt('0x' + s[0] + s[0]);
 		let g = parseInt('0x' + s[1] + s[1]);
 		let b = parseInt('0x' + s[2] + s[2]);
-		return {r: r, g: g, b: b};
+		let a = 255;
+		return {r, g, b, a};
 	}
 
 	static _buildStructureFromString6(s) {
 		let r = parseInt('0x' + s[0] + s[1]);
 		let g = parseInt('0x' + s[2] + s[3]);
 		let b = parseInt('0x' + s[4] + s[5]);
-		return {r: r, g: g, b: b};
+		let a = 255;
+		return {r, g, b, a};
 	}
 
 	static _buildRGBAFromStructure(oData) {
@@ -1612,6 +1650,13 @@ module.exports = class Rainbow {
 		c.r = Rainbow.byte(f * c.r);
 		c.g = Rainbow.byte(f * c.g);
 		c.b = Rainbow.byte(f * c.b);
+		return c;
+	}
+
+	static grayscale(color) {
+		let c = Rainbow.parse(color);
+		let n = Math.round((c.r * 30 + c.g * 59 + c.b * 11) / 100);
+		c.r = c.g = c.b = n;
 		return c;
 	}
 };

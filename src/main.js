@@ -45,11 +45,12 @@ let game;
 
 function main5() {
 	game = new Game();
-	game.init();
-	window.game = game;
-    window.addEventListener('resize', windowResize);
-    windowResize();
-    game.start();
+	game.init().then(resolve => {
+		window.game = game;
+		window.addEventListener('resize', windowResize);
+		windowResize();
+		game.start();
+	});
 }
 
 function windowResize() {
