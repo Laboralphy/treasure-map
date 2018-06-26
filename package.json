@@ -4,7 +4,7 @@
   "description": "A web browser game prototype featuring \"infinite\" size world. Treasure hunting on an immense ocean with millions of islands.",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/jasmine test/index.js",
+    "test": "./node_modules/.bin/jasmine build/test.js",
     "webpack": "./node_modules/.bin/webpack --watch",
     "get-o876": "rm -r src/o876/* && cp -r ../o876/src/* src/o876"
   },

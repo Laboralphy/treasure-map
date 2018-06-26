@@ -34,6 +34,7 @@ class Game extends osge.Game {
         let cvs = this.screenCanvas;
         let click = this.mouse.add(this.carto._view);
 		this.state.player.data.destination.set(click);
+        console.log(click, this.state.player.data.destination.sub(this.state.player.data.position).angle());
     }
 
     processThinker(entity) {
