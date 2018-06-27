@@ -1,21 +1,31 @@
 import o876 from '../o876';
 
 const Vector = o876.geometry.Vector;
+const sb = o876.SpellBook;
 
 
-function getQuadran(a) {
-    if (a >= -Math.PI && a < -Math.PI / 2) {
-        return 3;
-    }
-    if (a >= -Math.PI / 2 && a < 0) {
-        return 2;
-    }
-    if (a >= 0 && a < Math.PI / 2) {
-        return 0;
-    }
-    if (a >= Math.PI / 2 && a < Math.PI) {
-        return 1;
-    }
+function advance(entity) {
+	let pdata = entity.data;
+	if (!pdata.destination.isEqual(pdata.position)) {
+		let vDiff = pdata.destination.sub(pdata.position);
+		let nDist = vDiff.magnitude();
+		let ms = pdata.maxSpeed;
+		let speed = pdata.speed;
+		let acc = pdata.enginePower;
+
+		const DECCEL_THRESHOLD_DIST = ms << 3;
+
+		if (nDist < DECCEL_THRESHOLD_DIST) {
+			// en deça d'un certain seuil la vitesse max diminue
+			// proportionnellemnt à la distance restante
+			ms *= nDist / DECCEL_THRESHOLD_DIST;
+		}
+		speed = Math.min(ms, speed + acc);
+		let vMove = Vector.fromPolar(pdata.angle, 1);
+		vMove.scale(speed);
+		pdata.speed = speed;
+		pdata.position.translate(vMove);
+	}
 }
 
 
@@ -30,55 +40,53 @@ function getQuadran(a) {
 function process(entity) {
     let pdata = entity.data;
     if (!pdata.destination.isEqual(pdata.position)) {
-        if (pdata.destination.sub(pdata.position).distance() <= pdata.maxSpeed) {
+        if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
 			pdata.position.set(pdata.destination);
 			return;
         }
-        // determiner les secteur des angle de cap et de destination
 
+		let fAngleCurr = pdata.angle;
+		let fAngleDest = pdata.destination.sub(pdata.position).direction();
+		let fAngle;
 
-
-        // angle de destination
-        let fAngleDest = pdata.destination.sub(pdata.position).angle();
-        pdata.aimedAngle = fAngleDest;
-        let fAngleCurr = pdata.angle;
-        let qDest = getQuadran(fAngleDest);
-        let qCurr = getQuadran(fAngleCurr);
-        let fAngleDiff = fAngleDest - fAngleCurr;
-        let fAngleMod = 0;
-        switch (Math.sign(fAngleDiff) * 100 + qDest * 10 + qCurr) {
-            case 100: // même cadran : augmenter .angle
-            case 111:
-            case 122:
-            case 133:
-                fAngleMod = pdata.angleSpeed;
-                break;
-
-            case -100: // même cadran : diminuer .angle
-            case -111:
-            case -122:
-            case -133:
-                fAngleMod = -pdata.angleSpeed;
-                break;
-
-            case 10
-
-        }
-
-
-
-        if (Math.abs(fAngleDiff) >= Math.PI) {
-			fAngleMod = -Math.sign(fAngleDiff) * pdata.angleSpeed;
-        } else {
-			fAngleMod = Math.sign(fAngleDiff) * pdata.angleSpeed;
+        // si l'angle entre les deux vecteur est trop petit alors on les confond
+		let vBlimp = Vector.fromPolar(fAngleCurr, 1);
+		let vCap = Vector.fromPolar(fAngleDest, 1);
+		let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
+		if (fAngleDeriv < pdata.angleSpeed) {
+			pdata.angle = fAngle = fAngleDest;
+		} else {
+			// angle de destination
+			let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
+			pdata.aimedAngle = fAngleDest;
+			let fAngleMod = 0;
+			if (Math.sign(fAngleDest) === Math.sign(fAngleCurr)) {
+				fAngleMod = Math.sign(fAngleDest - fAngleCurr);
+			} else {
+				fAngleMod = Math.sign(fAngleCurr - fAngleDestInv);
+			}
+			fAngleMod *= pdata.angleSpeed;
+			fAngle = pdata.angle + fAngleMod;
+			if (fAngle <= -Math.PI) {
+				fAngle += 2 * Math.PI;
+			}
+			if (fAngle >= Math.PI) {
+				fAngle -= 2 * Math.PI;
+			}
+			pdata.angle = fAngle;
 		}
-        pdata.angle += fAngleMod;
-        let vMove = new Vector();
-        vMove.fromPolar(pdata.angle, pdata.maxSpeed);
-        pdata.position.translate(vMove);
-
         // changer le sprite
-		entity.sprite._iFrame = ((16 * pdata.angle / (2 * Math.PI) | 0) + 16) % 16;
+		let nFract = entity.sprite.frameCount();
+		let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
+		let fAngle1 = fAngle / (2 * Math.PI);
+		let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
+		let iFract = sb.mod(Math.floor(fAngleFract * nFract), nFract);
+		if (iFract < 0) {
+			console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
+			throw new Error('WTF iFract < 0 !');
+		}
+		entity.sprite.frame(iFract);
+		advance(entity);
     }
 }
 

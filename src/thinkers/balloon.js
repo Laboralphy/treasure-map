@@ -7,7 +7,7 @@ function process(entity) {
     let pdata = entity.data;
     if (!pdata.destination.isEqual(pdata.position)) {
         let vDiff = pdata.destination.sub(pdata.position);
-        let nDist = vDiff.distance();
+        let nDist = vDiff.magnitude();
 
         let ms = pdata.maxSpeed;
         let speed = pdata.speed;

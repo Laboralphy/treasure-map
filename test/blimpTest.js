@@ -108,4 +108,9 @@ describe('blimp thinker', function() {
 	});
 
 
+	describe('bug affolement sinusoidal', function() {
+
+	});
+
+
 });

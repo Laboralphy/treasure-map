@@ -596,6 +596,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _cartography__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cartography */ "./src/cartography/index.js");
 /* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
 /* harmony import */ var _thinkers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./thinkers */ "./src/thinkers/index.js");
+/* harmony import */ var _data__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./data */ "./src/data/index.js");
+
 
 
 
@@ -621,6 +623,7 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
             progress: _Indicators__WEBPACK_IMPORTED_MODULE_3__["default"].progress,
             verbose: false
         });
+        this._lastEntityId = 0;
         this.state = {
             entities: [],
             player: null,
@@ -629,47 +632,45 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
     }
 
     onClick(event) {
-        let cvs = this.screenCanvas;
-        let click = this.mouse.add(this.carto._view);
-		this.state.player.data.destination.set(click);
-        console.log(click, this.state.player.data.destination.sub(this.state.player.data.position).angle());
+		this.state.player.data.destination.set(this.mouse.add(this.carto._view));
     }
 
     processThinker(entity) {
         entity.thinker(entity);
     }
 
+    async createEntity(blueprint) {
+        let id = ++this._lastEntityId;
+        let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
+		this._spriteLayer.sprites.push(sprite);
+		sprite.define(blueprint.sprite);
+		let oEntity = {
+            id,
+            sprite,
+            thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker],
+            data: Object.assign({}, _data__WEBPACK_IMPORTED_MODULE_5__["default"].vehicles.base, _data__WEBPACK_IMPORTED_MODULE_5__["default"].vehicles[blueprint.type])
+        };
+		this.state.entities.push(oEntity);
+		return oEntity;
+    }
+
     async init() {
         super.init();
+		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
         this.canvas(oCanvas);
-        // ballon
-        let oBlimpSprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
-		oBlimpSprite.image = await this.loadImage('images/sprites/blimp_0.png');
-        oBlimpSprite.frameHeight = oBlimpSprite.image.naturalHeight;
-        oBlimpSprite.frameWidth = oBlimpSprite.image.naturalWidth / 16;
-        oBlimpSprite.reference.x = oBlimpSprite.frameWidth >> 1;
-        oBlimpSprite.reference.y = oBlimpSprite.frameHeight - 32;
-        this.sprites.push(oBlimpSprite);
-        this.state.player = {
-            id: 1,
-            sprite: oBlimpSprite,
-            thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"].blimp,
-            data: {
-                angle: 0,                               // angle de cap
-				angleSpeed: 0.05,
-				position: new Vector(0, 0),             // position actuelle
-				destination: new Vector(0, 0),          // position vers laquelle on se dirige
-                enginePower: 0.1,                       // inc/dec de la vitesse du moteur
-				speed: 0,                               // vitesse actuelle
-                maxSpeed: 2                    // vitesse max
-            }
-        };
-		this.state.entities.push(this.state.player);
-        let sl = new SpriteLayer();
-        sl.sprites.push(oBlimpSprite);
-        this.layers.push(sl);
+        let oPlayer = await this.createEntity({
+			type: 'blimp',
+            sprite: {
+                tileset: 'blimp_1',
+                frames: 32,
+                ref: {x: 0, y: 0}
+            },
+            thinker: 'blimp'
+        });
+        console.log(oPlayer);
+        this.state.player = oPlayer;
     }
 
     update() {
@@ -989,6 +990,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const CanvasHelper = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
+const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
 const CLUSTER_SIZE = 16;
 
 class Cartography {
@@ -1125,6 +1127,7 @@ class Cartography {
 		let cellSize = this.cellSize();
 		let m = Cartography.getViewPointMetrics(x, y, w, h, cellSize, 0);
 		let yTilePix = 0;
+		let ctx = oCanvas.getContext('2d');
 		for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
 			let xTilePix = 0;
 			for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
@@ -1138,7 +1141,7 @@ class Cartography {
 						wt.colormap = null;
 					}
 					if (wt.isPainted() && wt.isMapped()) {
-                        oCanvas.getContext('2d').drawImage(wt.canvas, xScreen, yScreen);
+                        ctx.drawImage(wt.canvas, xScreen, yScreen);
 					}
 				}
 				xTilePix += cellSize;
@@ -1506,6 +1509,112 @@ const COLORS = {
 
 /* harmony default export */ __webpack_exports__["default"] = (COLORS);
 
+
+/***/ }),
+
+/***/ "./src/data/index.js":
+/*!***************************!*\
+  !*** ./src/data/index.js ***!
+  \***************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _vehicles__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vehicles */ "./src/data/vehicles/index.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+	vehicles: _vehicles__WEBPACK_IMPORTED_MODULE_0__["default"]
+});
+
+/***/ }),
+
+/***/ "./src/data/vehicles/base.js":
+/*!***********************************!*\
+  !*** ./src/data/vehicles/base.js ***!
+  \***********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+
+const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+
+const DATA = {
+	"angle": 0,                   // angle de cap
+	"angleSpeed": 0,              // amplitude d emofication de l'angle
+	"position": new Vector(),             // position actuelle
+	"destination": new Vector(),          // position vers laquelle on se dirige
+	"enginePower": 0,             // inc/dec de la vitesse du moteur
+	"speed": 0,                   // vitesse actuelle
+	"maxSpeed": 2                 // vitesse max
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
+
+/***/ }),
+
+/***/ "./src/data/vehicles/blimp.js":
+/*!************************************!*\
+  !*** ./src/data/vehicles/blimp.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const DATA = {
+	"angleSpeed": 0.1,              // amplitude d emofication de l'angle
+	"enginePower": 0.1,             // inc/dec de la vitesse du moteur
+	"maxSpeed": 2                   // vitesse max
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
+
+/***/ }),
+
+/***/ "./src/data/vehicles/index.js":
+/*!************************************!*\
+  !*** ./src/data/vehicles/index.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _base__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base */ "./src/data/vehicles/base.js");
+/* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./blimp */ "./src/data/vehicles/blimp.js");
+/* harmony import */ var _prototype_1__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./prototype-1 */ "./src/data/vehicles/prototype-1.js");
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+	base: _base__WEBPACK_IMPORTED_MODULE_0__["default"], blimp: _blimp__WEBPACK_IMPORTED_MODULE_1__["default"], prototype1: _prototype_1__WEBPACK_IMPORTED_MODULE_2__["default"]
+});
+
+/***/ }),
+
+/***/ "./src/data/vehicles/prototype-1.js":
+/*!******************************************!*\
+  !*** ./src/data/vehicles/prototype-1.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const DATA = {
+	"angleSpeed": 0.2,              // amplitude d emofication de l'angle
+	"enginePower": 0.2,             // inc/dec de la vitesse du moteur
+	"maxSpeed": 6                   // vitesse max
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
 
 /***/ }),
 
@@ -4316,6 +4425,15 @@ class Vector {
 	}
 
 	/**
+	 * Immutable
+	 * returns 0 - this
+	 * @return Vector;
+	 */
+	neg() {
+		return new Vector(-this.x, -this.y);
+	}
+
+	/**
 	 * returns true if two vectors are equal
 	 * @param v {Vector}
 	 * @returns {boolean}
@@ -4325,19 +4443,20 @@ class Vector {
 	}
 
 	/**
-	 * return the vector distance
+	 * return the vector magnitude
 	 * @return {number}
 	 */
-	distance() {
+	magnitude() {
 		return Helper.distance(0, 0, this.x, this.y);
 	}
 
 	/**
+	 * immutable !
 	 * returns a normalized version of this vector
 	 * @return {Vector}
 	 */
 	normalize() {
-		return this.mul(1 / this.distance());
+		return this.mul(1 / this.magnitude());
 	}
 
 	/**
@@ -4371,21 +4490,39 @@ class Vector {
 	}
 
     /**
-	 * Renvoie l'angle entre le vecteur et l'axe X
+	 * Renvoie la norme de ce vecteur et l'angle entre le vecteur et l'axe X
 	 * si le vecteur est dans la direction x+ alors l'angle = 0
      */
-	angle() {
+	direction() {
 		return Helper.angle(0, 0, this.x, this.y);
+	}
+
+	/**
+	 * Calcule l'angle avec un autre vecteur
+	 * @param v {Vector}
+	 */
+	angle(v) {
+		if (!v) {
+			throw new Error('vector argument is mandatory');
+		}
+		return Math.acos(this.normalize().dot(v.normalize()))
 	}
 
 	toString() {
 		return [this.x, this.y].map(n => n.toString()).join(':');
 	}
 
-	fromPolar(a, s) {
+	static fromPolar(a, s) {
 		let v = Helper.polar2rect(a, s);
-		this.set(v.dx, v.dy);
-		return this;
+		return  new Vector(v.dx, v.dy);
+	}
+
+	/**
+	 * scalar product
+	 * @param v {Vector}
+	 */
+	dot(v) {
+		return this.x * v.x + this.y * v.y;
 	}
 }
 
@@ -5021,7 +5158,6 @@ class DOMEvents {
 	}
 
 	on(element, event, handler) {
-		console.log('add event listener', event, 'on', element);
 		this._handlers.push({
 			element, event, handler
 		});
@@ -5075,7 +5211,6 @@ class Game {
 		this.screenCanvas = null;
 		this._time = new _Time__WEBPACK_IMPORTED_MODULE_0__["default"]();
 		this._time.period = 40;
-		this.sprites = [];
 		this.view = new View();
 		this.layers = [];
 		this.mouse = new Vector();
@@ -5132,7 +5267,7 @@ class Game {
 	 * @param sImage {string} url de l'image
 	 * @returns {Promise<Image>}
 	 */
-	async loadImage(sImage) {
+	static async loadImage(sImage) {
 		return new Promise(resolve => {
 			let oImage = new Image();
 			oImage.addEventListener('load', event => resolve(oImage));
@@ -5215,10 +5350,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876/index */ "./src/o876/index.js");
 /* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _Animation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Animation */ "./src/osge/Animation.js");
+/* harmony import */ var _Game__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Game */ "./src/osge/Game.js");
+
 
 
 
 const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+const sb = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
 
 class Sprite {
 	constructor() {
@@ -5230,6 +5368,40 @@ class Sprite {
 		this.animation = new _Animation__WEBPACK_IMPORTED_MODULE_1__["default"]();
         this._iFrame = 0;
         this.alpha = 1;
+        this._frames = [];
+	}
+
+	async define(data) {
+		this.image = await _Game__WEBPACK_IMPORTED_MODULE_2__["default"].loadImage('images/sprites/' + data.tileset + '.png');
+		if (('width' in data) && ('height' in data)) {
+			this.frameWidth = data.width;
+			this.frameHeight = data.height;
+		} else {
+			this.frameWidth =  this.image.naturalWidth / data.frames;
+			this.frameHeight = this.image.naturalHeight;
+		}
+		let y = 0;
+		while (y < this.image.naturalHeight) {
+			let x = 0;
+			while (x < this.image.naturalWidth) {
+				this._frames.push({
+					x: x,
+					y: y
+				});
+				x += this.frameWidth;
+			}
+			y += this.frameHeight;
+		}
+		this.reference.x = (this.frameWidth >> 1) + data.ref.x;
+		this.reference.y = (this.frameHeight >> 1) + data.ref.y;
+	}
+
+	frameCount() {
+		return this._frames.length;
+	}
+
+	frame(n) {
+		return sb.prop(this, '_iFrame', n);
 	}
 
 	animate(nInc) {
@@ -5247,10 +5419,11 @@ class Sprite {
 			if (a !== 1) {
 				fSaveAlpha = ctx.globalAlpha;
 			}
+			let f = this._frames[n];
             ctx.drawImage(
                 this.image,
-                n * w,
-                0,
+                f.x,
+                f.y,
                 w,
                 h,
                 p.x,
@@ -5388,7 +5561,7 @@ function process(entity) {
     let pdata = entity.data;
     if (!pdata.destination.isEqual(pdata.position)) {
         let vDiff = pdata.destination.sub(pdata.position);
-        let nDist = vDiff.distance();
+        let nDist = vDiff.magnitude();
 
         let ms = pdata.maxSpeed;
         let speed = pdata.speed;
@@ -5418,9 +5591,105 @@ function process(entity) {
   !*** ./src/thinkers/blimp.js ***!
   \*******************************/
 /*! exports provided: default */
-/***/ (function(module, exports) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-throw new Error("Module parse failed: Unexpected token (66:8)\nYou may need an appropriate loader to handle this file type.\n|             case 10\n| \n>         }\n| \n| ");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+
+
+const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+const sb = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
+
+
+function advance(entity) {
+	let pdata = entity.data;
+	if (!pdata.destination.isEqual(pdata.position)) {
+		let vDiff = pdata.destination.sub(pdata.position);
+		let nDist = vDiff.magnitude();
+		let ms = pdata.maxSpeed;
+		let speed = pdata.speed;
+		let acc = pdata.enginePower;
+
+		const DECCEL_THRESHOLD_DIST = ms << 3;
+
+		if (nDist < DECCEL_THRESHOLD_DIST) {
+			// en deça d'un certain seuil la vitesse max diminue
+			// proportionnellemnt à la distance restante
+			ms *= nDist / DECCEL_THRESHOLD_DIST;
+		}
+		speed = Math.min(ms, speed + acc);
+		let vMove = Vector.fromPolar(pdata.angle, 1);
+		vMove.scale(speed);
+		pdata.speed = speed;
+		pdata.position.translate(vMove);
+	}
+}
+
+
+/**
+ * Le blimp dispose des variables suivantes
+ *
+ * blimp.angleSpeed // vitesse de modification de l'angle
+ * blimp.angle
+ *
+ * @param entity
+ */
+function process(entity) {
+    let pdata = entity.data;
+    if (!pdata.destination.isEqual(pdata.position)) {
+        if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
+			pdata.position.set(pdata.destination);
+			return;
+        }
+
+		let fAngleCurr = pdata.angle;
+		let fAngleDest = pdata.destination.sub(pdata.position).direction();
+		let fAngle;
+
+        // si l'angle entre les deux vecteur est trop petit alors on les confond
+		let vBlimp = Vector.fromPolar(fAngleCurr, 1);
+		let vCap = Vector.fromPolar(fAngleDest, 1);
+		let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
+		if (fAngleDeriv < pdata.angleSpeed) {
+			pdata.angle = fAngle = fAngleDest;
+		} else {
+			// angle de destination
+			let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
+			pdata.aimedAngle = fAngleDest;
+			let fAngleMod = 0;
+			if (Math.sign(fAngleDest) === Math.sign(fAngleCurr)) {
+				fAngleMod = Math.sign(fAngleDest - fAngleCurr);
+			} else {
+				fAngleMod = Math.sign(fAngleCurr - fAngleDestInv);
+			}
+			fAngleMod *= pdata.angleSpeed;
+			fAngle = pdata.angle + fAngleMod;
+			if (fAngle <= -Math.PI) {
+				fAngle += 2 * Math.PI;
+			}
+			if (fAngle >= Math.PI) {
+				fAngle -= 2 * Math.PI;
+			}
+			pdata.angle = fAngle;
+		}
+        // changer le sprite
+		let nFract = entity.sprite.frameCount();
+		let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
+		let fAngle1 = fAngle / (2 * Math.PI);
+		let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
+		let iFract = sb.mod(Math.floor(fAngleFract * nFract), nFract);
+		if (iFract < 0) {
+			console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
+			throw new Error('WTF iFract < 0 !');
+		}
+		entity.sprite.frame(iFract);
+		advance(entity);
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (process);
 
 /***/ }),
 

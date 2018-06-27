@@ -2811,6 +2811,15 @@ class Vector {
 	}
 
 	/**
+	 * Immutable
+	 * returns 0 - this
+	 * @return Vector;
+	 */
+	neg() {
+		return new Vector(-this.x, -this.y);
+	}
+
+	/**
 	 * returns true if two vectors are equal
 	 * @param v {Vector}
 	 * @returns {boolean}
@@ -2820,19 +2829,20 @@ class Vector {
 	}
 
 	/**
-	 * return the vector distance
+	 * return the vector magnitude
 	 * @return {number}
 	 */
-	distance() {
+	magnitude() {
 		return Helper.distance(0, 0, this.x, this.y);
 	}
 
 	/**
+	 * immutable !
 	 * returns a normalized version of this vector
 	 * @return {Vector}
 	 */
 	normalize() {
-		return this.mul(1 / this.distance());
+		return this.mul(1 / this.magnitude());
 	}
 
 	/**
@@ -2866,21 +2876,39 @@ class Vector {
 	}
 
     /**
-	 * Renvoie l'angle entre le vecteur et l'axe X
+	 * Renvoie la norme de ce vecteur et l'angle entre le vecteur et l'axe X
 	 * si le vecteur est dans la direction x+ alors l'angle = 0
      */
-	angle() {
+	direction() {
 		return Helper.angle(0, 0, this.x, this.y);
+	}
+
+	/**
+	 * Calcule l'angle avec un autre vecteur
+	 * @param v {Vector}
+	 */
+	angle(v) {
+		if (!v) {
+			throw new Error('vector argument is mandatory');
+		}
+		return Math.acos(this.normalize().dot(v.normalize()))
 	}
 
 	toString() {
 		return [this.x, this.y].map(n => n.toString()).join(':');
 	}
 
-	fromPolar(a, s) {
+	static fromPolar(a, s) {
 		let v = Helper.polar2rect(a, s);
-		this.set(v.dx, v.dy);
-		return this;
+		return  new Vector(v.dx, v.dy);
+	}
+
+	/**
+	 * scalar product
+	 * @param v {Vector}
+	 */
+	dot(v) {
+		return this.x * v.x + this.y * v.y;
 	}
 }
 
@@ -3395,9 +3423,105 @@ module.exports = {
   !*** ./src/thinkers/blimp.js ***!
   \*******************************/
 /*! exports provided: default */
-/***/ (function(module, exports) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-throw new Error("Module parse failed: Unexpected token (66:8)\nYou may need an appropriate loader to handle this file type.\n|             case 10\n| \n>         }\n| \n| ");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+
+
+const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+const sb = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
+
+
+function advance(entity) {
+	let pdata = entity.data;
+	if (!pdata.destination.isEqual(pdata.position)) {
+		let vDiff = pdata.destination.sub(pdata.position);
+		let nDist = vDiff.magnitude();
+		let ms = pdata.maxSpeed;
+		let speed = pdata.speed;
+		let acc = pdata.enginePower;
+
+		const DECCEL_THRESHOLD_DIST = ms << 3;
+
+		if (nDist < DECCEL_THRESHOLD_DIST) {
+			// en deça d'un certain seuil la vitesse max diminue
+			// proportionnellemnt à la distance restante
+			ms *= nDist / DECCEL_THRESHOLD_DIST;
+		}
+		speed = Math.min(ms, speed + acc);
+		let vMove = Vector.fromPolar(pdata.angle, 1);
+		vMove.scale(speed);
+		pdata.speed = speed;
+		pdata.position.translate(vMove);
+	}
+}
+
+
+/**
+ * Le blimp dispose des variables suivantes
+ *
+ * blimp.angleSpeed // vitesse de modification de l'angle
+ * blimp.angle
+ *
+ * @param entity
+ */
+function process(entity) {
+    let pdata = entity.data;
+    if (!pdata.destination.isEqual(pdata.position)) {
+        if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
+			pdata.position.set(pdata.destination);
+			return;
+        }
+
+		let fAngleCurr = pdata.angle;
+		let fAngleDest = pdata.destination.sub(pdata.position).direction();
+		let fAngle;
+
+        // si l'angle entre les deux vecteur est trop petit alors on les confond
+		let vBlimp = Vector.fromPolar(fAngleCurr, 1);
+		let vCap = Vector.fromPolar(fAngleDest, 1);
+		let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
+		if (fAngleDeriv < pdata.angleSpeed) {
+			pdata.angle = fAngle = fAngleDest;
+		} else {
+			// angle de destination
+			let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
+			pdata.aimedAngle = fAngleDest;
+			let fAngleMod = 0;
+			if (Math.sign(fAngleDest) === Math.sign(fAngleCurr)) {
+				fAngleMod = Math.sign(fAngleDest - fAngleCurr);
+			} else {
+				fAngleMod = Math.sign(fAngleCurr - fAngleDestInv);
+			}
+			fAngleMod *= pdata.angleSpeed;
+			fAngle = pdata.angle + fAngleMod;
+			if (fAngle <= -Math.PI) {
+				fAngle += 2 * Math.PI;
+			}
+			if (fAngle >= Math.PI) {
+				fAngle -= 2 * Math.PI;
+			}
+			pdata.angle = fAngle;
+		}
+        // changer le sprite
+		let nFract = entity.sprite.frameCount();
+		let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
+		let fAngle1 = fAngle / (2 * Math.PI);
+		let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
+		let iFract = sb.mod(Math.floor(fAngleFract * nFract), nFract);
+		if (iFract < 0) {
+			console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
+			throw new Error('WTF iFract < 0 !');
+		}
+		entity.sprite.frame(iFract);
+		advance(entity);
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (process);
 
 /***/ }),
 
@@ -3515,6 +3639,11 @@ describe('blimp thinker', function() {
             expect(entity.data.aimedAngle).toBeCloseTo(Math.PI / 4, 4);
             expect(entity.data.angle).toBeCloseTo(0.1, 4);
         });
+	});
+
+
+	describe('bug affolement sinusoidal', function() {
+
 	});
 
 

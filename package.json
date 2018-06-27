@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/jasmine build/test.js",
-    "webpack": "./node_modules/.bin/webpack --watch",
-    "get-o876": "rm -r src/o876/* && cp -r ../o876/src/* src/o876"
+    "webpack": "./node_modules/.bin/webpack --watch"
   },
   "repository": {
     "type": "git",

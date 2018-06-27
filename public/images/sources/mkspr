@@ -1,0 +1,2 @@
+#!/bin/bash
+convert zeplin3/z*.png +append -modulate 150 palette.png -interpolate Bicubic -clut blimp_1.png

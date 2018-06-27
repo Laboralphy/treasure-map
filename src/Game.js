@@ -3,6 +3,7 @@ import osge from './osge';
 import Cartography from './cartography';
 import Indicators from './Indicators';
 import THINKERS from './thinkers';
+import DATA from './data';
 
 const Vector = o876.geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
@@ -23,6 +24,7 @@ class Game extends osge.Game {
             progress: Indicators.progress,
             verbose: false
         });
+        this._lastEntityId = 0;
         this.state = {
             entities: [],
             player: null,
@@ -31,47 +33,45 @@ class Game extends osge.Game {
     }
 
     onClick(event) {
-        let cvs = this.screenCanvas;
-        let click = this.mouse.add(this.carto._view);
-		this.state.player.data.destination.set(click);
-        console.log(click, this.state.player.data.destination.sub(this.state.player.data.position).angle());
+		this.state.player.data.destination.set(this.mouse.add(this.carto._view));
     }
 
     processThinker(entity) {
         entity.thinker(entity);
     }
 
+    async createEntity(blueprint) {
+        let id = ++this._lastEntityId;
+        let sprite = new osge.Sprite();
+		this._spriteLayer.sprites.push(sprite);
+		sprite.define(blueprint.sprite);
+		let oEntity = {
+            id,
+            sprite,
+            thinker: THINKERS[blueprint.thinker],
+            data: Object.assign({}, DATA.vehicles.base, DATA.vehicles[blueprint.type])
+        };
+		this.state.entities.push(oEntity);
+		return oEntity;
+    }
+
     async init() {
         super.init();
+		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
         this.canvas(oCanvas);
-        // ballon
-        let oBlimpSprite = new osge.Sprite();
-		oBlimpSprite.image = await this.loadImage('images/sprites/blimp_0.png');
-        oBlimpSprite.frameHeight = oBlimpSprite.image.naturalHeight;
-        oBlimpSprite.frameWidth = oBlimpSprite.image.naturalWidth / 16;
-        oBlimpSprite.reference.x = oBlimpSprite.frameWidth >> 1;
-        oBlimpSprite.reference.y = oBlimpSprite.frameHeight - 32;
-        this.sprites.push(oBlimpSprite);
-        this.state.player = {
-            id: 1,
-            sprite: oBlimpSprite,
-            thinker: THINKERS.blimp,
-            data: {
-                angle: 0,                               // angle de cap
-				angleSpeed: 0.05,
-				position: new Vector(0, 0),             // position actuelle
-				destination: new Vector(0, 0),          // position vers laquelle on se dirige
-                enginePower: 0.1,                       // inc/dec de la vitesse du moteur
-				speed: 0,                               // vitesse actuelle
-                maxSpeed: 2                    // vitesse max
-            }
-        };
-		this.state.entities.push(this.state.player);
-        let sl = new SpriteLayer();
-        sl.sprites.push(oBlimpSprite);
-        this.layers.push(sl);
+        let oPlayer = await this.createEntity({
+			type: 'blimp',
+            sprite: {
+                tileset: 'blimp_1',
+                frames: 32,
+                ref: {x: 0, y: 0}
+            },
+            thinker: 'blimp'
+        });
+        console.log(oPlayer);
+        this.state.player = oPlayer;
     }
 
     update() {

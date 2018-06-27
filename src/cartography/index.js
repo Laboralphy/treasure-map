@@ -4,6 +4,7 @@ import Webworkio from 'webworkio';
 import WorldTile from './WorldTile';
 
 const CanvasHelper = o876.CanvasHelper;
+const Vector = o876.geometry.Vector;
 const CLUSTER_SIZE = 16;
 
 class Cartography {
@@ -140,6 +141,7 @@ class Cartography {
 		let cellSize = this.cellSize();
 		let m = Cartography.getViewPointMetrics(x, y, w, h, cellSize, 0);
 		let yTilePix = 0;
+		let ctx = oCanvas.getContext('2d');
 		for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
 			let xTilePix = 0;
 			for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
@@ -153,7 +155,7 @@ class Cartography {
 						wt.colormap = null;
 					}
 					if (wt.isPainted() && wt.isMapped()) {
-                        oCanvas.getContext('2d').drawImage(wt.canvas, xScreen, yScreen);
+                        ctx.drawImage(wt.canvas, xScreen, yScreen);
 					}
 				}
 				xTilePix += cellSize;

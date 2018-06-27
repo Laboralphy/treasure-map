@@ -14,7 +14,6 @@ class Game {
 		this.screenCanvas = null;
 		this._time = new Time();
 		this._time.period = 40;
-		this.sprites = [];
 		this.view = new View();
 		this.layers = [];
 		this.mouse = new Vector();
@@ -71,7 +70,7 @@ class Game {
 	 * @param sImage {string} url de l'image
 	 * @returns {Promise<Image>}
 	 */
-	async loadImage(sImage) {
+	static async loadImage(sImage) {
 		return new Promise(resolve => {
 			let oImage = new Image();
 			oImage.addEventListener('load', event => resolve(oImage));

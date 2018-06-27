@@ -13,7 +13,6 @@ class DOMEvents {
 	}
 
 	on(element, event, handler) {
-		console.log('add event listener', event, 'on', element);
 		this._handlers.push({
 			element, event, handler
 		});
