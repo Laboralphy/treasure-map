@@ -1,5 +1,5 @@
-import vehicles from './vehicles';
+import blueprints from './blueprints/index';
 
 export default {
-	vehicles
+    blueprints
 };

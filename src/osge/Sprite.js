@@ -16,6 +16,23 @@ class Sprite {
         this._iFrame = 0;
         this.alpha = 1;
         this._frames = [];
+        this._defined = false;
+        this._fadeIn = false;
+	}
+
+	fadeIn() {
+        this._fadeIn = true;
+        this.alpha = 0;
+	}
+
+	processFade() {
+		if (this._fadeIn) {
+			this.alpha += 0.001;
+			if (this.alpha > 1) {
+                this.alpha = 1;
+                this._fadeIn = false;
+			}
+		}
 	}
 
 	async define(data) {
@@ -24,6 +41,9 @@ class Sprite {
 			this.frameWidth = data.width;
 			this.frameHeight = data.height;
 		} else {
+			if (!data.frames) {
+				throw new Error('either "width/height" or "frames" must be defined, in the blueprint');
+			}
 			this.frameWidth =  this.image.naturalWidth / data.frames;
 			this.frameHeight = this.image.naturalHeight;
 		}
@@ -41,6 +61,8 @@ class Sprite {
 		}
 		this.reference.x = (this.frameWidth >> 1) + data.ref.x;
 		this.reference.y = (this.frameHeight >> 1) + data.ref.y;
+		this._defined = true;
+		this.fadeIn();
 	}
 
 	frameCount() {
@@ -56,15 +78,22 @@ class Sprite {
 	}
 
 	draw(ctx, vOffset) {
+		if (!this._defined) {
+			return;
+		}
 		let n = this._iFrame;
 		let w = this.frameWidth;
 		let h = this.frameHeight;
 		let p = this.position.sub(vOffset);
+        this.processFade();
 		let a = this.alpha;
 		if (a) {
 			let fSaveAlpha;
 			if (a !== 1) {
 				fSaveAlpha = ctx.globalAlpha;
+			}
+			if (n >= this._frames.length) {
+				throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);
 			}
 			let f = this._frames[n];
             ctx.drawImage(

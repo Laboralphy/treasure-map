@@ -1,7 +1,7 @@
 import balloon from './balloon';
-import blimp from './blimp';
+import aerostat from './aerostat';
 
 export default {
     balloon,
-    blimp
+    aerostat
 };

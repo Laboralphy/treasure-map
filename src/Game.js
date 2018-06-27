@@ -4,6 +4,7 @@ import Cartography from './cartography';
 import Indicators from './Indicators';
 import THINKERS from './thinkers';
 import DATA from './data';
+import deepAssign from 'deep-assign';
 
 const Vector = o876.geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
@@ -40,7 +41,8 @@ class Game extends osge.Game {
         entity.thinker(entity);
     }
 
-    async createEntity(blueprint) {
+    async createEntity(sResRef) {
+        let blueprint = deepAssign({}, DATA.blueprints.base, DATA.blueprints[sResRef]);
         let id = ++this._lastEntityId;
         let sprite = new osge.Sprite();
 		this._spriteLayer.sprites.push(sprite);
@@ -49,29 +51,20 @@ class Game extends osge.Game {
             id,
             sprite,
             thinker: THINKERS[blueprint.thinker],
-            data: Object.assign({}, DATA.vehicles.base, DATA.vehicles[blueprint.type])
+            data: blueprint
         };
 		this.state.entities.push(oEntity);
 		return oEntity;
     }
 
     async init() {
-        super.init();
+        await super.init();
 		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
-		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
         this.canvas(oCanvas);
-        let oPlayer = await this.createEntity({
-			type: 'blimp',
-            sprite: {
-                tileset: 'blimp_1',
-                frames: 32,
-                ref: {x: 0, y: 0}
-            },
-            thinker: 'blimp'
-        });
-        console.log(oPlayer);
+        let oPlayer = await this.createEntity('blimp');
         this.state.player = oPlayer;
+        this.domevents.on(oCanvas, 'click', event => this.onClick(event));
     }
 
     update() {

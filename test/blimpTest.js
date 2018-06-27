@@ -4,7 +4,7 @@ const Vector = o876.geometry.Vector;
 
 
 describe('blimp thinker', function() {
-	const blimpThinker = require('../src/thinkers/blimp').default;
+	const blimpThinker = require('../src/thinkers/aerostat').default;
 	describe('displacement', function() {
 		it ('should not move', function() {
 			let entity = {

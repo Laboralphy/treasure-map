@@ -3418,10 +3418,10 @@ module.exports = {
 
 /***/ }),
 
-/***/ "./src/thinkers/blimp.js":
-/*!*******************************!*\
-  !*** ./src/thinkers/blimp.js ***!
-  \*******************************/
+/***/ "./src/thinkers/aerostat.js":
+/*!**********************************!*\
+  !*** ./src/thinkers/aerostat.js ***!
+  \**********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -3538,7 +3538,7 @@ const Vector = o876.geometry.Vector;
 
 
 describe('blimp thinker', function() {
-	const blimpThinker = __webpack_require__(/*! ../src/thinkers/blimp */ "./src/thinkers/blimp.js").default;
+	const blimpThinker = __webpack_require__(/*! ../src/thinkers/aerostat */ "./src/thinkers/aerostat.js").default;
 	describe('displacement', function() {
 		it ('should not move', function() {
 			let entity = {

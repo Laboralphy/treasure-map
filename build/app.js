@@ -86,6 +86,86 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./node_modules/deep-assign/index.js":
+/*!*******************************************!*\
+  !*** ./node_modules/deep-assign/index.js ***!
+  \*******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var isObj = __webpack_require__(/*! is-obj */ "./node_modules/is-obj/index.js");
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+function toObject(val) {
+	if (val === null || val === undefined) {
+		throw new TypeError('Sources cannot be null or undefined');
+	}
+
+	return Object(val);
+}
+
+function assignKey(to, from, key) {
+	var val = from[key];
+
+	if (val === undefined || val === null) {
+		return;
+	}
+
+	if (hasOwnProperty.call(to, key)) {
+		if (to[key] === undefined || to[key] === null) {
+			throw new TypeError('Cannot convert undefined or null to object (' + key + ')');
+		}
+	}
+
+	if (!hasOwnProperty.call(to, key) || !isObj(val)) {
+		to[key] = val;
+	} else {
+		to[key] = assign(Object(to[key]), from[key]);
+	}
+}
+
+function assign(to, from) {
+	if (to === from) {
+		return to;
+	}
+
+	from = Object(from);
+
+	for (var key in from) {
+		if (hasOwnProperty.call(from, key)) {
+			assignKey(to, from, key);
+		}
+	}
+
+	if (Object.getOwnPropertySymbols) {
+		var symbols = Object.getOwnPropertySymbols(from);
+
+		for (var i = 0; i < symbols.length; i++) {
+			if (propIsEnumerable.call(from, symbols[i])) {
+				assignKey(to, from, symbols[i]);
+			}
+		}
+	}
+
+	return to;
+}
+
+module.exports = function deepAssign(target) {
+	target = toObject(target);
+
+	for (var s = 1; s < arguments.length; s++) {
+		assign(target, arguments[s]);
+	}
+
+	return target;
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/events/events.js":
 /*!***************************************!*\
   !*** ./node_modules/events/events.js ***!
@@ -399,6 +479,23 @@ function isUndefined(arg) {
 
 /***/ }),
 
+/***/ "./node_modules/is-obj/index.js":
+/*!**************************************!*\
+  !*** ./node_modules/is-obj/index.js ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+module.exports = function (x) {
+	var type = typeof x;
+	return x !== null && (type === 'object' || type === 'function');
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/webworkio/index.js":
 /*!*****************************************!*\
   !*** ./node_modules/webworkio/index.js ***!
@@ -597,6 +694,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
 /* harmony import */ var _thinkers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./thinkers */ "./src/thinkers/index.js");
 /* harmony import */ var _data__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./data */ "./src/data/index.js");
+/* harmony import */ var deep_assign__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! deep-assign */ "./node_modules/deep-assign/index.js");
+/* harmony import */ var deep_assign__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(deep_assign__WEBPACK_IMPORTED_MODULE_6__);
+
 
 
 
@@ -639,7 +739,8 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         entity.thinker(entity);
     }
 
-    async createEntity(blueprint) {
+    async createEntity(sResRef) {
+        let blueprint = deep_assign__WEBPACK_IMPORTED_MODULE_6___default()({}, _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints.base, _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef]);
         let id = ++this._lastEntityId;
         let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
 		this._spriteLayer.sprites.push(sprite);
@@ -648,29 +749,20 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
             id,
             sprite,
             thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker],
-            data: Object.assign({}, _data__WEBPACK_IMPORTED_MODULE_5__["default"].vehicles.base, _data__WEBPACK_IMPORTED_MODULE_5__["default"].vehicles[blueprint.type])
+            data: blueprint
         };
 		this.state.entities.push(oEntity);
 		return oEntity;
     }
 
     async init() {
-        super.init();
+        await super.init();
 		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
-		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
         this.canvas(oCanvas);
-        let oPlayer = await this.createEntity({
-			type: 'blimp',
-            sprite: {
-                tileset: 'blimp_1',
-                frames: 32,
-                ref: {x: 0, y: 0}
-            },
-            thinker: 'blimp'
-        });
-        console.log(oPlayer);
+        let oPlayer = await this.createEntity('blimp');
         this.state.player = oPlayer;
+        this.domevents.on(oCanvas, 'click', event => this.onClick(event));
     }
 
     update() {
@@ -1512,83 +1604,83 @@ const COLORS = {
 
 /***/ }),
 
-/***/ "./src/data/index.js":
-/*!***************************!*\
-  !*** ./src/data/index.js ***!
-  \***************************/
+/***/ "./src/data/blueprints/base.js":
+/*!*************************************!*\
+  !*** ./src/data/blueprints/base.js ***!
+  \*************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _vehicles__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vehicles */ "./src/data/vehicles/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
 
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-	vehicles: _vehicles__WEBPACK_IMPORTED_MODULE_0__["default"]
-});
-
-/***/ }),
-
-/***/ "./src/data/vehicles/base.js":
-/*!***********************************!*\
-  !*** ./src/data/vehicles/base.js ***!
-  \***********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876 */ "./src/o876/index.js");
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-
-const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
 
 const DATA = {
-	"angle": 0,                   // angle de cap
-	"angleSpeed": 0,              // amplitude d emofication de l'angle
-	"position": new Vector(),             // position actuelle
-	"destination": new Vector(),          // position vers laquelle on se dirige
-	"enginePower": 0,             // inc/dec de la vitesse du moteur
-	"speed": 0,                   // vitesse actuelle
-	"maxSpeed": 2                 // vitesse max
+    "angle": 0,                   // angle de cap
+    "angleSpeed": 0,              // amplitude d emofication de l'angle
+    "position": new Vector(),     // position actuelle
+    "destination": new Vector(),  // position vers laquelle on se dirige
+    "enginePower": 0,             // inc/dec de la vitesse du moteur
+    "speed": 0,                   // vitesse actuelle
+    "maxSpeed": 0,                 // vitesse max
+    "sprite": {
+        "tileset": "",
+        "frames": 0,
+        "ref": {
+            "x": 0,
+            "y": 0
+        }
+    },
+    "thinker": ""
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (DATA);
 
 /***/ }),
 
-/***/ "./src/data/vehicles/blimp.js":
-/*!************************************!*\
-  !*** ./src/data/vehicles/blimp.js ***!
-  \************************************/
+/***/ "./src/data/blueprints/blimp.js":
+/*!**************************************!*\
+  !*** ./src/data/blueprints/blimp.js ***!
+  \**************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 const DATA = {
-	"angleSpeed": 0.1,              // amplitude d emofication de l'angle
-	"enginePower": 0.1,             // inc/dec de la vitesse du moteur
-	"maxSpeed": 2                   // vitesse max
+    "angleSpeed": 0.1,              // amplitude d emofication de l'angle
+    "enginePower": 0.1,             // inc/dec de la vitesse du moteur
+    "maxSpeed": 2,                  // vitesse max
+	"sprite": {
+        "tileset": "blimp_1",
+        "frames": 32,
+        "ref": {
+            "x": 0,
+            "y": 0
+        }
+	},
+	"thinker": "aerostat",
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (DATA);
 
 /***/ }),
 
-/***/ "./src/data/vehicles/index.js":
-/*!************************************!*\
-  !*** ./src/data/vehicles/index.js ***!
-  \************************************/
+/***/ "./src/data/blueprints/index.js":
+/*!**************************************!*\
+  !*** ./src/data/blueprints/index.js ***!
+  \**************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _base__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base */ "./src/data/vehicles/base.js");
-/* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./blimp */ "./src/data/vehicles/blimp.js");
-/* harmony import */ var _prototype_1__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./prototype-1 */ "./src/data/vehicles/prototype-1.js");
+/* harmony import */ var _base__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base */ "./src/data/blueprints/base.js");
+/* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./blimp */ "./src/data/blueprints/blimp.js");
+/* harmony import */ var _prototype_1__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./prototype-1 */ "./src/data/blueprints/prototype-1.js");
 
 
 
@@ -1599,10 +1691,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./src/data/vehicles/prototype-1.js":
-/*!******************************************!*\
-  !*** ./src/data/vehicles/prototype-1.js ***!
-  \******************************************/
+/***/ "./src/data/blueprints/prototype-1.js":
+/*!********************************************!*\
+  !*** ./src/data/blueprints/prototype-1.js ***!
+  \********************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -1615,6 +1707,24 @@ const DATA = {
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (DATA);
+
+/***/ }),
+
+/***/ "./src/data/index.js":
+/*!***************************!*\
+  !*** ./src/data/index.js ***!
+  \***************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _blueprints_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blueprints/index */ "./src/data/blueprints/index.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    blueprints: _blueprints_index__WEBPACK_IMPORTED_MODULE_0__["default"]
+});
 
 /***/ }),
 
@@ -5369,6 +5479,23 @@ class Sprite {
         this._iFrame = 0;
         this.alpha = 1;
         this._frames = [];
+        this._defined = false;
+        this._fadeIn = false;
+	}
+
+	fadeIn() {
+        this._fadeIn = true;
+        this.alpha = 0;
+	}
+
+	processFade() {
+		if (this._fadeIn) {
+			this.alpha += 0.001;
+			if (this.alpha > 1) {
+                this.alpha = 1;
+                this._fadeIn = false;
+			}
+		}
 	}
 
 	async define(data) {
@@ -5377,6 +5504,9 @@ class Sprite {
 			this.frameWidth = data.width;
 			this.frameHeight = data.height;
 		} else {
+			if (!data.frames) {
+				throw new Error('either "width/height" or "frames" must be defined, in the blueprint');
+			}
 			this.frameWidth =  this.image.naturalWidth / data.frames;
 			this.frameHeight = this.image.naturalHeight;
 		}
@@ -5394,6 +5524,8 @@ class Sprite {
 		}
 		this.reference.x = (this.frameWidth >> 1) + data.ref.x;
 		this.reference.y = (this.frameHeight >> 1) + data.ref.y;
+		this._defined = true;
+		this.fadeIn();
 	}
 
 	frameCount() {
@@ -5409,15 +5541,22 @@ class Sprite {
 	}
 
 	draw(ctx, vOffset) {
+		if (!this._defined) {
+			return;
+		}
 		let n = this._iFrame;
 		let w = this.frameWidth;
 		let h = this.frameHeight;
 		let p = this.position.sub(vOffset);
+        this.processFade();
 		let a = this.alpha;
 		if (a) {
 			let fSaveAlpha;
 			if (a !== 1) {
 				fSaveAlpha = ctx.globalAlpha;
+			}
+			if (n >= this._frames.length) {
+				throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);
 			}
 			let f = this._frames[n];
             ctx.drawImage(
@@ -5543,53 +5682,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./src/thinkers/balloon.js":
-/*!*********************************!*\
-  !*** ./src/thinkers/balloon.js ***!
-  \*********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/**
- * Ce thinker déplace l'entité en accélérant au départ, et en reduisant la vitesse peu avat l'arrivée
- * de manière à avoir un mouvement fluide.
- * @param entity
- */
-function process(entity) {
-    let pdata = entity.data;
-    if (!pdata.destination.isEqual(pdata.position)) {
-        let vDiff = pdata.destination.sub(pdata.position);
-        let nDist = vDiff.magnitude();
-
-        let ms = pdata.maxSpeed;
-        let speed = pdata.speed;
-        let acc = pdata.enginePower;
-
-        const DECCEL_THRESHOLD_DIST = ms << 2;
-
-        if (nDist < DECCEL_THRESHOLD_DIST) {
-            // en deça d'un certain seuil la vitesse max diminue
-            // proportionnellemnt à la distance restante
-            ms *= nDist / DECCEL_THRESHOLD_DIST;
-        }
-        speed = Math.min(ms, speed + acc);
-        let vNorm = vDiff.normalize();
-        let vMove = vNorm.mul(speed);
-        pdata.speed = speed;
-        pdata.position.translate(vMove);
-    }
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (process);
-
-/***/ }),
-
-/***/ "./src/thinkers/blimp.js":
-/*!*******************************!*\
-  !*** ./src/thinkers/blimp.js ***!
-  \*******************************/
+/***/ "./src/thinkers/aerostat.js":
+/*!**********************************!*\
+  !*** ./src/thinkers/aerostat.js ***!
+  \**********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -5693,6 +5789,49 @@ function process(entity) {
 
 /***/ }),
 
+/***/ "./src/thinkers/balloon.js":
+/*!*********************************!*\
+  !*** ./src/thinkers/balloon.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * Ce thinker déplace l'entité en accélérant au départ, et en reduisant la vitesse peu avat l'arrivée
+ * de manière à avoir un mouvement fluide.
+ * @param entity
+ */
+function process(entity) {
+    let pdata = entity.data;
+    if (!pdata.destination.isEqual(pdata.position)) {
+        let vDiff = pdata.destination.sub(pdata.position);
+        let nDist = vDiff.magnitude();
+
+        let ms = pdata.maxSpeed;
+        let speed = pdata.speed;
+        let acc = pdata.enginePower;
+
+        const DECCEL_THRESHOLD_DIST = ms << 2;
+
+        if (nDist < DECCEL_THRESHOLD_DIST) {
+            // en deça d'un certain seuil la vitesse max diminue
+            // proportionnellemnt à la distance restante
+            ms *= nDist / DECCEL_THRESHOLD_DIST;
+        }
+        speed = Math.min(ms, speed + acc);
+        let vNorm = vDiff.normalize();
+        let vMove = vNorm.mul(speed);
+        pdata.speed = speed;
+        pdata.position.translate(vMove);
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (process);
+
+/***/ }),
+
 /***/ "./src/thinkers/index.js":
 /*!*******************************!*\
   !*** ./src/thinkers/index.js ***!
@@ -5703,13 +5842,13 @@ function process(entity) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _balloon__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./balloon */ "./src/thinkers/balloon.js");
-/* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./blimp */ "./src/thinkers/blimp.js");
+/* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     balloon: _balloon__WEBPACK_IMPORTED_MODULE_0__["default"],
-    blimp: _blimp__WEBPACK_IMPORTED_MODULE_1__["default"]
+    aerostat: _aerostat__WEBPACK_IMPORTED_MODULE_1__["default"]
 });
 
 /***/ })
