@@ -62,8 +62,7 @@ class Game extends osge.Game {
 		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
         this.canvas(oCanvas);
-        let oPlayer = await this.createEntity('blimp');
-        this.state.player = oPlayer;
+        this.state.player = await this.createEntity('blimp');
         this.domevents.on(oCanvas, 'click', event => this.onClick(event));
     }
 
