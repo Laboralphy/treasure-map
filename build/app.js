@@ -760,8 +760,7 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
         this.canvas(oCanvas);
-        let oPlayer = await this.createEntity('blimp');
-        this.state.player = oPlayer;
+        this.state.player = await this.createEntity('blimp');
         this.domevents.on(oCanvas, 'click', event => this.onClick(event));
     }
 
@@ -1502,6 +1501,15 @@ class WorldGenerator {
         return aMap;
     }
 
+    buildStructurePort(x, y, physicMap) {
+		// trouver un spot pres de l'eau
+
+	}
+
+    buildStructures(x, y, physicMap) {
+		this.buildStructurePort(x, y, physicMap);
+	}
+
     computeCell(xCurs, yCurs) {
         const MESH_SIZE = 16 / this._scale;
         let clusterSize = this._perlinCluster.size();
@@ -1524,11 +1532,13 @@ class WorldGenerator {
         );
         let colorMap = Perlin.colorize(heightMap, GRADIENT);
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
+        let structures = this.buildStructures(xCurs, yCurs, physicMap);
         return {
             x: xCurs,
             y: yCurs,
             colormap: colorMap,
-            physicmap: physicMap
+            physicmap: physicMap,
+			structures
         };
 	}
 
@@ -1659,7 +1669,7 @@ const DATA = {
         "frames": 32,
         "ref": {
             "x": 0,
-            "y": 0
+            "y": 41
         }
 	},
 	"thinker": "aerostat",
@@ -1703,7 +1713,18 @@ __webpack_require__.r(__webpack_exports__);
 const DATA = {
 	"angleSpeed": 0.2,              // amplitude d emofication de l'angle
 	"enginePower": 0.2,             // inc/dec de la vitesse du moteur
-	"maxSpeed": 6                   // vitesse max
+	"maxSpeed": 6,                  // vitesse max
+	"sprite": {
+		"tileset": "plane_0",
+		"frames": 36,
+		"width": 112,
+		"height": 112,
+		"ref": {
+			"x": 0,
+			"y": 0
+		}
+	},
+	"thinker": "aerostat",
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (DATA);

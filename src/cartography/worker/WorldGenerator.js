@@ -212,6 +212,15 @@ class WorldGenerator {
         return aMap;
     }
 
+    buildStructurePort(x, y, physicMap) {
+		// trouver un spot pres de l'eau
+
+	}
+
+    buildStructures(x, y, physicMap) {
+		this.buildStructurePort(x, y, physicMap);
+	}
+
     computeCell(xCurs, yCurs) {
         const MESH_SIZE = 16 / this._scale;
         let clusterSize = this._perlinCluster.size();
@@ -234,11 +243,13 @@ class WorldGenerator {
         );
         let colorMap = Perlin.colorize(heightMap, GRADIENT);
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
+        let structures = this.buildStructures(xCurs, yCurs, physicMap);
         return {
             x: xCurs,
             y: yCurs,
             colormap: colorMap,
-            physicmap: physicMap
+            physicmap: physicMap,
+			structures
         };
 	}
 
