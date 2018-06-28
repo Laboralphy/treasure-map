@@ -7,7 +7,7 @@ const DATA = {
         "frames": 32,
         "ref": {
             "x": 0,
-            "y": 0
+            "y": 41
         }
 	},
 	"thinker": "aerostat",
