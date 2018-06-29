@@ -5501,22 +5501,34 @@ class Sprite {
         this.alpha = 1;
         this._frames = [];
         this._defined = false;
-        this._fadeIn = false;
+        this._fadeDiff = 0;
 	}
 
-	fadeIn() {
-        this._fadeIn = true;
+    fadeIn() {
+        this._fadeDiff = 0.001;
         this.alpha = 0;
-	}
+    }
+
+    fadeOut() {
+        this._fadeDiff = -0.001;
+        this.alpha = 1;
+    }
 
 	processFade() {
-		if (this._fadeIn) {
-			this.alpha += 0.001;
-			if (this.alpha > 1) {
+        if (this._fadeDiff > 0) {
+            this.alpha += this._fadeDiff;
+            if (this.alpha > 1) {
                 this.alpha = 1;
-                this._fadeIn = false;
-			}
-		}
+                this._fadeDiff = 0;
+            }
+        }
+        if (this._fadeDiff < 0) {
+            this.alpha += this._fadeDiff;
+            if (this.alpha < 0) {
+                this.alpha = 0;
+                this._fadeDiff = 0;
+            }
+        }
 	}
 
 	async define(data) {
