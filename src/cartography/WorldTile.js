@@ -3,6 +3,8 @@ const Perlin = o876.algorithms.Perlin;
 const Rainbow = o876.Rainbow;
 const CanvasHelper = o876.CanvasHelper;
 
+const FONT_DEFINITION = 'italic 13px Times New Roman';
+
 /**
  * Construction des clipart utilisé pour égayer la map
  * @private
@@ -151,8 +153,6 @@ class WorldTile {
         let tile = this.canvas;
         let physicmap = this.physicmap;
         let ctx = tile.getContext('2d');
-        ctx.font = '12px italic serif';
-        ctx.textBaseline = 'top';
         physicmap.forEach((row, y) => row.forEach((cell, x) => {
             if ((x & 1) ^ (y & 1)) {
                 switch (cell.type) {
@@ -191,7 +191,7 @@ class WorldTile {
 		}
 		if (this.options.drawCoords) {
 		    let sText;
-			ctx.font = 'italic 12px serif';
+			ctx.font = FONT_DEFINITION;
 			ctx.textBaseline = 'top';
 			ctx.strokeStyle = '#efce8c';
 			ctx.fillStyle = 'rgba(57, 25, 7)';

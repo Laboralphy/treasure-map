@@ -585,51 +585,58 @@ module.exports = Webworkio;
 /*!**************************************************!*\
   !*** ./src/cartography/worker/WorldGenerator.js ***!
   \**************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _palette__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./palette */ "./src/cartography/worker/palette.js");
-
-const Perlin = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
-
-
-const GRADIENT = Object(_palette__WEBPACK_IMPORTED_MODULE_1__["default"])();
+const o876 = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+const Perlin = o876.algorithms.Perlin;
 
 class WorldGenerator {
 	constructor(options) {
+		this._cache = new o876.structures.Cache2D();
+		this._options = {};
+		// cellules
 		let pcell = new Perlin();
 		pcell.size(options.cellSize / options.scale);
 		pcell.seed(options.seed);
+		this._perlinCell = pcell;
 
-		// le scale ne va agir que sur la physique map
-
+		// cluster
 		let pclust = new Perlin();
 		pclust.size(options.clusterSize);
 		pclust.seed(options.seed);
-
-		// les cellule, détail jusqu'au pixel
-		// défini l'élévaltion finale du terrain
-		this._perlinCell = pcell;
-
-		// les cluster, détail jusqu'au cellule
-		// défini l'élévation de base de la cellule correspondante
 		this._perlinCluster = pclust;
-		this._cache = new _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.structures.Cache2D({size: options.cacheSize || 64});
+
 		this._hexSize = options.hexSize || 16;
 		this._hexSpacing = options.hexSpacing || 6;
 		this._scale = options.scale || 1;
+		this.options(options);
 	}
+
+	_buildGradient(oPalette) {
+		return o876.Rainbow.gradient({
+			0: oPalette.abyss,
+			40: oPalette.depth,
+			48: oPalette.shallow,
+			50: oPalette.shore,
+			55: oPalette.land,
+			75: oPalette.highland,
+			99: oPalette.summit
+		})
+			.map(x => o876.Rainbow.parse(x))
+			.map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
+	}
+
 
 	options(options) {
 		this._cache.size(options.cacheSize || 64);
+		if ('palette' in options) {
+			this._gradient = this._buildGradient(options.palette);
+		}
 	}
 
 	static _mod(n, d) {
-		return _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod(n, d);
+		return o876.SpellBook.mod(n, d);
 	}
 
 	/**
@@ -702,7 +709,7 @@ class WorldGenerator {
         const bte = (n, a, b) => gte(n, a) && lte(n, b);
         const bt = (n, a, b) => gt(n, a) && lt(n, b);
         const ar = (a, b) => Math.abs(a - b) < nThickness;
-        const mod = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod;
+        const mod = o876.SpellBook.mod;
 
         let s2 = 2 * nSize;
         let s4 = 4 * nSize;
@@ -836,7 +843,7 @@ class WorldGenerator {
                 }
             }
         );
-        let colorMap = Perlin.colorize(heightMap, GRADIENT);
+        let colorMap = Perlin.colorize(heightMap, this._gradient);
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
         let structures = this.buildStructures(xCurs, yCurs, physicMap);
         return {
@@ -858,7 +865,7 @@ class WorldGenerator {
 	}
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (WorldGenerator);
+module.exports = WorldGenerator;
 
 /***/ }),
 
@@ -872,6 +879,7 @@ class WorldGenerator {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WorldGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WorldGenerator */ "./src/cartography/worker/WorldGenerator.js");
+/* harmony import */ var _WorldGenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_WorldGenerator__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! webworkio */ "./node_modules/webworkio/index.js");
 /* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(webworkio__WEBPACK_IMPORTED_MODULE_1__);
 
@@ -885,7 +893,7 @@ class Index {
 		wwio.worker();
 
 		wwio.on('init', (options) => {
-		    this._generator = new _WorldGenerator__WEBPACK_IMPORTED_MODULE_0__["default"](options);
+		    this._generator = new _WorldGenerator__WEBPACK_IMPORTED_MODULE_0___default.a(options);
         });
 
 		wwio.on('options', (options) => {
@@ -901,64 +909,6 @@ class Index {
 }
 
 const service = new Index();
-
-
-/***/ }),
-
-/***/ "./src/cartography/worker/palette.js":
-/*!*******************************************!*\
-  !*** ./src/cartography/worker/palette.js ***!
-  \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _consts_colors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../consts/colors */ "./src/consts/colors.js");
-
-
-const Rainbow = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
-
-function _buildGradient() {
-    return Rainbow.gradient({
-        0: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].abyss,
-        40: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].depth,
-        48: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].shallow,
-        50: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].shore,
-        55: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].land,
-        75: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].highland,
-        99: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].summit
-    })
-        .map(x => Rainbow.parse(x))
-        .map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (_buildGradient);
-
-/***/ }),
-
-/***/ "./src/consts/colors.js":
-/*!******************************!*\
-  !*** ./src/consts/colors.js ***!
-  \******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-const COLORS = {
-	abyss: '#dec673',
-	depth: '#efd69c',
-	shallow: '#d6a563',
-	shore: '#572507',
-	land: '#d2a638',
-	highland: '#b97735',
-	summit: '#efce8c'
-};
-
-/* harmony default export */ __webpack_exports__["default"] = (COLORS);
 
 
 /***/ }),
@@ -1458,7 +1408,7 @@ const COLORS = {
 	yellowgreen : '#9ACD32'
 };
 
-module.exports = class Rainbow {
+class Rainbow {
 
 	/** 
 	 * Fabrique une chaine de caractère représentant une couleur au format CSS
@@ -1523,6 +1473,7 @@ module.exports = class Rainbow {
 					}
 			}
 		}
+		throw new Error('could not parse this thing : ' + JSON.stringify(xData));
 	}
 	
 	/**
@@ -1672,6 +1623,7 @@ module.exports = class Rainbow {
 	}
 };
 
+module.exports = Rainbow;
 
 /***/ }),
 
@@ -1939,7 +1891,7 @@ class SpellBook {
     }
 
 
-};
+}
 
 
 module.exports = SpellBook;

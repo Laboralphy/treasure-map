@@ -581,7 +581,7 @@ const COLORS = {
 	yellowgreen : '#9ACD32'
 };
 
-module.exports = class Rainbow {
+class Rainbow {
 
 	/** 
 	 * Fabrique une chaine de caractère représentant une couleur au format CSS
@@ -646,6 +646,7 @@ module.exports = class Rainbow {
 					}
 			}
 		}
+		throw new Error('could not parse this thing : ' + JSON.stringify(xData));
 	}
 	
 	/**
@@ -795,6 +796,7 @@ module.exports = class Rainbow {
 	}
 };
 
+module.exports = Rainbow;
 
 /***/ }),
 
@@ -1062,7 +1064,7 @@ class SpellBook {
     }
 
 
-};
+}
 
 
 module.exports = SpellBook;

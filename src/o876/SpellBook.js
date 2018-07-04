@@ -103,7 +103,7 @@ class SpellBook {
     }
 
 
-};
+}
 
 
 module.exports = SpellBook;

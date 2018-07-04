@@ -86,82 +86,299 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./node_modules/deep-assign/index.js":
+/***/ "./node_modules/assign-deep/index.js":
 /*!*******************************************!*\
-  !*** ./node_modules/deep-assign/index.js ***!
+  !*** ./node_modules/assign-deep/index.js ***!
   \*******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/*!
+ * assign-deep <https://github.com/jonschlinkert/assign-deep>
+ *
+ * Copyright (c) 2017, Jon Schlinkert.
+ * Released under the MIT License.
+ */
 
-var isObj = __webpack_require__(/*! is-obj */ "./node_modules/is-obj/index.js");
-var hasOwnProperty = Object.prototype.hasOwnProperty;
-var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
-function toObject(val) {
-	if (val === null || val === undefined) {
-		throw new TypeError('Sources cannot be null or undefined');
-	}
 
-	return Object(val);
+var isPrimitive = __webpack_require__(/*! is-primitive */ "./node_modules/is-primitive/index.js");
+var assignSymbols = __webpack_require__(/*! assign-symbols */ "./node_modules/assign-deep/node_modules/assign-symbols/index.js");
+var typeOf = __webpack_require__(/*! kind-of */ "./node_modules/assign-deep/node_modules/kind-of/index.js");
+
+function assign(target/*, objects*/) {
+  target = target || {};
+  var len = arguments.length, i = 0;
+  if (len === 1) {
+    return target;
+  }
+  while (++i < len) {
+    var val = arguments[i];
+    if (isPrimitive(target)) {
+      target = val;
+    }
+    if (isObject(val)) {
+      extend(target, val);
+    }
+  }
+  return target;
 }
 
-function assignKey(to, from, key) {
-	var val = from[key];
+/**
+ * Shallow extend
+ */
 
-	if (val === undefined || val === null) {
-		return;
-	}
+function extend(target, obj) {
+  assignSymbols(target, obj);
 
-	if (hasOwnProperty.call(to, key)) {
-		if (to[key] === undefined || to[key] === null) {
-			throw new TypeError('Cannot convert undefined or null to object (' + key + ')');
-		}
-	}
-
-	if (!hasOwnProperty.call(to, key) || !isObj(val)) {
-		to[key] = val;
-	} else {
-		to[key] = assign(Object(to[key]), from[key]);
-	}
+  for (var key in obj) {
+    if (key !== '__proto__' && hasOwn(obj, key)) {
+      var val = obj[key];
+      if (isObject(val)) {
+        if (typeOf(target[key]) === 'undefined' && typeOf(val) === 'function') {
+          target[key] = val;
+        }
+        target[key] = assign(target[key] || {}, val);
+      } else {
+        target[key] = val;
+      }
+    }
+  }
+  return target;
 }
 
-function assign(to, from) {
-	if (to === from) {
-		return to;
-	}
+/**
+ * Returns true if the object is a plain object or a function.
+ */
 
-	from = Object(from);
-
-	for (var key in from) {
-		if (hasOwnProperty.call(from, key)) {
-			assignKey(to, from, key);
-		}
-	}
-
-	if (Object.getOwnPropertySymbols) {
-		var symbols = Object.getOwnPropertySymbols(from);
-
-		for (var i = 0; i < symbols.length; i++) {
-			if (propIsEnumerable.call(from, symbols[i])) {
-				assignKey(to, from, symbols[i]);
-			}
-		}
-	}
-
-	return to;
+function isObject(obj) {
+  return typeOf(obj) === 'object' || typeOf(obj) === 'function';
 }
 
-module.exports = function deepAssign(target) {
-	target = toObject(target);
+/**
+ * Returns true if the given `key` is an own property of `obj`.
+ */
 
-	for (var s = 1; s < arguments.length; s++) {
-		assign(target, arguments[s]);
-	}
+function hasOwn(obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
 
-	return target;
+/**
+ * Expose `assign`
+ */
+
+module.exports = assign;
+
+
+/***/ }),
+
+/***/ "./node_modules/assign-deep/node_modules/assign-symbols/index.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/assign-deep/node_modules/assign-symbols/index.js ***!
+  \***********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*!
+ * assign-symbols <https://github.com/jonschlinkert/assign-symbols>
+ *
+ * Copyright (c) 2015, Jon Schlinkert.
+ * Licensed under the MIT License.
+ */
+
+
+
+module.exports = function(receiver, objects) {
+  if (receiver === null || typeof receiver === 'undefined') {
+    throw new TypeError('expected first argument to be an object.');
+  }
+
+  if (typeof objects === 'undefined' || typeof Symbol === 'undefined') {
+    return receiver;
+  }
+
+  if (typeof Object.getOwnPropertySymbols !== 'function') {
+    return receiver;
+  }
+
+  var isEnumerable = Object.prototype.propertyIsEnumerable;
+  var target = Object(receiver);
+  var len = arguments.length, i = 0;
+
+  while (++i < len) {
+    var provider = Object(arguments[i]);
+    var names = Object.getOwnPropertySymbols(provider);
+
+    for (var j = 0; j < names.length; j++) {
+      var key = names[j];
+
+      if (isEnumerable.call(provider, key)) {
+        target[key] = provider[key];
+      }
+    }
+  }
+  return target;
 };
+
+
+/***/ }),
+
+/***/ "./node_modules/assign-deep/node_modules/kind-of/index.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/assign-deep/node_modules/kind-of/index.js ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var toString = Object.prototype.toString;
+
+/**
+ * Get the native `typeof` a value.
+ *
+ * @param  {*} `val`
+ * @return {*} Native javascript type
+ */
+
+module.exports = function kindOf(val) {
+  var type = typeof val;
+
+  // primitivies
+  if (type === 'undefined') {
+    return 'undefined';
+  }
+  if (val === null) {
+    return 'null';
+  }
+  if (val === true || val === false || val instanceof Boolean) {
+    return 'boolean';
+  }
+  if (type === 'string' || val instanceof String) {
+    return 'string';
+  }
+  if (type === 'number' || val instanceof Number) {
+    return 'number';
+  }
+
+  // functions
+  if (type === 'function' || val instanceof Function) {
+    if (typeof val.constructor.name !== 'undefined' && val.constructor.name.slice(0, 9) === 'Generator') {
+      return 'generatorfunction';
+    }
+    return 'function';
+  }
+
+  // array
+  if (typeof Array.isArray !== 'undefined' && Array.isArray(val)) {
+    return 'array';
+  }
+
+  // check for instances of RegExp and Date before calling `toString`
+  if (val instanceof RegExp) {
+    return 'regexp';
+  }
+  if (val instanceof Date) {
+    return 'date';
+  }
+
+  // other objects
+  type = toString.call(val);
+
+  if (type === '[object RegExp]') {
+    return 'regexp';
+  }
+  if (type === '[object Date]') {
+    return 'date';
+  }
+  if (type === '[object Arguments]') {
+    return 'arguments';
+  }
+  if (type === '[object Error]') {
+    return 'error';
+  }
+  if (type === '[object Promise]') {
+    return 'promise';
+  }
+
+  // buffer
+  if (isBuffer(val)) {
+    return 'buffer';
+  }
+
+  // es6: Map, WeakMap, Set, WeakSet
+  if (type === '[object Set]') {
+    return 'set';
+  }
+  if (type === '[object WeakSet]') {
+    return 'weakset';
+  }
+  if (type === '[object Map]') {
+    return 'map';
+  }
+  if (type === '[object WeakMap]') {
+    return 'weakmap';
+  }
+  if (type === '[object Symbol]') {
+    return 'symbol';
+  }
+  
+  if (type === '[object Map Iterator]') {
+    return 'mapiterator';
+  }
+  if (type === '[object Set Iterator]') {
+    return 'setiterator';
+  }
+  if (type === '[object String Iterator]') {
+    return 'stringiterator';
+  }
+  if (type === '[object Array Iterator]') {
+    return 'arrayiterator';
+  }
+  
+  // typed arrays
+  if (type === '[object Int8Array]') {
+    return 'int8array';
+  }
+  if (type === '[object Uint8Array]') {
+    return 'uint8array';
+  }
+  if (type === '[object Uint8ClampedArray]') {
+    return 'uint8clampedarray';
+  }
+  if (type === '[object Int16Array]') {
+    return 'int16array';
+  }
+  if (type === '[object Uint16Array]') {
+    return 'uint16array';
+  }
+  if (type === '[object Int32Array]') {
+    return 'int32array';
+  }
+  if (type === '[object Uint32Array]') {
+    return 'uint32array';
+  }
+  if (type === '[object Float32Array]') {
+    return 'float32array';
+  }
+  if (type === '[object Float64Array]') {
+    return 'float64array';
+  }
+
+  // must be a plain object
+  return 'object';
+};
+
+/**
+ * If you need to support Safari 5-7 (8-10 yr-old browser),
+ * take a look at https://github.com/feross/is-buffer
+ */
+
+function isBuffer(val) {
+  return val.constructor
+    && typeof val.constructor.isBuffer === 'function'
+    && val.constructor.isBuffer(val);
+}
 
 
 /***/ }),
@@ -479,18 +696,26 @@ function isUndefined(arg) {
 
 /***/ }),
 
-/***/ "./node_modules/is-obj/index.js":
-/*!**************************************!*\
-  !*** ./node_modules/is-obj/index.js ***!
-  \**************************************/
+/***/ "./node_modules/is-primitive/index.js":
+/*!********************************************!*\
+  !*** ./node_modules/is-primitive/index.js ***!
+  \********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/*!
+ * is-primitive <https://github.com/jonschlinkert/is-primitive>
+ *
+ * Copyright (c) 2014-2015, Jon Schlinkert.
+ * Licensed under the MIT License.
+ */
 
-module.exports = function (x) {
-	var type = typeof x;
-	return x !== null && (type === 'object' || type === 'function');
+
+
+// see http://jsperf.com/testing-value-is-primitive/7
+module.exports = function isPrimitive(value) {
+  return value == null || (typeof value !== 'function' && typeof value !== 'object');
 };
 
 
@@ -694,8 +919,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
 /* harmony import */ var _thinkers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./thinkers */ "./src/thinkers/index.js");
 /* harmony import */ var _data__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./data */ "./src/data/index.js");
-/* harmony import */ var deep_assign__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! deep-assign */ "./node_modules/deep-assign/index.js");
-/* harmony import */ var deep_assign__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(deep_assign__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var assign_deep__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! assign-deep */ "./node_modules/assign-deep/index.js");
+/* harmony import */ var assign_deep__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(assign_deep__WEBPACK_IMPORTED_MODULE_6__);
 
 
 
@@ -714,6 +939,7 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         this.carto = new _cartography__WEBPACK_IMPORTED_MODULE_2__["default"]({
             cellSize: 256,
             hexSize: 16,
+            hexSpacing: 3,
             scale: 2,
             seed: 0.111,
             preload: 1,
@@ -739,29 +965,52 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         entity.thinker(entity);
     }
 
-    async createEntity(sResRef) {
-        let blueprint = deep_assign__WEBPACK_IMPORTED_MODULE_6___default()({}, _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints.base, _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef]);
-        let id = ++this._lastEntityId;
-        let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
+	async createEntity(sResRef) {
+		let blueprint = _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef];
+		let id = ++this._lastEntityId;
+		let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
 		this._spriteLayer.sprites.push(sprite);
 		sprite.define(blueprint.sprite);
 		let oEntity = {
-            id,
-            sprite,
-            thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker],
-            data: blueprint
-        };
+			id,
+			sprite,
+			thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker],
+			data: blueprint,
+			game: this
+		};
 		this.state.entities.push(oEntity);
 		return oEntity;
-    }
+	}
+
+	async createEntity2(sResRef) {
+		let blueprint = _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef];
+		let id = ++this._lastEntityId;
+		let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
+		this._spriteLayer.sprites.push(sprite);
+		sprite.define(blueprint.sprite);
+		let oEntity = {
+			id,
+			sprite,
+			thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker],
+			data: blueprint,
+			game: this
+		};
+		this.state.entities.push(oEntity);
+		return oEntity;
+	}
 
     async init() {
         await super.init();
 		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
         this.canvas(oCanvas);
+
+        // création du joueur
         this.state.player = await this.createEntity('blimp');
         this.domevents.on(oCanvas, 'click', event => this.onClick(event));
+
+        // création du sprite curseur de destination
+		this.state.cursor = await this.createEntity('cursor');
     }
 
     update() {
@@ -819,6 +1068,8 @@ __webpack_require__.r(__webpack_exports__);
 const Perlin = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
 const Rainbow = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
 const CanvasHelper = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
+
+const FONT_DEFINITION = 'italic 13px Times New Roman';
 
 /**
  * Construction des clipart utilisé pour égayer la map
@@ -968,8 +1219,6 @@ class WorldTile {
         let tile = this.canvas;
         let physicmap = this.physicmap;
         let ctx = tile.getContext('2d');
-        ctx.font = '12px italic serif';
-        ctx.textBaseline = 'top';
         physicmap.forEach((row, y) => row.forEach((cell, x) => {
             if ((x & 1) ^ (y & 1)) {
                 switch (cell.type) {
@@ -1008,7 +1257,7 @@ class WorldTile {
 		}
 		if (this.options.drawCoords) {
 		    let sText;
-			ctx.font = 'italic 12px serif';
+			ctx.font = FONT_DEFINITION;
 			ctx.textBaseline = 'top';
 			ctx.strokeStyle = '#efce8c';
 			ctx.fillStyle = 'rgba(57, 25, 7)';
@@ -1072,9 +1321,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876/index */ "./src/o876/index.js");
 /* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./worker/WorldGenerator */ "./src/cartography/worker/WorldGenerator.js");
+/* harmony import */ var _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! webworkio */ "./node_modules/webworkio/index.js");
 /* harmony import */ var webworkio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(webworkio__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _WorldTile__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WorldTile */ "./src/cartography/WorldTile.js");
+/* harmony import */ var _consts_colors__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../consts/colors */ "./src/consts/colors.js");
+/* harmony import */ var _WorldTile__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./WorldTile */ "./src/cartography/WorldTile.js");
+
 
 
 
@@ -1096,7 +1348,8 @@ class Cartography {
 			clusterSize: CLUSTER_SIZE,
 			hexSize: wgd.hexSize,
 			hexSpacing: wgd.hexSpacing,
-            scale: wgd.scale
+            scale: wgd.scale,
+			palette: _consts_colors__WEBPACK_IMPORTED_MODULE_3__["default"]
         });
 
         this._view = new _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector();
@@ -1120,7 +1373,7 @@ class Cartography {
 		let w = oCanvas.width;
 		let h = oCanvas.height;
 		let cellSize = this.cellSize();
-		let m = Cartography.getViewPointMetrics(this._xView, this._yView, w, h, cellSize, this.oWorldDef.preload);
+		let m = Cartography.getViewPointMetrics(this._view.x, this._view.y, w, h, cellSize, this.oWorldDef.preload);
 		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
 		if (nNewSize !== this._cache.size()) {
 			this._cache.size(nNewSize);
@@ -1160,7 +1413,7 @@ class Cartography {
 	async fetchTile(x, y) {
 		return new Promise(resolve => {
 			// verification en cache
-			let oWorldTile = new _WorldTile__WEBPACK_IMPORTED_MODULE_3__["default"](x, y, this.cellSize(), {
+			let oWorldTile = new _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"](x, y, this.cellSize(), {
 				scale: this.oWorldDef.scale,
 				drawGrid: this.oWorldDef.drawGrid,
 				drawCoords: this.oWorldDef.drawCoords
@@ -1258,8 +1511,8 @@ class Cartography {
         let yFrom = Math.floor(y0 / cellSize) - nBorder;
         let xTo = Math.floor((x0 + width - 1) / cellSize) + (nBorder);
         let yTo = Math.floor((y0 + height - 1) / cellSize) + (nBorder);
-        let xOfs = _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1__["default"]._mod(x0, cellSize);
-        let yOfs = _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1__["default"]._mod(y0, cellSize);
+        let xOfs = _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1___default.a._mod(x0, cellSize);
+        let yOfs = _worker_WorldGenerator__WEBPACK_IMPORTED_MODULE_1___default.a._mod(y0, cellSize);
 		return {
 			xFrom,
 			yFrom,
@@ -1279,51 +1532,58 @@ class Cartography {
 /*!**************************************************!*\
   !*** ./src/cartography/worker/WorldGenerator.js ***!
   \**************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _palette__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./palette */ "./src/cartography/worker/palette.js");
-
-const Perlin = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.algorithms.Perlin;
-
-
-const GRADIENT = Object(_palette__WEBPACK_IMPORTED_MODULE_1__["default"])();
+const o876 = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+const Perlin = o876.algorithms.Perlin;
 
 class WorldGenerator {
 	constructor(options) {
+		this._cache = new o876.structures.Cache2D();
+		this._options = {};
+		// cellules
 		let pcell = new Perlin();
 		pcell.size(options.cellSize / options.scale);
 		pcell.seed(options.seed);
+		this._perlinCell = pcell;
 
-		// le scale ne va agir que sur la physique map
-
+		// cluster
 		let pclust = new Perlin();
 		pclust.size(options.clusterSize);
 		pclust.seed(options.seed);
-
-		// les cellule, détail jusqu'au pixel
-		// défini l'élévaltion finale du terrain
-		this._perlinCell = pcell;
-
-		// les cluster, détail jusqu'au cellule
-		// défini l'élévation de base de la cellule correspondante
 		this._perlinCluster = pclust;
-		this._cache = new _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.structures.Cache2D({size: options.cacheSize || 64});
+
 		this._hexSize = options.hexSize || 16;
 		this._hexSpacing = options.hexSpacing || 6;
 		this._scale = options.scale || 1;
+		this.options(options);
 	}
+
+	_buildGradient(oPalette) {
+		return o876.Rainbow.gradient({
+			0: oPalette.abyss,
+			40: oPalette.depth,
+			48: oPalette.shallow,
+			50: oPalette.shore,
+			55: oPalette.land,
+			75: oPalette.highland,
+			99: oPalette.summit
+		})
+			.map(x => o876.Rainbow.parse(x))
+			.map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
+	}
+
 
 	options(options) {
 		this._cache.size(options.cacheSize || 64);
+		if ('palette' in options) {
+			this._gradient = this._buildGradient(options.palette);
+		}
 	}
 
 	static _mod(n, d) {
-		return _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod(n, d);
+		return o876.SpellBook.mod(n, d);
 	}
 
 	/**
@@ -1396,7 +1656,7 @@ class WorldGenerator {
         const bte = (n, a, b) => gte(n, a) && lte(n, b);
         const bt = (n, a, b) => gt(n, a) && lt(n, b);
         const ar = (a, b) => Math.abs(a - b) < nThickness;
-        const mod = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook.mod;
+        const mod = o876.SpellBook.mod;
 
         let s2 = 2 * nSize;
         let s4 = 4 * nSize;
@@ -1530,7 +1790,7 @@ class WorldGenerator {
                 }
             }
         );
-        let colorMap = Perlin.colorize(heightMap, GRADIENT);
+        let colorMap = Perlin.colorize(heightMap, this._gradient);
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
         let structures = this.buildStructures(xCurs, yCurs, physicMap);
         return {
@@ -1552,41 +1812,7 @@ class WorldGenerator {
 	}
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (WorldGenerator);
-
-/***/ }),
-
-/***/ "./src/cartography/worker/palette.js":
-/*!*******************************************!*\
-  !*** ./src/cartography/worker/palette.js ***!
-  \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _consts_colors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../consts/colors */ "./src/consts/colors.js");
-
-
-const Rainbow = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.Rainbow;
-
-function _buildGradient() {
-    return Rainbow.gradient({
-        0: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].abyss,
-        40: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].depth,
-        48: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].shallow,
-        50: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].shore,
-        55: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].land,
-        75: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].highland,
-        99: _consts_colors__WEBPACK_IMPORTED_MODULE_1__["default"].summit
-    })
-        .map(x => Rainbow.parse(x))
-        .map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (_buildGradient);
+module.exports = WorldGenerator;
 
 /***/ }),
 
@@ -1635,14 +1861,11 @@ const DATA = {
     "destination": new Vector(),  // position vers laquelle on se dirige
     "enginePower": 0,             // inc/dec de la vitesse du moteur
     "speed": 0,                   // vitesse actuelle
-    "maxSpeed": 0,                 // vitesse max
+    "maxSpeed": 0,                // vitesse max
     "sprite": {
         "tileset": "",
         "frames": 0,
-        "ref": {
-            "x": 0,
-            "y": 0
-        }
+        "ref": new Vector()
     },
     "thinker": ""
 };
@@ -1660,19 +1883,59 @@ const DATA = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+
+const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+
 const DATA = {
-    "angleSpeed": 0.1,              // amplitude d emofication de l'angle
-    "enginePower": 0.1,             // inc/dec de la vitesse du moteur
-    "maxSpeed": 2,                  // vitesse max
+	"angle": 0,                   // angle de cap
+	"angleSpeed": 0.1,              // amplitude d emofication de l'angle
+	"position": new Vector(),     // position actuelle
+	"destination": new Vector(),  // position vers laquelle on se dirige
+	"enginePower": 0.1,             // inc/dec de la vitesse du moteur
+	"speed": 0,                   // vitesse actuelle
+	"maxSpeed": 2,                // vitesse max
 	"sprite": {
-        "tileset": "blimp_1",
-        "frames": 32,
-        "ref": {
-            "x": 0,
-            "y": 41
-        }
+		"tileset": "blimp_1",
+		"frames": 32,
+		"ref": new Vector(0, 41)
 	},
-	"thinker": "aerostat",
+	"thinker": "aerostat"
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
+
+/***/ }),
+
+/***/ "./src/data/blueprints/cursor.js":
+/*!***************************************!*\
+  !*** ./src/data/blueprints/cursor.js ***!
+  \***************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
+/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
+
+const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+
+const DATA = {
+	"angle": 0,                   // angle de cap
+	"angleSpeed": 0,              // amplitude d emofication de l'angle
+	"position": new Vector(),     // position actuelle
+	"destination": new Vector(),  // position vers laquelle on se dirige
+	"enginePower": 0,             // inc/dec de la vitesse du moteur
+	"speed": 0,                   // vitesse actuelle
+	"maxSpeed": 0,                // vitesse max
+	"sprite": {
+	"tileset": "",
+		"frames": 1,
+		"ref": new Vector()
+	},
+	"thinker": "cursor"
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (DATA);
@@ -1691,12 +1954,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _base__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base */ "./src/data/blueprints/base.js");
 /* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./blimp */ "./src/data/blueprints/blimp.js");
 /* harmony import */ var _prototype_1__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./prototype-1 */ "./src/data/blueprints/prototype-1.js");
+/* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./cursor */ "./src/data/blueprints/cursor.js");
+
 
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	base: _base__WEBPACK_IMPORTED_MODULE_0__["default"], blimp: _blimp__WEBPACK_IMPORTED_MODULE_1__["default"], prototype1: _prototype_1__WEBPACK_IMPORTED_MODULE_2__["default"]
+	base: _base__WEBPACK_IMPORTED_MODULE_0__["default"], blimp: _blimp__WEBPACK_IMPORTED_MODULE_1__["default"], prototype1: _prototype_1__WEBPACK_IMPORTED_MODULE_2__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_3__["default"]
 });
 
 /***/ }),
@@ -2326,7 +2591,7 @@ const COLORS = {
 	yellowgreen : '#9ACD32'
 };
 
-module.exports = class Rainbow {
+class Rainbow {
 
 	/** 
 	 * Fabrique une chaine de caractère représentant une couleur au format CSS
@@ -2391,6 +2656,7 @@ module.exports = class Rainbow {
 					}
 			}
 		}
+		throw new Error('could not parse this thing : ' + JSON.stringify(xData));
 	}
 	
 	/**
@@ -2540,6 +2806,7 @@ module.exports = class Rainbow {
 	}
 };
 
+module.exports = Rainbow;
 
 /***/ }),
 
@@ -2807,7 +3074,7 @@ class SpellBook {
     }
 
 
-};
+}
 
 
 module.exports = SpellBook;
@@ -5505,12 +5772,12 @@ class Sprite {
 	}
 
     fadeIn() {
-        this._fadeDiff = 0.001;
+        this._fadeDiff = 0.05;
         this.alpha = 0;
     }
 
     fadeOut() {
-        this._fadeDiff = -0.001;
+        this._fadeDiff = -0.05;
         this.alpha = 1;
     }
 
@@ -5583,10 +5850,11 @@ class Sprite {
 		let p = this.position.sub(vOffset);
         this.processFade();
 		let a = this.alpha;
-		if (a) {
+		if (a > 0) {
 			let fSaveAlpha;
 			if (a !== 1) {
 				fSaveAlpha = ctx.globalAlpha;
+				ctx.globalAlpha = a;
 			}
 			if (n >= this._frames.length) {
 				throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);
@@ -5865,6 +6133,31 @@ function process(entity) {
 
 /***/ }),
 
+/***/ "./src/thinkers/cursor.js":
+/*!********************************!*\
+  !*** ./src/thinkers/cursor.js ***!
+  \********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * @param entity
+ */
+function process(entity) {
+	let cdata = entity.data;
+	let game = entity.game;
+	let player = game.state.player;
+	let pdata = player.data;
+	cdata.position.set(pdata.destination);
+	entity.sprite.frame(0);
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (process);
+
+/***/ }),
+
 /***/ "./src/thinkers/index.js":
 /*!*******************************!*\
   !*** ./src/thinkers/index.js ***!
@@ -5876,12 +6169,15 @@ function process(entity) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _balloon__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./balloon */ "./src/thinkers/balloon.js");
 /* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
+/* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cursor */ "./src/thinkers/cursor.js");
+
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     balloon: _balloon__WEBPACK_IMPORTED_MODULE_0__["default"],
-    aerostat: _aerostat__WEBPACK_IMPORTED_MODULE_1__["default"]
+    aerostat: _aerostat__WEBPACK_IMPORTED_MODULE_1__["default"],
+    cursor: _cursor__WEBPACK_IMPORTED_MODULE_2__["default"]
 });
 
 /***/ })

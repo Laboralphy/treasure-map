@@ -21,12 +21,12 @@ class Sprite {
 	}
 
     fadeIn() {
-        this._fadeDiff = 0.001;
+        this._fadeDiff = 0.05;
         this.alpha = 0;
     }
 
     fadeOut() {
-        this._fadeDiff = -0.001;
+        this._fadeDiff = -0.05;
         this.alpha = 1;
     }
 
@@ -99,10 +99,11 @@ class Sprite {
 		let p = this.position.sub(vOffset);
         this.processFade();
 		let a = this.alpha;
-		if (a) {
+		if (a > 0) {
 			let fSaveAlpha;
 			if (a !== 1) {
 				fSaveAlpha = ctx.globalAlpha;
+				ctx.globalAlpha = a;
 			}
 			if (n >= this._frames.length) {
 				throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);

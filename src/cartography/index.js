@@ -1,6 +1,7 @@
 import o876 from '../o876/index';
 import WorldGenerator from './worker/WorldGenerator';
 import Webworkio from 'webworkio';
+import COLORS from '../consts/colors';
 import WorldTile from './WorldTile';
 
 const CanvasHelper = o876.CanvasHelper;
@@ -19,7 +20,8 @@ class Cartography {
 			clusterSize: CLUSTER_SIZE,
 			hexSize: wgd.hexSize,
 			hexSpacing: wgd.hexSpacing,
-            scale: wgd.scale
+            scale: wgd.scale,
+			palette: COLORS
         });
 
         this._view = new o876.geometry.Vector();
@@ -43,7 +45,7 @@ class Cartography {
 		let w = oCanvas.width;
 		let h = oCanvas.height;
 		let cellSize = this.cellSize();
-		let m = Cartography.getViewPointMetrics(this._xView, this._yView, w, h, cellSize, this.oWorldDef.preload);
+		let m = Cartography.getViewPointMetrics(this._view.x, this._view.y, w, h, cellSize, this.oWorldDef.preload);
 		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
 		if (nNewSize !== this._cache.size()) {
 			this._cache.size(nNewSize);

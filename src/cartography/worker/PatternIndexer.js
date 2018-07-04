@@ -22,20 +22,21 @@ class PatternIndexer {
 	compute() {
 		let iIter = 100;
 		let bChanged = false;
+		const v = this._values;
 		do {
 			bChanged = false;
-			let h = this._values.length - 1;
+			let h = v.length - 1;
 			for (let y = 0; y < h; ++y) {
-				let w = this._values[y].length - 1;
+				let w = v[y].length - 1;
 				for (let x = 0; x < w; ++x) {
-					let xy = this._valuesLABY[y][x];
-					let x1y = this._values[y][x + 1];
-					let xy1 = this._values[y + 1][x];
-					let x1y1 = this._values[y + 1][x + 1];
+					let xy = v[y][x];
+					let x1y = v[y][x + 1];
+					let xy1 = v[y + 1][x];
+					let x1y1 = v[y + 1][x + 1];
 					if (xy > 0) {
 						let nMin = Math.min(x1y, xy1, x1y1);
 						if (xy <= nMin) {
-							this._values[y][x] = nMin + 1;
+							v[y][x] = nMin + 1;
 							bChanged = true;
 						}
 					}
@@ -45,3 +46,5 @@ class PatternIndexer {
 		} while (bChanged && iIter > 0);
 	}
 }
+
+module.exports = PatternIndexer;

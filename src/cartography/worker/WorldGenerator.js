@@ -1,36 +1,48 @@
-import o876 from '../../o876/index';
+const o876 = require('../../o876/index');
 const Perlin = o876.algorithms.Perlin;
-import _buildGradient from './palette';
-
-const GRADIENT = _buildGradient();
 
 class WorldGenerator {
 	constructor(options) {
+		this._cache = new o876.structures.Cache2D();
+		this._options = {};
+		// cellules
 		let pcell = new Perlin();
 		pcell.size(options.cellSize / options.scale);
 		pcell.seed(options.seed);
+		this._perlinCell = pcell;
 
-		// le scale ne va agir que sur la physique map
-
+		// cluster
 		let pclust = new Perlin();
 		pclust.size(options.clusterSize);
 		pclust.seed(options.seed);
-
-		// les cellule, détail jusqu'au pixel
-		// défini l'élévaltion finale du terrain
-		this._perlinCell = pcell;
-
-		// les cluster, détail jusqu'au cellule
-		// défini l'élévation de base de la cellule correspondante
 		this._perlinCluster = pclust;
-		this._cache = new o876.structures.Cache2D({size: options.cacheSize || 64});
+
 		this._hexSize = options.hexSize || 16;
 		this._hexSpacing = options.hexSpacing || 6;
 		this._scale = options.scale || 1;
+		this.options(options);
 	}
+
+	_buildGradient(oPalette) {
+		return o876.Rainbow.gradient({
+			0: oPalette.abyss,
+			40: oPalette.depth,
+			48: oPalette.shallow,
+			50: oPalette.shore,
+			55: oPalette.land,
+			75: oPalette.highland,
+			99: oPalette.summit
+		})
+			.map(x => o876.Rainbow.parse(x))
+			.map(x => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
+	}
+
 
 	options(options) {
 		this._cache.size(options.cacheSize || 64);
+		if ('palette' in options) {
+			this._gradient = this._buildGradient(options.palette);
+		}
 	}
 
 	static _mod(n, d) {
@@ -241,7 +253,7 @@ class WorldGenerator {
                 }
             }
         );
-        let colorMap = Perlin.colorize(heightMap, GRADIENT);
+        let colorMap = Perlin.colorize(heightMap, this._gradient);
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
         let structures = this.buildStructures(xCurs, yCurs, physicMap);
         return {
@@ -263,4 +275,4 @@ class WorldGenerator {
 	}
 }
 
-export default WorldGenerator;
+module.exports = WorldGenerator;
