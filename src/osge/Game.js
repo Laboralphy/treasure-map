@@ -97,7 +97,6 @@ class Game {
 			this.forEachLayer(l => {
 				l.render(rc);
             });
-			let p = this.view.points()[0];
             sc.getContext('2d')
 				.drawImage(this.renderCanvas, 0, 0);
 		} else {

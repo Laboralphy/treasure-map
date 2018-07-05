@@ -86,303 +86,6 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./node_modules/assign-deep/index.js":
-/*!*******************************************!*\
-  !*** ./node_modules/assign-deep/index.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*!
- * assign-deep <https://github.com/jonschlinkert/assign-deep>
- *
- * Copyright (c) 2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-
-
-var isPrimitive = __webpack_require__(/*! is-primitive */ "./node_modules/is-primitive/index.js");
-var assignSymbols = __webpack_require__(/*! assign-symbols */ "./node_modules/assign-deep/node_modules/assign-symbols/index.js");
-var typeOf = __webpack_require__(/*! kind-of */ "./node_modules/assign-deep/node_modules/kind-of/index.js");
-
-function assign(target/*, objects*/) {
-  target = target || {};
-  var len = arguments.length, i = 0;
-  if (len === 1) {
-    return target;
-  }
-  while (++i < len) {
-    var val = arguments[i];
-    if (isPrimitive(target)) {
-      target = val;
-    }
-    if (isObject(val)) {
-      extend(target, val);
-    }
-  }
-  return target;
-}
-
-/**
- * Shallow extend
- */
-
-function extend(target, obj) {
-  assignSymbols(target, obj);
-
-  for (var key in obj) {
-    if (key !== '__proto__' && hasOwn(obj, key)) {
-      var val = obj[key];
-      if (isObject(val)) {
-        if (typeOf(target[key]) === 'undefined' && typeOf(val) === 'function') {
-          target[key] = val;
-        }
-        target[key] = assign(target[key] || {}, val);
-      } else {
-        target[key] = val;
-      }
-    }
-  }
-  return target;
-}
-
-/**
- * Returns true if the object is a plain object or a function.
- */
-
-function isObject(obj) {
-  return typeOf(obj) === 'object' || typeOf(obj) === 'function';
-}
-
-/**
- * Returns true if the given `key` is an own property of `obj`.
- */
-
-function hasOwn(obj, key) {
-  return Object.prototype.hasOwnProperty.call(obj, key);
-}
-
-/**
- * Expose `assign`
- */
-
-module.exports = assign;
-
-
-/***/ }),
-
-/***/ "./node_modules/assign-deep/node_modules/assign-symbols/index.js":
-/*!***********************************************************************!*\
-  !*** ./node_modules/assign-deep/node_modules/assign-symbols/index.js ***!
-  \***********************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*!
- * assign-symbols <https://github.com/jonschlinkert/assign-symbols>
- *
- * Copyright (c) 2015, Jon Schlinkert.
- * Licensed under the MIT License.
- */
-
-
-
-module.exports = function(receiver, objects) {
-  if (receiver === null || typeof receiver === 'undefined') {
-    throw new TypeError('expected first argument to be an object.');
-  }
-
-  if (typeof objects === 'undefined' || typeof Symbol === 'undefined') {
-    return receiver;
-  }
-
-  if (typeof Object.getOwnPropertySymbols !== 'function') {
-    return receiver;
-  }
-
-  var isEnumerable = Object.prototype.propertyIsEnumerable;
-  var target = Object(receiver);
-  var len = arguments.length, i = 0;
-
-  while (++i < len) {
-    var provider = Object(arguments[i]);
-    var names = Object.getOwnPropertySymbols(provider);
-
-    for (var j = 0; j < names.length; j++) {
-      var key = names[j];
-
-      if (isEnumerable.call(provider, key)) {
-        target[key] = provider[key];
-      }
-    }
-  }
-  return target;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/assign-deep/node_modules/kind-of/index.js":
-/*!****************************************************************!*\
-  !*** ./node_modules/assign-deep/node_modules/kind-of/index.js ***!
-  \****************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-var toString = Object.prototype.toString;
-
-/**
- * Get the native `typeof` a value.
- *
- * @param  {*} `val`
- * @return {*} Native javascript type
- */
-
-module.exports = function kindOf(val) {
-  var type = typeof val;
-
-  // primitivies
-  if (type === 'undefined') {
-    return 'undefined';
-  }
-  if (val === null) {
-    return 'null';
-  }
-  if (val === true || val === false || val instanceof Boolean) {
-    return 'boolean';
-  }
-  if (type === 'string' || val instanceof String) {
-    return 'string';
-  }
-  if (type === 'number' || val instanceof Number) {
-    return 'number';
-  }
-
-  // functions
-  if (type === 'function' || val instanceof Function) {
-    if (typeof val.constructor.name !== 'undefined' && val.constructor.name.slice(0, 9) === 'Generator') {
-      return 'generatorfunction';
-    }
-    return 'function';
-  }
-
-  // array
-  if (typeof Array.isArray !== 'undefined' && Array.isArray(val)) {
-    return 'array';
-  }
-
-  // check for instances of RegExp and Date before calling `toString`
-  if (val instanceof RegExp) {
-    return 'regexp';
-  }
-  if (val instanceof Date) {
-    return 'date';
-  }
-
-  // other objects
-  type = toString.call(val);
-
-  if (type === '[object RegExp]') {
-    return 'regexp';
-  }
-  if (type === '[object Date]') {
-    return 'date';
-  }
-  if (type === '[object Arguments]') {
-    return 'arguments';
-  }
-  if (type === '[object Error]') {
-    return 'error';
-  }
-  if (type === '[object Promise]') {
-    return 'promise';
-  }
-
-  // buffer
-  if (isBuffer(val)) {
-    return 'buffer';
-  }
-
-  // es6: Map, WeakMap, Set, WeakSet
-  if (type === '[object Set]') {
-    return 'set';
-  }
-  if (type === '[object WeakSet]') {
-    return 'weakset';
-  }
-  if (type === '[object Map]') {
-    return 'map';
-  }
-  if (type === '[object WeakMap]') {
-    return 'weakmap';
-  }
-  if (type === '[object Symbol]') {
-    return 'symbol';
-  }
-  
-  if (type === '[object Map Iterator]') {
-    return 'mapiterator';
-  }
-  if (type === '[object Set Iterator]') {
-    return 'setiterator';
-  }
-  if (type === '[object String Iterator]') {
-    return 'stringiterator';
-  }
-  if (type === '[object Array Iterator]') {
-    return 'arrayiterator';
-  }
-  
-  // typed arrays
-  if (type === '[object Int8Array]') {
-    return 'int8array';
-  }
-  if (type === '[object Uint8Array]') {
-    return 'uint8array';
-  }
-  if (type === '[object Uint8ClampedArray]') {
-    return 'uint8clampedarray';
-  }
-  if (type === '[object Int16Array]') {
-    return 'int16array';
-  }
-  if (type === '[object Uint16Array]') {
-    return 'uint16array';
-  }
-  if (type === '[object Int32Array]') {
-    return 'int32array';
-  }
-  if (type === '[object Uint32Array]') {
-    return 'uint32array';
-  }
-  if (type === '[object Float32Array]') {
-    return 'float32array';
-  }
-  if (type === '[object Float64Array]') {
-    return 'float64array';
-  }
-
-  // must be a plain object
-  return 'object';
-};
-
-/**
- * If you need to support Safari 5-7 (8-10 yr-old browser),
- * take a look at https://github.com/feross/is-buffer
- */
-
-function isBuffer(val) {
-  return val.constructor
-    && typeof val.constructor.isBuffer === 'function'
-    && val.constructor.isBuffer(val);
-}
-
-
-/***/ }),
-
 /***/ "./node_modules/events/events.js":
 /*!***************************************!*\
   !*** ./node_modules/events/events.js ***!
@@ -696,31 +399,6 @@ function isUndefined(arg) {
 
 /***/ }),
 
-/***/ "./node_modules/is-primitive/index.js":
-/*!********************************************!*\
-  !*** ./node_modules/is-primitive/index.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*!
- * is-primitive <https://github.com/jonschlinkert/is-primitive>
- *
- * Copyright (c) 2014-2015, Jon Schlinkert.
- * Licensed under the MIT License.
- */
-
-
-
-// see http://jsperf.com/testing-value-is-primitive/7
-module.exports = function isPrimitive(value) {
-  return value == null || (typeof value !== 'function' && typeof value !== 'object');
-};
-
-
-/***/ }),
-
 /***/ "./node_modules/webworkio/index.js":
 /*!*****************************************!*\
   !*** ./node_modules/webworkio/index.js ***!
@@ -919,9 +597,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Indicators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Indicators */ "./src/Indicators.js");
 /* harmony import */ var _thinkers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./thinkers */ "./src/thinkers/index.js");
 /* harmony import */ var _data__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./data */ "./src/data/index.js");
-/* harmony import */ var assign_deep__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! assign-deep */ "./node_modules/assign-deep/index.js");
-/* harmony import */ var assign_deep__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(assign_deep__WEBPACK_IMPORTED_MODULE_6__);
-
 
 
 
@@ -958,7 +633,9 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
     }
 
     onClick(event) {
-		this.state.player.data.destination.set(this.mouse.add(this.carto._view));
+    	let p = this.mouse.add(this.carto._view);
+		this.state.cursor.data.position.set(p);
+		this.state.player.data.destination.set(p);
     }
 
     processThinker(entity) {
@@ -966,7 +643,19 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
     }
 
 	async createEntity(sResRef) {
-		let blueprint = _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef];
+    	let bp0 = _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef];
+    	let blueprint = Object.assign({
+			"angle": 0,                   // angle de cap
+			"angleSpeed": 0,              // amplitude d emofication de l'angle
+			"position": new Vector(),     // position actuelle
+			"destination": new Vector(),  // position vers laquelle on se dirige
+			"enginePower": 0,             // inc/dec de la vitesse du moteur
+			"speed": 0,                   // vitesse actuelle
+			"maxSpeed": 0,                // vitesse max
+			"sprite": Object.assign({}, _data__WEBPACK_IMPORTED_MODULE_5__["default"].tiles[bp0.tileset]),
+			"thinker": ""
+		}, bp0);
+    	blueprint.sprite.ref = new Vector(blueprint.sprite.ref.x, blueprint.sprite.ref.y);
 		let id = ++this._lastEntityId;
 		let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
 		this._spriteLayer.sprites.push(sprite);
@@ -982,22 +671,6 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 		return oEntity;
 	}
 
-	async createEntity2(sResRef) {
-		let blueprint = _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef];
-		let id = ++this._lastEntityId;
-		let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
-		this._spriteLayer.sprites.push(sprite);
-		sprite.define(blueprint.sprite);
-		let oEntity = {
-			id,
-			sprite,
-			thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker],
-			data: blueprint,
-			game: this
-		};
-		this.state.entities.push(oEntity);
-		return oEntity;
-	}
 
     async init() {
         await super.init();
@@ -1015,11 +688,23 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 
     update() {
         super.update();
-        this.state.entities.forEach(th => this.processThinker(th));
-        this.state.view.set(this.state.player.data.position);
-		let c = this.renderCanvas;
-        this.carto.view(c, this.state.view);
+        let state = this.state;
+        let entities = state.entities;
+		entities.forEach(th => this.processThinker(th));
+        let p = state.player.data.position;
+        // tous les sprites doivent etre relatifs à ce point de vue
+		entities.forEach(e => {
+			e.sprite.position.set(e.data.position.sub(p));
+		});
+		this._spriteLayer.sort((e1, e2) => e1.position.y - e2.position.y);
+		state.player.sprite.position.set(0, 0);
+		state.view.set(p);
     }
+
+    render() {
+		this.carto.view(this.renderCanvas, this.state.view);
+    	super.render();
+	}
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (Game);
@@ -1840,40 +1525,6 @@ const COLORS = {
 
 /***/ }),
 
-/***/ "./src/data/blueprints/base.js":
-/*!*************************************!*\
-  !*** ./src/data/blueprints/base.js ***!
-  \*************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
-
-const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
-
-const DATA = {
-    "angle": 0,                   // angle de cap
-    "angleSpeed": 0,              // amplitude d emofication de l'angle
-    "position": new Vector(),     // position actuelle
-    "destination": new Vector(),  // position vers laquelle on se dirige
-    "enginePower": 0,             // inc/dec de la vitesse du moteur
-    "speed": 0,                   // vitesse actuelle
-    "maxSpeed": 0,                // vitesse max
-    "sprite": {
-        "tileset": "",
-        "frames": 0,
-        "ref": new Vector()
-    },
-    "thinker": ""
-};
-
-/* harmony default export */ __webpack_exports__["default"] = (DATA);
-
-/***/ }),
-
 /***/ "./src/data/blueprints/blimp.js":
 /*!**************************************!*\
   !*** ./src/data/blueprints/blimp.js ***!
@@ -1883,27 +1534,13 @@ const DATA = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
-
-const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
-
 const DATA = {
-	"angle": 0,                   // angle de cap
 	"angleSpeed": 0.1,              // amplitude d emofication de l'angle
-	"position": new Vector(),     // position actuelle
-	"destination": new Vector(),  // position vers laquelle on se dirige
 	"enginePower": 0.1,             // inc/dec de la vitesse du moteur
-	"speed": 0,                   // vitesse actuelle
-	"maxSpeed": 2,                // vitesse max
-	"sprite": {
-		"tileset": "blimp_1",
-		"frames": 32,
-		"ref": new Vector(0, 41)
-	},
-	"thinker": "aerostat"
+	"maxSpeed": 2,                  // vitesse max
+	"tileset": "blimp",				// tile set
+	"thinker": "aerostat"			// thinker
 };
-
 /* harmony default export */ __webpack_exports__["default"] = (DATA);
 
 /***/ }),
@@ -1917,27 +1554,13 @@ const DATA = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../o876/index */ "./src/o876/index.js");
-/* harmony import */ var _o876_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876_index__WEBPACK_IMPORTED_MODULE_0__);
-
-const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
-
 const DATA = {
-	"angle": 0,                   // angle de cap
 	"angleSpeed": 0,              // amplitude d emofication de l'angle
-	"position": new Vector(),     // position actuelle
-	"destination": new Vector(),  // position vers laquelle on se dirige
 	"enginePower": 0,             // inc/dec de la vitesse du moteur
-	"speed": 0,                   // vitesse actuelle
 	"maxSpeed": 0,                // vitesse max
-	"sprite": {
-	"tileset": "",
-		"frames": 1,
-		"ref": new Vector()
-	},
+	"tileset": "cursor",
 	"thinker": "cursor"
 };
-
 /* harmony default export */ __webpack_exports__["default"] = (DATA);
 
 /***/ }),
@@ -1951,48 +1574,14 @@ const DATA = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _base__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base */ "./src/data/blueprints/base.js");
-/* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./blimp */ "./src/data/blueprints/blimp.js");
-/* harmony import */ var _prototype_1__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./prototype-1 */ "./src/data/blueprints/prototype-1.js");
-/* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./cursor */ "./src/data/blueprints/cursor.js");
-
-
+/* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blimp */ "./src/data/blueprints/blimp.js");
+/* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cursor */ "./src/data/blueprints/cursor.js");
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	base: _base__WEBPACK_IMPORTED_MODULE_0__["default"], blimp: _blimp__WEBPACK_IMPORTED_MODULE_1__["default"], prototype1: _prototype_1__WEBPACK_IMPORTED_MODULE_2__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_3__["default"]
+	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"]
 });
-
-/***/ }),
-
-/***/ "./src/data/blueprints/prototype-1.js":
-/*!********************************************!*\
-  !*** ./src/data/blueprints/prototype-1.js ***!
-  \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-const DATA = {
-	"angleSpeed": 0.2,              // amplitude d emofication de l'angle
-	"enginePower": 0.2,             // inc/dec de la vitesse du moteur
-	"maxSpeed": 6,                  // vitesse max
-	"sprite": {
-		"tileset": "plane_0",
-		"frames": 36,
-		"width": 112,
-		"height": 112,
-		"ref": {
-			"x": 0,
-			"y": 0
-		}
-	},
-	"thinker": "aerostat",
-};
-
-/* harmony default export */ __webpack_exports__["default"] = (DATA);
 
 /***/ }),
 
@@ -2006,10 +1595,70 @@ const DATA = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _blueprints_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blueprints/index */ "./src/data/blueprints/index.js");
+/* harmony import */ var _tiles__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./tiles */ "./src/data/tiles/index.js");
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-    blueprints: _blueprints_index__WEBPACK_IMPORTED_MODULE_0__["default"]
+    blueprints: _blueprints_index__WEBPACK_IMPORTED_MODULE_0__["default"], tiles: _tiles__WEBPACK_IMPORTED_MODULE_1__["default"]
+});
+
+/***/ }),
+
+/***/ "./src/data/tiles/blimp.js":
+/*!*********************************!*\
+  !*** ./src/data/tiles/blimp.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const DATA = {
+	"tileset": "blimp_1",
+	"frames": 32,
+	"ref": {x: 0, y: 41}
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
+
+/***/ }),
+
+/***/ "./src/data/tiles/cursor.js":
+/*!**********************************!*\
+  !*** ./src/data/tiles/cursor.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const DATA = {
+	"tileset": "cursor_0",
+	"frames": 1,
+	"ref": {x: 0, y: 0}
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
+
+/***/ }),
+
+/***/ "./src/data/tiles/index.js":
+/*!*********************************!*\
+  !*** ./src/data/tiles/index.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blimp */ "./src/data/tiles/blimp.js");
+/* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cursor */ "./src/data/tiles/cursor.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"]
 });
 
 /***/ }),
@@ -5692,7 +5341,6 @@ class Game {
 			this.forEachLayer(l => {
 				l.render(rc);
             });
-			let p = this.view.points()[0];
             sc.getContext('2d')
 				.drawImage(this.renderCanvas, 0, 0);
 		} else {
@@ -5903,7 +5551,15 @@ class SpriteLayer extends _Layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this.sprites = [];
     }
 
-    render(canvas) {
+    sort(cb) {
+        this.sprites = this.sprites.sort(cb);
+    }
+
+	/**
+     * Dessine tous les sprite du layer
+	 * @param canvas {HTMLCanvasElement}
+	 */
+	render(canvas) {
         super.render(canvas);
         let ctx = canvas.getContext('2d');
         let p = this.view.position();
@@ -6142,16 +5798,35 @@ function process(entity) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+const PHASE_PLAYER_AT_CURSOR = 0;
+const PHASE_PLAYER_MOVING = 1;
+
 /**
  * @param entity
  */
 function process(entity) {
-	let cdata = entity.data;
-	let game = entity.game;
-	let player = game.state.player;
-	let pdata = player.data;
-	cdata.position.set(pdata.destination);
-	entity.sprite.frame(0);
+	let player = entity.game.state.player;
+	let pdata = entity.data;
+	if (!('phase' in pdata)) {
+		pdata.phase = 0;
+		entity.sprite.fadeOut();
+	}
+	let bPlayerAtCursor = pdata.position.isEqual(player.data.position);
+	switch (pdata.phase) {
+		case 0:
+			if (!bPlayerAtCursor) {
+				pdata.phase = PHASE_PLAYER_MOVING;
+				entity.sprite.fadeIn();
+			}
+			break;
+
+		case 1:
+			if (bPlayerAtCursor) {
+				pdata.phase = PHASE_PLAYER_AT_CURSOR;
+				entity.sprite.fadeOut();
+			}
+			break;
+	}
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (process);

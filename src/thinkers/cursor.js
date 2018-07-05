@@ -1,13 +1,32 @@
+const PHASE_PLAYER_AT_CURSOR = 0;
+const PHASE_PLAYER_MOVING = 1;
+
 /**
  * @param entity
  */
 function process(entity) {
-	let cdata = entity.data;
-	let game = entity.game;
-	let player = game.state.player;
-	let pdata = player.data;
-	cdata.position.set(pdata.destination);
-	entity.sprite.frame(0);
+	let player = entity.game.state.player;
+	let pdata = entity.data;
+	if (!('phase' in pdata)) {
+		pdata.phase = 0;
+		entity.sprite.fadeOut();
+	}
+	let bPlayerAtCursor = pdata.position.isEqual(player.data.position);
+	switch (pdata.phase) {
+		case 0:
+			if (!bPlayerAtCursor) {
+				pdata.phase = PHASE_PLAYER_MOVING;
+				entity.sprite.fadeIn();
+			}
+			break;
+
+		case 1:
+			if (bPlayerAtCursor) {
+				pdata.phase = PHASE_PLAYER_AT_CURSOR;
+				entity.sprite.fadeOut();
+			}
+			break;
+	}
 }
 
 export default process;

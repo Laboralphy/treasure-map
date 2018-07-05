@@ -7,7 +7,15 @@ class SpriteLayer extends Layer {
         this.sprites = [];
     }
 
-    render(canvas) {
+    sort(cb) {
+        this.sprites = this.sprites.sort(cb);
+    }
+
+	/**
+     * Dessine tous les sprite du layer
+	 * @param canvas {HTMLCanvasElement}
+	 */
+	render(canvas) {
         super.render(canvas);
         let ctx = canvas.getContext('2d');
         let p = this.view.position();

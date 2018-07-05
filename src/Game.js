@@ -4,7 +4,6 @@ import Cartography from './cartography';
 import Indicators from './Indicators';
 import THINKERS from './thinkers';
 import DATA from './data';
-import assignDeep from 'assign-deep';
 
 const Vector = o876.geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
@@ -35,7 +34,9 @@ class Game extends osge.Game {
     }
 
     onClick(event) {
-		this.state.player.data.destination.set(this.mouse.add(this.carto._view));
+    	let p = this.mouse.add(this.carto._view);
+		this.state.cursor.data.position.set(p);
+		this.state.player.data.destination.set(p);
     }
 
     processThinker(entity) {
@@ -43,7 +44,19 @@ class Game extends osge.Game {
     }
 
 	async createEntity(sResRef) {
-		let blueprint = DATA.blueprints[sResRef];
+    	let bp0 = DATA.blueprints[sResRef];
+    	let blueprint = Object.assign({
+			"angle": 0,                   // angle de cap
+			"angleSpeed": 0,              // amplitude d emofication de l'angle
+			"position": new Vector(),     // position actuelle
+			"destination": new Vector(),  // position vers laquelle on se dirige
+			"enginePower": 0,             // inc/dec de la vitesse du moteur
+			"speed": 0,                   // vitesse actuelle
+			"maxSpeed": 0,                // vitesse max
+			"sprite": Object.assign({}, DATA.tiles[bp0.tileset]),
+			"thinker": ""
+		}, bp0);
+    	blueprint.sprite.ref = new Vector(blueprint.sprite.ref.x, blueprint.sprite.ref.y);
 		let id = ++this._lastEntityId;
 		let sprite = new osge.Sprite();
 		this._spriteLayer.sprites.push(sprite);
@@ -59,22 +72,6 @@ class Game extends osge.Game {
 		return oEntity;
 	}
 
-	async createEntity2(sResRef) {
-		let blueprint = DATA.blueprints[sResRef];
-		let id = ++this._lastEntityId;
-		let sprite = new osge.Sprite();
-		this._spriteLayer.sprites.push(sprite);
-		sprite.define(blueprint.sprite);
-		let oEntity = {
-			id,
-			sprite,
-			thinker: THINKERS[blueprint.thinker],
-			data: blueprint,
-			game: this
-		};
-		this.state.entities.push(oEntity);
-		return oEntity;
-	}
 
     async init() {
         await super.init();
@@ -92,11 +89,23 @@ class Game extends osge.Game {
 
     update() {
         super.update();
-        this.state.entities.forEach(th => this.processThinker(th));
-        this.state.view.set(this.state.player.data.position);
-		let c = this.renderCanvas;
-        this.carto.view(c, this.state.view);
+        let state = this.state;
+        let entities = state.entities;
+		entities.forEach(th => this.processThinker(th));
+        let p = state.player.data.position;
+        // tous les sprites doivent etre relatifs à ce point de vue
+		entities.forEach(e => {
+			e.sprite.position.set(e.data.position.sub(p));
+		});
+		this._spriteLayer.sort((e1, e2) => e1.position.y - e2.position.y);
+		state.player.sprite.position.set(0, 0);
+		state.view.set(p);
     }
+
+    render() {
+		this.carto.view(this.renderCanvas, this.state.view);
+    	super.render();
+	}
 }
 
 export default Game;

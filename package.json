@@ -19,7 +19,6 @@
   },
   "homepage": "https://github.com/Laboralphy/treasure-map#readme",
   "dependencies": {
-    "assign-deep": "^0.4.7",
     "webworkio": "^1.0.0"
   },
   "devDependencies": {
