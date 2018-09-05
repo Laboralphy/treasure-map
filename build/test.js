@@ -3478,6 +3478,9 @@ function process(entity) {
 			return;
         }
 
+        if (!('angleVis' in pdata)) {
+			pdata.angleVis = pdata.angle;
+		}
 		let fAngleCurr = pdata.angle;
 		let fAngleDest = pdata.destination.sub(pdata.position).direction();
 		let fAngle;
@@ -3487,7 +3490,7 @@ function process(entity) {
 		let vCap = Vector.fromPolar(fAngleDest, 1);
 		let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
 		if (fAngleDeriv < pdata.angleSpeed) {
-			pdata.angle = fAngle = fAngleDest;
+			fAngle = fAngleDest;
 		} else {
 			// angle de destination
 			let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
@@ -3506,8 +3509,8 @@ function process(entity) {
 			if (fAngle >= Math.PI) {
 				fAngle -= 2 * Math.PI;
 			}
-			pdata.angle = fAngle;
 		}
+		pdata.angle = fAngle;
         // changer le sprite
 		let nFract = entity.sprite.frameCount();
 		let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
