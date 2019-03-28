@@ -3436,7 +3436,6 @@ __webpack_require__.r(__webpack_exports__);
 const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
 const sb = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
 
-
 function advance(entity) {
 	let pdata = entity.data;
 	if (!pdata.destination.isEqual(pdata.position)) {
@@ -3472,6 +3471,10 @@ function advance(entity) {
  */
 function process(entity) {
     let pdata = entity.data;
+    let input = entity.game.state.input;
+    if (!pdata.destination.isEqual(input.mouse.click)) {
+		pdata.destination.set(input.mouse.click);
+	}
     if (!pdata.destination.isEqual(pdata.position)) {
         if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
 			pdata.position.set(pdata.destination);
@@ -3521,9 +3524,25 @@ function process(entity) {
 			console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
 			throw new Error('WTF iFract < 0 !');
 		}
-		entity.sprite.frame(iFract);
+
+		if (!('turning' in pdata)) {
+			pdata.turning = [iFract];
+		}
+		if (pdata.turning[0] === iFract) {
+			pdata.turning = [iFract];
+		} else {
+			pdata.turning.push(iFract);
+			while (pdata.turning.length > 6) {
+				pdata.turning.shift();
+			}
+			entity.sprite.frame(pdata.turning[0]);
+		}
 		advance(entity);
     }
+	const pEntity = entity.data.position;
+	const p = entity.game.carto.getPhysicValue(pEntity.x, pEntity.y);
+	pdata.physic = p;
+	//console.log(p);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (process);

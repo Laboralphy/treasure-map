@@ -114,6 +114,10 @@ class WorldTile {
         this.options = options;
     }
 
+    static get MESH_SIZE() {
+        return MESH_SIZE;
+    }
+
     free() {
         this.canvas = null;
         this.physicmap = null;

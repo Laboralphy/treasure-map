@@ -18,6 +18,7 @@ class Sprite {
         this._frames = [];
         this._defined = false;
         this._fadeDiff = 0;
+        this.z = 0;
 	}
 
     fadeIn() {
@@ -48,7 +49,7 @@ class Sprite {
 	}
 
 	async define(data) {
-		this.image = await Game.loadImage('images/sprites/' + data.tileset + '.png');
+		this.image = await Game.loadImage('images/sprites/' + data.image + '.png');
 		if (('width' in data) && ('height' in data)) {
 			this.frameWidth = data.width;
 			this.frameHeight = data.height;

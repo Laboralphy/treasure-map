@@ -1,5 +1,5 @@
 const DATA = {
-	"tileset": "blimp_1",
+	"image": "blimp_1",
 	"frames": 32,
 	"ref": {x: 0, y: 41}
 };

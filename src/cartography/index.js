@@ -7,6 +7,7 @@ import WorldTile from './WorldTile';
 const CanvasHelper = o876.CanvasHelper;
 const Vector = o876.geometry.Vector;
 const CLUSTER_SIZE = 16;
+const sb = o876.SpellBook;
 
 class Cartography {
 	constructor(wgd) {
@@ -58,6 +59,63 @@ class Cartography {
 
 	getView() {
 		return this._view;
+	}
+
+	getPhysicValue(x, y, ptm = null) {
+		const map = ptm || this.getPhysicTileMap(x, y);
+		const cs = this.cellSize();
+		const ms = cs / WorldTile.MESH_SIZE | 0;
+		const xCell = sb.mod(x | 0, cs) / ms | 0;
+		const yCell = sb.mod(y | 0, cs) / ms | 0;
+		if (!!map) {
+			return !!map ? map[yCell][xCell] : undefined;
+		} else {
+			return undefined;
+		}
+	}
+
+	getPhysicTileMap(x, y) {
+		const cs = this.cellSize();
+		const xTile = Math.floor(x / cs);
+		const yTile = Math.floor(y / cs);
+		const wt = this._cache.getPayload(xTile, yTile);
+		if (!!wt && wt.isMapped()) {
+			return wt.physicmap;
+		} else {
+			return undefined;
+		}
+	}
+
+
+	getPhysicValueDebug(x, y) {
+		const cs = this.cellSize();
+		const ms = cs / WorldTile.MESH_SIZE | 0;
+		const xTile = Math.floor(x / cs);
+		const yTile = Math.floor(y / cs);
+		const xCell = sb.mod(x | 0, cs) / ms | 0;
+		const yCell = sb.mod(y | 0, cs) / ms | 0;
+		const wt = this._cache.getPayload(xTile, yTile);
+		if (!!wt && wt.isMapped()) {
+			console.debug(x, y, xTile, yTile, xCell, yCell);
+			console.log(
+				wt.physicmap.map((row, y) => row.map((cell, x) => {
+					if ((x & 1) ^ (y & 1)) {
+						switch (cell.type) {
+							case 11: return '~';
+							case 23: return '.';
+							case 33: return 'F';
+							case 55: return 'M';
+							default: return ' ';
+						}
+					} else {
+						return ' ';
+					}
+				}).join('')).join('\n')
+			);
+			return wt.physicmap[yCell][xCell];
+		} else {
+			return undefined;
+		}
 	}
 
 	view(oCanvas, vView) {

@@ -626,19 +626,33 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         });
         this._lastEntityId = 0;
         this.state = {
+        	input: {
+        		keys: {},
+				mouse: {
+        			click: new Vector()
+				}
+			},
             entities: [],
             player: null,
             view: new Vector()
         };
     }
 
-    onClick(event) {
-    	let p = this.mouse.add(this.carto._view);
+	onClick(event) {
+		let p = this.mouse.add(this.carto._view);
 		this.state.cursor.data.position.set(p);
-		this.state.player.data.destination.set(p);
-    }
+		this.state.input.mouse.click.set(p);
+	}
 
-    processThinker(entity) {
+	onKeyUp(event) {
+		this.state.input.keys[event.keys] = true;
+	}
+
+	onKeyDown(event) {
+		this.state.input.keys[event.keys] = false;
+	}
+
+	processThinker(entity) {
         entity.thinker(entity);
     }
 
@@ -653,7 +667,13 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 			"speed": 0,                   // vitesse actuelle
 			"maxSpeed": 0,                // vitesse max
 			"sprite": Object.assign({}, _data__WEBPACK_IMPORTED_MODULE_5__["default"].tiles[bp0.tileset]),
-			"thinker": ""
+			"thinker": "",
+			"input": {
+				"keys": {},
+				"mouse": {
+					"click": new Vector()
+				}
+			}
 		}, bp0);
     	blueprint.sprite.ref = new Vector(blueprint.sprite.ref.x, blueprint.sprite.ref.y);
 		let id = ++this._lastEntityId;
@@ -679,11 +699,15 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         this.canvas(oCanvas);
 
         // création du joueur
-        this.state.player = await this.createEntity('blimp');
-        this.domevents.on(oCanvas, 'click', event => this.onClick(event));
+        this.state.player = await this.createEntity('tugboat_0');
+		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
+		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
+		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
+
 
         // création du sprite curseur de destination
 		this.state.cursor = await this.createEntity('cursor');
+		this.state.cursor.sprite.z = -1;
     }
 
     update() {
@@ -696,7 +720,12 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 		entities.forEach(e => {
 			e.sprite.position.set(e.data.position.sub(p));
 		});
-		this._spriteLayer.sort((e1, e2) => e1.position.y - e2.position.y);
+		this._spriteLayer.sort((e1, e2) => {
+			const z = e1.z - e2.z;
+			return z === 0
+				? e1.position.y - e2.position.y
+				: z;
+		});
 		state.player.sprite.position.set(0, 0);
 		state.view.set(p);
     }
@@ -865,6 +894,10 @@ class WorldTile {
         this.options = options;
     }
 
+    static get MESH_SIZE() {
+        return MESH_SIZE;
+    }
+
     free() {
         this.canvas = null;
         this.physicmap = null;
@@ -1020,6 +1053,7 @@ __webpack_require__.r(__webpack_exports__);
 const CanvasHelper = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.CanvasHelper;
 const Vector = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
 const CLUSTER_SIZE = 16;
+const sb = _o876_index__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
 
 class Cartography {
 	constructor(wgd) {
@@ -1071,6 +1105,63 @@ class Cartography {
 
 	getView() {
 		return this._view;
+	}
+
+	getPhysicValue(x, y, ptm = null) {
+		const map = ptm || this.getPhysicTileMap(x, y);
+		const cs = this.cellSize();
+		const ms = cs / _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"].MESH_SIZE | 0;
+		const xCell = sb.mod(x | 0, cs) / ms | 0;
+		const yCell = sb.mod(y | 0, cs) / ms | 0;
+		if (!!map) {
+			return !!map ? map[yCell][xCell] : undefined;
+		} else {
+			return undefined;
+		}
+	}
+
+	getPhysicTileMap(x, y) {
+		const cs = this.cellSize();
+		const xTile = Math.floor(x / cs);
+		const yTile = Math.floor(y / cs);
+		const wt = this._cache.getPayload(xTile, yTile);
+		if (!!wt && wt.isMapped()) {
+			return wt.physicmap;
+		} else {
+			return undefined;
+		}
+	}
+
+
+	getPhysicValueDebug(x, y) {
+		const cs = this.cellSize();
+		const ms = cs / _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"].MESH_SIZE | 0;
+		const xTile = Math.floor(x / cs);
+		const yTile = Math.floor(y / cs);
+		const xCell = sb.mod(x | 0, cs) / ms | 0;
+		const yCell = sb.mod(y | 0, cs) / ms | 0;
+		const wt = this._cache.getPayload(xTile, yTile);
+		if (!!wt && wt.isMapped()) {
+			console.debug(x, y, xTile, yTile, xCell, yCell);
+			console.log(
+				wt.physicmap.map((row, y) => row.map((cell, x) => {
+					if ((x & 1) ^ (y & 1)) {
+						switch (cell.type) {
+							case 11: return '~';
+							case 23: return '.';
+							case 33: return 'F';
+							case 55: return 'M';
+							default: return ' ';
+						}
+					} else {
+						return ' ';
+					}
+				}).join('')).join('\n')
+			);
+			return wt.physicmap[yCell][xCell];
+		} else {
+			return undefined;
+		}
 	}
 
 	view(oCanvas, vView) {
@@ -1576,12 +1667,34 @@ const DATA = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blimp */ "./src/data/blueprints/blimp.js");
 /* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cursor */ "./src/data/blueprints/cursor.js");
+/* harmony import */ var _tugboat_0__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tugboat_0 */ "./src/data/blueprints/tugboat_0.js");
+
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"]
+	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"]
 });
+
+/***/ }),
+
+/***/ "./src/data/blueprints/tugboat_0.js":
+/*!******************************************!*\
+  !*** ./src/data/blueprints/tugboat_0.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const DATA = {
+    "angleSpeed": 0.1,              // amplitude d emofication de l'angle
+    "enginePower": 0.1,             // inc/dec de la vitesse du moteur
+    "maxSpeed": 2,                  // vitesse max
+    "tileset": "tugboat_0",			// tile set
+    "thinker": "boat"			    // thinker
+};
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
 
 /***/ }),
 
@@ -1615,7 +1728,7 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 const DATA = {
-	"tileset": "blimp_1",
+	"image": "blimp_1",
 	"frames": 32,
 	"ref": {x: 0, y: 41}
 };
@@ -1634,7 +1747,7 @@ const DATA = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 const DATA = {
-	"tileset": "cursor_0",
+	"image": "cursor_0",
 	"frames": 1,
 	"ref": {x: 0, y: 0}
 };
@@ -1654,12 +1767,32 @@ const DATA = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blimp */ "./src/data/tiles/blimp.js");
 /* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cursor */ "./src/data/tiles/cursor.js");
+/* harmony import */ var _tugboat_0__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tugboat_0 */ "./src/data/tiles/tugboat_0.js");
+
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"]
+	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"]
 });
+
+/***/ }),
+
+/***/ "./src/data/tiles/tugboat_0.js":
+/*!*************************************!*\
+  !*** ./src/data/tiles/tugboat_0.js ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+	"image": "tugboat_0",
+	"frames": 32,
+	"ref": {x: 0, y: 1}
+});
+
 
 /***/ }),
 
@@ -5417,6 +5550,7 @@ class Sprite {
         this._frames = [];
         this._defined = false;
         this._fadeDiff = 0;
+        this.z = 0;
 	}
 
     fadeIn() {
@@ -5447,7 +5581,7 @@ class Sprite {
 	}
 
 	async define(data) {
-		this.image = await _Game__WEBPACK_IMPORTED_MODULE_2__["default"].loadImage('images/sprites/' + data.tileset + '.png');
+		this.image = await _Game__WEBPACK_IMPORTED_MODULE_2__["default"].loadImage('images/sprites/' + data.image + '.png');
 		if (('width' in data) && ('height' in data)) {
 			this.frameWidth = data.width;
 			this.frameHeight = data.height;
@@ -5655,7 +5789,6 @@ __webpack_require__.r(__webpack_exports__);
 const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
 const sb = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
 
-
 function advance(entity) {
 	let pdata = entity.data;
 	if (!pdata.destination.isEqual(pdata.position)) {
@@ -5691,6 +5824,10 @@ function advance(entity) {
  */
 function process(entity) {
     let pdata = entity.data;
+    let input = entity.game.state.input;
+    if (!pdata.destination.isEqual(input.mouse.click)) {
+		pdata.destination.set(input.mouse.click);
+	}
     if (!pdata.destination.isEqual(pdata.position)) {
         if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
 			pdata.position.set(pdata.destination);
@@ -5740,9 +5877,25 @@ function process(entity) {
 			console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
 			throw new Error('WTF iFract < 0 !');
 		}
-		entity.sprite.frame(iFract);
+
+		if (!('turning' in pdata)) {
+			pdata.turning = [iFract];
+		}
+		if (pdata.turning[0] === iFract) {
+			pdata.turning = [iFract];
+		} else {
+			pdata.turning.push(iFract);
+			while (pdata.turning.length > 6) {
+				pdata.turning.shift();
+			}
+			entity.sprite.frame(pdata.turning[0]);
+		}
 		advance(entity);
     }
+	const pEntity = entity.data.position;
+	const p = entity.game.carto.getPhysicValue(pEntity.x, pEntity.y);
+	pdata.physic = p;
+	//console.log(p);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (process);
@@ -5785,6 +5938,70 @@ function process(entity) {
         let vMove = vNorm.mul(speed);
         pdata.speed = speed;
         pdata.position.translate(vMove);
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (process);
+
+/***/ }),
+
+/***/ "./src/thinkers/boat.js":
+/*!******************************!*\
+  !*** ./src/thinkers/boat.js ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
+/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
+/* harmony import */ var _wall_collider__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../wall-collider */ "./src/wall-collider/index.js");
+
+
+
+
+const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
+const sb = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
+
+
+function isMapSolid(x, y) {
+    const ptm = getPTM(x, y);
+    return !!ptm && ptm.type !== 11;
+}
+
+
+let xPTM = null;
+let yPTM = null;
+let oLastPTM = null;
+let oLastGame = null;
+
+function getPTM(x, y, game = null) {
+    if (!!oLastPTM && xPTM === x && yPTM === y) {
+        return oLastPTM;
+    } else {
+        oLastGame = game || oLastGame;
+        if (oLastGame) {
+            oLastPTM = oLastGame.carto.getPhysicTileMap(x, y);
+            return oLastGame.carto.getPhysicValue(x, y, oLastPTM);
+        }
+        return null;
+    }
+}
+
+
+function process(entity) {
+    const xLast = entity.data.position.x;
+    const yLast = entity.data.position.y;
+    Object(_aerostat__WEBPACK_IMPORTED_MODULE_1__["default"])(entity);
+    const xNew = entity.data.position.x;
+    const yNew = entity.data.position.y;
+    const dx = xNew - xLast;
+    const dy = yNew - yLast;
+    const c = Object(_wall_collider__WEBPACK_IMPORTED_MODULE_2__["computeWallCollisions"])(xLast, yLast, dx, dy, 8, 16, false, isMapSolid);
+    if (c.wcf.x || c.wcf.y) {
+        entity.data.position.set(c.wcf.pos.x, c.wcf.pos.y);
     }
 }
 
@@ -5848,6 +6065,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _balloon__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./balloon */ "./src/thinkers/balloon.js");
 /* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
 /* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cursor */ "./src/thinkers/cursor.js");
+/* harmony import */ var _boat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./boat */ "./src/thinkers/boat.js");
+
 
 
 
@@ -5855,8 +6074,107 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
     balloon: _balloon__WEBPACK_IMPORTED_MODULE_0__["default"],
     aerostat: _aerostat__WEBPACK_IMPORTED_MODULE_1__["default"],
-    cursor: _cursor__WEBPACK_IMPORTED_MODULE_2__["default"]
+    cursor: _cursor__WEBPACK_IMPORTED_MODULE_2__["default"],
+    boat: _boat__WEBPACK_IMPORTED_MODULE_3__["default"]
 });
+
+/***/ }),
+
+/***/ "./src/wall-collider/index.js":
+/*!************************************!*\
+  !*** ./src/wall-collider/index.js ***!
+  \************************************/
+/*! exports provided: computeWallCollisions */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeWallCollisions", function() { return computeWallCollisions; });
+
+/**
+ * Détermine la collision entre le mobile et les murs du labyrinthe
+ * @param xEntity {number} position x du mobile
+ * @param yEntity {number} position y du mobile
+ * @param dx {number} delta x de déplacement du mobile
+ * @param dy {number} delta y de déplacement du mobile
+ * @param nSize {number} demi-taille du mobile
+ * @param nPlaneSpacing {number} taille de la grille
+ * @param bCrashWall {boolean} si true alors il n'y a pas de correction de glissement
+ * @param pSolidFunction {function} fonction permettant de déterminer si un point est dans une zone collisionnable
+ */
+function computeWallCollisions(xEntity, yEntity, dx, dy, nSize, nPlaneSpacing, bCrashWall, pSolidFunction) {
+    // by default : no collision detected
+    let oWallCollision = {x: 0, y: 0, c: false};
+    let x = xEntity;
+    let y = yEntity;
+    // une formule magique permettant d'igorer l'oeil "à la traine", evitant de se faire coincer dans les portes
+    let iIgnoredEye = (Math.abs(dx) > Math.abs(dy) ? 1 : 0) | ((dx > dy) || (dx === dy && dx < 0) ? 2 : 0);
+    let xClip, yClip, ix, iy, xci, yci;
+    let bCorrection = false;
+    // pour chaque direction...
+    for (let i = 0; i < 4; ++i) {
+        // si la direction correspond à l'oeil à la traine...
+        if (iIgnoredEye === i) {
+            continue;
+        }
+        // xci et yci valent entre -1 et 1 et correspondent aux coeficients de direction
+        xci = (i & 1) * Math.sign(2 - i);
+        yci = ((3 - i) & 1) * Math.sign(i - 1);
+        ix = nSize * xci + x;
+        iy = nSize * yci + y;
+        // déterminer les col
+        xClip = pSolidFunction(ix + dx, iy);
+        yClip = pSolidFunction(ix, iy + dy);
+        if (xClip) {
+            oWallCollision.c = true;
+            dx = 0;
+            if (bCrashWall) {
+                dy = 0;
+                oWallCollision.y = yci || oWallCollision.y;
+            }
+            oWallCollision.x = xci || oWallCollision.x;
+            bCorrection = true;
+        }
+        if (yClip) {
+            oWallCollision.c = true;
+            dy = 0;
+            if (bCrashWall) {
+                dx = 0;
+                oWallCollision.x = xci || oWallCollision.x;
+            }
+            oWallCollision.y = yci || oWallCollision.y;
+            bCorrection = true;
+        }
+    }
+    x += dx;
+    y += dy;
+    if (bCorrection) {
+        // il y a eu collsion
+        // corriger la coordonée impactée
+        if (oWallCollision.x > 0) {
+            x = (x / nPlaneSpacing | 0) * nPlaneSpacing + nPlaneSpacing - 1 - nSize;
+        } else if (oWallCollision.x < 0) {
+            x = (x / nPlaneSpacing | 0) * nPlaneSpacing + nSize;
+        }
+        if (oWallCollision.y > 0) {
+            y = (y / nPlaneSpacing | 0) * nPlaneSpacing + nPlaneSpacing - 1 - nSize;
+        } else if (oWallCollision.y < 0) {
+            y = (y / nPlaneSpacing | 0) * nPlaneSpacing + nSize;
+        }
+        return {
+            pos: {x, y},
+            speed: {x: x - xEntity, y: y - yEntity},
+            wcf: oWallCollision
+        };
+    } else {
+        return {
+            pos: {x, y},
+            speed: {x: dx, y: dy},
+            wcf: oWallCollision
+        }
+    }
+}
+
 
 /***/ })
 

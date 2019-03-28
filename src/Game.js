@@ -27,19 +27,33 @@ class Game extends osge.Game {
         });
         this._lastEntityId = 0;
         this.state = {
+        	input: {
+        		keys: {},
+				mouse: {
+        			click: new Vector()
+				}
+			},
             entities: [],
             player: null,
             view: new Vector()
         };
     }
 
-    onClick(event) {
-    	let p = this.mouse.add(this.carto._view);
+	onClick(event) {
+		let p = this.mouse.add(this.carto._view);
 		this.state.cursor.data.position.set(p);
-		this.state.player.data.destination.set(p);
-    }
+		this.state.input.mouse.click.set(p);
+	}
 
-    processThinker(entity) {
+	onKeyUp(event) {
+		this.state.input.keys[event.keys] = true;
+	}
+
+	onKeyDown(event) {
+		this.state.input.keys[event.keys] = false;
+	}
+
+	processThinker(entity) {
         entity.thinker(entity);
     }
 
@@ -54,7 +68,13 @@ class Game extends osge.Game {
 			"speed": 0,                   // vitesse actuelle
 			"maxSpeed": 0,                // vitesse max
 			"sprite": Object.assign({}, DATA.tiles[bp0.tileset]),
-			"thinker": ""
+			"thinker": "",
+			"input": {
+				"keys": {},
+				"mouse": {
+					"click": new Vector()
+				}
+			}
 		}, bp0);
     	blueprint.sprite.ref = new Vector(blueprint.sprite.ref.x, blueprint.sprite.ref.y);
 		let id = ++this._lastEntityId;
@@ -80,11 +100,15 @@ class Game extends osge.Game {
         this.canvas(oCanvas);
 
         // création du joueur
-        this.state.player = await this.createEntity('blimp');
-        this.domevents.on(oCanvas, 'click', event => this.onClick(event));
+        this.state.player = await this.createEntity('tugboat_0');
+		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
+		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
+		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
+
 
         // création du sprite curseur de destination
 		this.state.cursor = await this.createEntity('cursor');
+		this.state.cursor.sprite.z = -1;
     }
 
     update() {
@@ -97,7 +121,12 @@ class Game extends osge.Game {
 		entities.forEach(e => {
 			e.sprite.position.set(e.data.position.sub(p));
 		});
-		this._spriteLayer.sort((e1, e2) => e1.position.y - e2.position.y);
+		this._spriteLayer.sort((e1, e2) => {
+			const z = e1.z - e2.z;
+			return z === 0
+				? e1.position.y - e2.position.y
+				: z;
+		});
 		state.player.sprite.position.set(0, 0);
 		state.view.set(p);
     }
