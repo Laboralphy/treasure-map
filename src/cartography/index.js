@@ -61,12 +61,12 @@ class Cartography {
 		return this._view;
 	}
 
-	getPhysicValue(x, y, ptm = null) {
-		const map = ptm || this.getPhysicTileMap(x, y);
+	getPhysicValue(x, y) {
+		const map = this.getPhysicTileMap(x, y);
 		const cs = this.cellSize();
 		const ms = cs / WorldTile.MESH_SIZE | 0;
-		const xCell = sb.mod(x | 0, cs) / ms | 0;
-		const yCell = sb.mod(y | 0, cs) / ms | 0;
+		const xCell = sb.mod(Math.floor(x / WorldTile.MESH_SIZE), ms);
+		const yCell = sb.mod(Math.floor(y / WorldTile.MESH_SIZE), ms);
 		if (!!map) {
 			return !!map ? map[yCell][xCell] : undefined;
 		} else {
@@ -92,8 +92,8 @@ class Cartography {
 		const ms = cs / WorldTile.MESH_SIZE | 0;
 		const xTile = Math.floor(x / cs);
 		const yTile = Math.floor(y / cs);
-		const xCell = sb.mod(x | 0, cs) / ms | 0;
-		const yCell = sb.mod(y | 0, cs) / ms | 0;
+		const xCell = sb.mod(Math.floor(x / WorldTile.MESH_SIZE), ms);
+		const yCell = sb.mod(Math.floor(y / WorldTile.MESH_SIZE), ms);
 		const wt = this._cache.getPayload(xTile, yTile);
 		if (!!wt && wt.isMapped()) {
 			console.debug(x, y, xTile, yTile, xCell, yCell);

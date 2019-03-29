@@ -106,10 +106,6 @@ function process(entity) {
 		}
 		advance(entity);
     }
-	const pEntity = entity.data.position;
-	const p = entity.game.carto.getPhysicValue(pEntity.x, pEntity.y);
-	pdata.physic = p;
-	//console.log(p);
 }
 
 export default process;

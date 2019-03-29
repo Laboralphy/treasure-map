@@ -59,15 +59,16 @@ export function computeWallCollisions(xEntity, yEntity, dx, dy, nSize, nPlaneSpa
     if (bCorrection) {
         // il y a eu collsion
         // corriger la coordonée impactée
+        const p1s = nPlaneSpacing - 1 - nSize;
         if (oWallCollision.x > 0) {
-            x = (x / nPlaneSpacing | 0) * nPlaneSpacing + nPlaneSpacing - 1 - nSize;
+            x = Math.floor(x / nPlaneSpacing) * nPlaneSpacing + p1s;
         } else if (oWallCollision.x < 0) {
-            x = (x / nPlaneSpacing | 0) * nPlaneSpacing + nSize;
+            x = Math.floor(x / nPlaneSpacing) * nPlaneSpacing + nSize;
         }
         if (oWallCollision.y > 0) {
-            y = (y / nPlaneSpacing | 0) * nPlaneSpacing + nPlaneSpacing - 1 - nSize;
+            y = Math.floor(y / nPlaneSpacing) * nPlaneSpacing + p1s;
         } else if (oWallCollision.y < 0) {
-            y = (y / nPlaneSpacing | 0) * nPlaneSpacing + nSize;
+            y = Math.floor(y / nPlaneSpacing) * nPlaneSpacing + nSize;
         }
         return {
             pos: {x, y},

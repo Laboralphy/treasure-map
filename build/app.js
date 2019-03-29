@@ -1107,12 +1107,12 @@ class Cartography {
 		return this._view;
 	}
 
-	getPhysicValue(x, y, ptm = null) {
-		const map = ptm || this.getPhysicTileMap(x, y);
+	getPhysicValue(x, y) {
+		const map = this.getPhysicTileMap(x, y);
 		const cs = this.cellSize();
 		const ms = cs / _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"].MESH_SIZE | 0;
-		const xCell = sb.mod(x | 0, cs) / ms | 0;
-		const yCell = sb.mod(y | 0, cs) / ms | 0;
+		const xCell = sb.mod(Math.floor(x / _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"].MESH_SIZE), ms);
+		const yCell = sb.mod(Math.floor(y / _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"].MESH_SIZE), ms);
 		if (!!map) {
 			return !!map ? map[yCell][xCell] : undefined;
 		} else {
@@ -1138,8 +1138,8 @@ class Cartography {
 		const ms = cs / _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"].MESH_SIZE | 0;
 		const xTile = Math.floor(x / cs);
 		const yTile = Math.floor(y / cs);
-		const xCell = sb.mod(x | 0, cs) / ms | 0;
-		const yCell = sb.mod(y | 0, cs) / ms | 0;
+		const xCell = sb.mod(Math.floor(x / _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"].MESH_SIZE), ms);
+		const yCell = sb.mod(Math.floor(y / _WorldTile__WEBPACK_IMPORTED_MODULE_4__["default"].MESH_SIZE), ms);
 		const wt = this._cache.getPayload(xTile, yTile);
 		if (!!wt && wt.isMapped()) {
 			console.debug(x, y, xTile, yTile, xCell, yCell);
@@ -4839,6 +4839,9 @@ class Cache2D {
 		}
 		this._cache = [];
 		this._cacheSize = size;
+		this._xLastRequest = null;
+		this._yLastRequest = null;
+		this._oLastRequest = null;
 	}
 
 	size(s) {
@@ -4850,7 +4853,12 @@ class Cache2D {
 	}
 
 	getMetaData(x, y) {
-		return this._cache.find(o => o.x === x && o.y === y);
+		if (this._xLastRequest === x && this._yLastRequest === y) {
+			return this._oLastRequest;
+		}
+		this._xLastRequest = x;
+		this._yLastRequest = y;
+		return this._oLastRequest = this._cache.find(o => o.x === x && o.y === y);
 	}
 
 	getPayload(x, y) {
@@ -5892,10 +5900,6 @@ function process(entity) {
 		}
 		advance(entity);
     }
-	const pEntity = entity.data.position;
-	const p = entity.game.carto.getPhysicValue(pEntity.x, pEntity.y);
-	pdata.physic = p;
-	//console.log(p);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (process);
@@ -5954,55 +5958,33 @@ function process(entity) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../o876 */ "./src/o876/index.js");
-/* harmony import */ var _o876__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_o876__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
-/* harmony import */ var _wall_collider__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../wall-collider */ "./src/wall-collider/index.js");
+/* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
+/* harmony import */ var _wall_collider__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../wall-collider */ "./src/wall-collider/index.js");
 
-
-
-
-const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
-const sb = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
-
-
-function isMapSolid(x, y) {
-    const ptm = getPTM(x, y);
-    return !!ptm && ptm.type !== 11;
-}
-
-
-let xPTM = null;
-let yPTM = null;
-let oLastPTM = null;
-let oLastGame = null;
-
-function getPTM(x, y, game = null) {
-    if (!!oLastPTM && xPTM === x && yPTM === y) {
-        return oLastPTM;
-    } else {
-        oLastGame = game || oLastGame;
-        if (oLastGame) {
-            oLastPTM = oLastGame.carto.getPhysicTileMap(x, y);
-            return oLastGame.carto.getPhysicValue(x, y, oLastPTM);
-        }
-        return null;
-    }
-}
 
 
 function process(entity) {
     const xLast = entity.data.position.x;
     const yLast = entity.data.position.y;
-    Object(_aerostat__WEBPACK_IMPORTED_MODULE_1__["default"])(entity);
-    const xNew = entity.data.position.x;
-    const yNew = entity.data.position.y;
+    Object(_aerostat__WEBPACK_IMPORTED_MODULE_0__["default"])(entity);
+    let xNew = entity.data.position.x;
+    let yNew = entity.data.position.y;
     const dx = xNew - xLast;
     const dy = yNew - yLast;
-    const c = Object(_wall_collider__WEBPACK_IMPORTED_MODULE_2__["computeWallCollisions"])(xLast, yLast, dx, dy, 8, 16, false, isMapSolid);
-    if (c.wcf.x || c.wcf.y) {
-        entity.data.position.set(c.wcf.pos.x, c.wcf.pos.y);
-    }
+    const c = Object(_wall_collider__WEBPACK_IMPORTED_MODULE_1__["computeWallCollisions"])(
+        xLast,
+        yLast,
+        dx,
+        dy,
+        6,
+        16,
+        false,
+        (x, y) => {
+            const p = game.carto.getPhysicValue(x, y);
+            return !!p && p.type !== 11;
+        }
+    );
+    entity.data.position.set(c.pos.x, c.pos.y);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (process);
@@ -6151,15 +6133,16 @@ function computeWallCollisions(xEntity, yEntity, dx, dy, nSize, nPlaneSpacing, b
     if (bCorrection) {
         // il y a eu collsion
         // corriger la coordonée impactée
+        const p1s = nPlaneSpacing - 1 - nSize;
         if (oWallCollision.x > 0) {
-            x = (x / nPlaneSpacing | 0) * nPlaneSpacing + nPlaneSpacing - 1 - nSize;
+            x = Math.floor(x / nPlaneSpacing) * nPlaneSpacing + p1s;
         } else if (oWallCollision.x < 0) {
-            x = (x / nPlaneSpacing | 0) * nPlaneSpacing + nSize;
+            x = Math.floor(x / nPlaneSpacing) * nPlaneSpacing + nSize;
         }
         if (oWallCollision.y > 0) {
-            y = (y / nPlaneSpacing | 0) * nPlaneSpacing + nPlaneSpacing - 1 - nSize;
+            y = Math.floor(y / nPlaneSpacing) * nPlaneSpacing + p1s;
         } else if (oWallCollision.y < 0) {
-            y = (y / nPlaneSpacing | 0) * nPlaneSpacing + nSize;
+            y = Math.floor(y / nPlaneSpacing) * nPlaneSpacing + nSize;
         }
         return {
             pos: {x, y},

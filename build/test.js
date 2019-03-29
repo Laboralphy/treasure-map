@@ -3047,6 +3047,9 @@ class Cache2D {
 		}
 		this._cache = [];
 		this._cacheSize = size;
+		this._xLastRequest = null;
+		this._yLastRequest = null;
+		this._oLastRequest = null;
 	}
 
 	size(s) {
@@ -3058,7 +3061,12 @@ class Cache2D {
 	}
 
 	getMetaData(x, y) {
-		return this._cache.find(o => o.x === x && o.y === y);
+		if (this._xLastRequest === x && this._yLastRequest === y) {
+			return this._oLastRequest;
+		}
+		this._xLastRequest = x;
+		this._yLastRequest = y;
+		return this._oLastRequest = this._cache.find(o => o.x === x && o.y === y);
 	}
 
 	getPayload(x, y) {
@@ -3539,10 +3547,6 @@ function process(entity) {
 		}
 		advance(entity);
     }
-	const pEntity = entity.data.position;
-	const p = entity.game.carto.getPhysicValue(pEntity.x, pEntity.y);
-	pdata.physic = p;
-	//console.log(p);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (process);
