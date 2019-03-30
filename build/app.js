@@ -607,6 +607,8 @@ __webpack_require__.r(__webpack_exports__);
 const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
 const SpriteLayer = _osge__WEBPACK_IMPORTED_MODULE_1__["default"].SpriteLayer;
 
+const Z_CURSOR = -10;
+
 
 class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
     constructor() {
@@ -626,6 +628,7 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         });
         this._lastEntityId = 0;
         this.state = {
+        	time: 0,
         	input: {
         		keys: {},
 				mouse: {
@@ -656,8 +659,11 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         entity.thinker(entity);
     }
 
-	async createEntity(sResRef) {
+	createEntity(sResRef) {
     	let bp0 = _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef];
+    	if (bp0 === undefined) {
+    		throw new Error('this blueprint does not exist : "' + sResRef + '"');
+		}
     	let blueprint = Object.assign({
 			"angle": 0,                   // angle de cap
 			"angleSpeed": 0,              // amplitude d emofication de l'angle
@@ -680,6 +686,12 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 		let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
 		this._spriteLayer.sprites.push(sprite);
 		sprite.define(blueprint.sprite);
+		if (!(blueprint.thinker in _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"])) {
+			throw new Error('this thinker does not exist : "' + blueprint.thinker);
+		}
+		if (typeof _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker] !== 'function') {
+			throw new Error('this thinker is not valid : "' + blueprint.thinker);
+		}
 		let oEntity = {
 			id,
 			sprite,
@@ -691,6 +703,17 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 		return oEntity;
 	}
 
+	destroyEntity(entity) {
+    	let i = this.state.entities.indexOf(entity);
+		if (i >= 0) {
+			this.state.entities.splice(i, 1)
+		}
+		i = this._spriteLayer.sprites.indexOf(entity.sprite);
+		if (i >= 0) {
+			this._spriteLayer.sprites.splice(i, 1);
+		}
+	}
+
 
     async init() {
         await super.init();
@@ -699,18 +722,19 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         this.canvas(oCanvas);
 
         // création du joueur
-        this.state.player = await this.createEntity('tugboat_0');
+        this.state.player = this.createEntity('tugboat_0');
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
 		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
 		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
 
 
         // création du sprite curseur de destination
-		this.state.cursor = await this.createEntity('cursor');
-		this.state.cursor.sprite.z = -1;
+		this.state.cursor = this.createEntity('cursor');
+		this.state.cursor.sprite.z = Z_CURSOR;
     }
 
     update() {
+    	++this.state.time;
         super.update();
         let state = this.state;
         let entities = state.entities;
@@ -1668,12 +1692,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blimp */ "./src/data/blueprints/blimp.js");
 /* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cursor */ "./src/data/blueprints/cursor.js");
 /* harmony import */ var _tugboat_0__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tugboat_0 */ "./src/data/blueprints/tugboat_0.js");
+/* harmony import */ var _wave_0__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./wave_0 */ "./src/data/blueprints/wave_0.js");
+
 
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"]
+	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"], wave_0: _wave_0__WEBPACK_IMPORTED_MODULE_3__["default"]
 });
 
 /***/ }),
@@ -1693,6 +1719,26 @@ const DATA = {
     "maxSpeed": 2,                  // vitesse max
     "tileset": "tugboat_0",			// tile set
     "thinker": "boat"			    // thinker
+};
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
+
+/***/ }),
+
+/***/ "./src/data/blueprints/wave_0.js":
+/*!***************************************!*\
+  !*** ./src/data/blueprints/wave_0.js ***!
+  \***************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const DATA = {
+	"angleSpeed": 0,              // amplitude d emofication de l'angle
+	"enginePower": 0,             // inc/dec de la vitesse du moteur
+	"maxSpeed": 0,                // vitesse max
+	"tileset": "wave_0",
+	"thinker": "wave"
 };
 /* harmony default export */ __webpack_exports__["default"] = (DATA);
 
@@ -1768,12 +1814,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blimp */ "./src/data/tiles/blimp.js");
 /* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cursor */ "./src/data/tiles/cursor.js");
 /* harmony import */ var _tugboat_0__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tugboat_0 */ "./src/data/tiles/tugboat_0.js");
+/* harmony import */ var _wave_0__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./wave_0 */ "./src/data/tiles/wave_0.js");
+
 
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"]
+	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"], wave_0: _wave_0__WEBPACK_IMPORTED_MODULE_3__["default"]
 });
 
 /***/ }),
@@ -1793,6 +1841,25 @@ __webpack_require__.r(__webpack_exports__);
 	"ref": {x: 0, y: 1}
 });
 
+
+/***/ }),
+
+/***/ "./src/data/tiles/wave_0.js":
+/*!**********************************!*\
+  !*** ./src/data/tiles/wave_0.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const DATA = {
+	"image": "wave_0",
+	"frames": 1,
+	"ref": {x: 0, y: 0}
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
 
 /***/ }),
 
@@ -5559,15 +5626,16 @@ class Sprite {
         this._defined = false;
         this._fadeDiff = 0;
         this.z = 0;
+        this.scale = 1;
 	}
 
-    fadeIn() {
-        this._fadeDiff = 0.05;
+    fadeIn(fSpeed = 0.05) {
+        this._fadeDiff = fSpeed;
         this.alpha = 0;
     }
 
-    fadeOut() {
-        this._fadeDiff = -0.05;
+    fadeOut(fSpeed = 0.05) {
+        this._fadeDiff = -fSpeed;
         this.alpha = 1;
     }
 
@@ -5637,6 +5705,7 @@ class Sprite {
 		let n = this._iFrame;
 		let w = this.frameWidth;
 		let h = this.frameHeight;
+		const scale = this.scale;
 		let p = this.position.sub(vOffset);
         this.processFade();
 		let a = this.alpha;
@@ -5650,16 +5719,20 @@ class Sprite {
 				throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);
 			}
 			let f = this._frames[n];
+			const wScaled = w * scale;
+			const hScaled = h * scale;
+			const wScaledDiff = Math.floor((w - wScaled) / 2);
+			const hScaledDiff = Math.floor((h - hScaled) / 2);
             ctx.drawImage(
                 this.image,
                 f.x,
                 f.y,
                 w,
                 h,
-                p.x,
-                p.y,
-                w,
-                h
+                p.x + wScaledDiff,
+                p.y + hScaledDiff,
+                wScaled,
+                hScaled
             );
             if (a !== 1) {
                 ctx.globalAlpha = fSaveAlpha;
@@ -5963,6 +6036,19 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+function processWave(entity) {
+    const game = entity.game;
+    const pdata = entity.data;
+    const position = pdata.position;
+    const wave = game.createEntity('wave_0');
+    wave.sprite.scale = 0.1;
+    wave.sprite.z = -10;
+    wave.sprite.alpha = 1;
+    //wave.sprite.fadeOut(0.02);
+    wave.data.position.set(position.x, position.y);
+}
+
 function process(entity) {
     const xLast = entity.data.position.x;
     const yLast = entity.data.position.y;
@@ -5985,6 +6071,11 @@ function process(entity) {
         }
     );
     entity.data.position.set(c.pos.x, c.pos.y);
+    if (!entity.data.nextWave || game.state.time > entity.data.nextWave) {
+        entity.data.nextWave = entity.game.state.time + 16;
+        console.log('wave');
+        processWave(entity);
+    }
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (process);
@@ -6003,6 +6094,10 @@ __webpack_require__.r(__webpack_exports__);
 const PHASE_PLAYER_AT_CURSOR = 0;
 const PHASE_PLAYER_MOVING = 1;
 
+
+function processPulseScale(entity) {
+    entity.sprite.scale = Math.sin(entity.game.state.time / 8) / 8 + 1;
+}
 /**
  * @param entity
  */
@@ -6013,6 +6108,7 @@ function process(entity) {
 		pdata.phase = 0;
 		entity.sprite.fadeOut();
 	}
+	processPulseScale(entity);
 	let bPlayerAtCursor = pdata.position.isEqual(player.data.position);
 	switch (pdata.phase) {
 		case 0:
@@ -6048,6 +6144,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
 /* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cursor */ "./src/thinkers/cursor.js");
 /* harmony import */ var _boat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./boat */ "./src/thinkers/boat.js");
+/* harmony import */ var _wave__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./wave */ "./src/thinkers/wave.js");
+
 
 
 
@@ -6057,8 +6155,40 @@ __webpack_require__.r(__webpack_exports__);
     balloon: _balloon__WEBPACK_IMPORTED_MODULE_0__["default"],
     aerostat: _aerostat__WEBPACK_IMPORTED_MODULE_1__["default"],
     cursor: _cursor__WEBPACK_IMPORTED_MODULE_2__["default"],
-    boat: _boat__WEBPACK_IMPORTED_MODULE_3__["default"]
+    boat: _boat__WEBPACK_IMPORTED_MODULE_3__["default"],
+    wave: _wave__WEBPACK_IMPORTED_MODULE_4__["default"]
 });
+
+/***/ }),
+
+/***/ "./src/thinkers/wave.js":
+/*!******************************!*\
+  !*** ./src/thinkers/wave.js ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const PHASE_PLAYER_AT_CURSOR = 0;
+const PHASE_PLAYER_MOVING = 1;
+
+
+function processScaleAndAlpha(entity) {
+    entity.sprite.scale += 0.02;
+	entity.sprite.alpha -= 0.02;
+    if (entity.sprite.alpha < 0 || entity.sprite.scale > 2) {
+		entity.game.destroyEntity(entity);
+	}
+}
+/**
+ * @param entity
+ */
+function process(entity) {
+	processScaleAndAlpha(entity);
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (process);
 
 /***/ }),
 

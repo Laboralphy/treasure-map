@@ -8,6 +8,8 @@ import DATA from './data';
 const Vector = o876.geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
 
+const Z_CURSOR = -10;
+
 
 class Game extends osge.Game {
     constructor() {
@@ -27,6 +29,7 @@ class Game extends osge.Game {
         });
         this._lastEntityId = 0;
         this.state = {
+        	time: 0,
         	input: {
         		keys: {},
 				mouse: {
@@ -57,8 +60,11 @@ class Game extends osge.Game {
         entity.thinker(entity);
     }
 
-	async createEntity(sResRef) {
+	createEntity(sResRef) {
     	let bp0 = DATA.blueprints[sResRef];
+    	if (bp0 === undefined) {
+    		throw new Error('this blueprint does not exist : "' + sResRef + '"');
+		}
     	let blueprint = Object.assign({
 			"angle": 0,                   // angle de cap
 			"angleSpeed": 0,              // amplitude d emofication de l'angle
@@ -81,6 +87,12 @@ class Game extends osge.Game {
 		let sprite = new osge.Sprite();
 		this._spriteLayer.sprites.push(sprite);
 		sprite.define(blueprint.sprite);
+		if (!(blueprint.thinker in THINKERS)) {
+			throw new Error('this thinker does not exist : "' + blueprint.thinker);
+		}
+		if (typeof THINKERS[blueprint.thinker] !== 'function') {
+			throw new Error('this thinker is not valid : "' + blueprint.thinker);
+		}
 		let oEntity = {
 			id,
 			sprite,
@@ -92,6 +104,17 @@ class Game extends osge.Game {
 		return oEntity;
 	}
 
+	destroyEntity(entity) {
+    	let i = this.state.entities.indexOf(entity);
+		if (i >= 0) {
+			this.state.entities.splice(i, 1)
+		}
+		i = this._spriteLayer.sprites.indexOf(entity.sprite);
+		if (i >= 0) {
+			this._spriteLayer.sprites.splice(i, 1);
+		}
+	}
+
 
     async init() {
         await super.init();
@@ -100,18 +123,19 @@ class Game extends osge.Game {
         this.canvas(oCanvas);
 
         // création du joueur
-        this.state.player = await this.createEntity('tugboat_0');
+        this.state.player = this.createEntity('tugboat_0');
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
 		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
 		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
 
 
         // création du sprite curseur de destination
-		this.state.cursor = await this.createEntity('cursor');
-		this.state.cursor.sprite.z = -1;
+		this.state.cursor = this.createEntity('cursor');
+		this.state.cursor.sprite.z = Z_CURSOR;
     }
 
     update() {
+    	++this.state.time;
         super.update();
         let state = this.state;
         let entities = state.entities;

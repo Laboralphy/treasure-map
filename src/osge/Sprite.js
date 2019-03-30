@@ -19,15 +19,16 @@ class Sprite {
         this._defined = false;
         this._fadeDiff = 0;
         this.z = 0;
+        this.scale = 1;
 	}
 
-    fadeIn() {
-        this._fadeDiff = 0.05;
+    fadeIn(fSpeed = 0.05) {
+        this._fadeDiff = fSpeed;
         this.alpha = 0;
     }
 
-    fadeOut() {
-        this._fadeDiff = -0.05;
+    fadeOut(fSpeed = 0.05) {
+        this._fadeDiff = -fSpeed;
         this.alpha = 1;
     }
 
@@ -97,6 +98,7 @@ class Sprite {
 		let n = this._iFrame;
 		let w = this.frameWidth;
 		let h = this.frameHeight;
+		const scale = this.scale;
 		let p = this.position.sub(vOffset);
         this.processFade();
 		let a = this.alpha;
@@ -110,16 +112,20 @@ class Sprite {
 				throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);
 			}
 			let f = this._frames[n];
+			const wScaled = w * scale;
+			const hScaled = h * scale;
+			const wScaledDiff = Math.floor((w - wScaled) / 2);
+			const hScaledDiff = Math.floor((h - hScaled) / 2);
             ctx.drawImage(
                 this.image,
                 f.x,
                 f.y,
                 w,
                 h,
-                p.x,
-                p.y,
-                w,
-                h
+                p.x + wScaledDiff,
+                p.y + hScaledDiff,
+                wScaled,
+                hScaled
             );
             if (a !== 1) {
                 ctx.globalAlpha = fSaveAlpha;
