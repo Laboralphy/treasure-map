@@ -5,6 +5,7 @@ const View = o876.geometry.View;
 const Vector = o876.geometry.Vector;
 
 
+const IMAGE_CACHE = {};
 
 class Game {
 
@@ -72,7 +73,12 @@ class Game {
 	 */
 	static async loadImage(sImage) {
 		return new Promise(resolve => {
+		    if (sImage in IMAGE_CACHE) {
+		        resolve(IMAGE_CACHE[sImage]);
+		        return;
+            }
 			let oImage = new Image();
+            IMAGE_CACHE[sImage] = oImage;
 			oImage.addEventListener('load', event => resolve(oImage));
 			oImage.setAttribute('src', sImage);
 		});

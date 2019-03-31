@@ -57,10 +57,10 @@ class Game extends osge.Game {
 	}
 
 	processThinker(entity) {
-        entity.thinker(entity);
+        entity.thinker.think(entity);
     }
 
-	createEntity(sResRef) {
+	async createEntity(sResRef) {
     	let bp0 = DATA.blueprints[sResRef];
     	if (bp0 === undefined) {
     		throw new Error('this blueprint does not exist : "' + sResRef + '"');
@@ -86,17 +86,18 @@ class Game extends osge.Game {
 		let id = ++this._lastEntityId;
 		let sprite = new osge.Sprite();
 		this._spriteLayer.sprites.push(sprite);
-		sprite.define(blueprint.sprite);
+		await sprite.define(blueprint.sprite);
 		if (!(blueprint.thinker in THINKERS)) {
 			throw new Error('this thinker does not exist : "' + blueprint.thinker);
 		}
-		if (typeof THINKERS[blueprint.thinker] !== 'function') {
-			throw new Error('this thinker is not valid : "' + blueprint.thinker);
-		}
+		const EntityThinker = THINKERS[blueprint.thinker];
+		const oThinker = new EntityThinker();
+
 		let oEntity = {
 			id,
 			sprite,
-			thinker: THINKERS[blueprint.thinker],
+            //thinker: THINKERS[blueprint.thinker],
+            thinker: oThinker,
 			data: blueprint,
 			game: this
 		};
@@ -123,14 +124,14 @@ class Game extends osge.Game {
         this.canvas(oCanvas);
 
         // création du joueur
-        this.state.player = this.createEntity('tugboat_0');
+		this.state.player = await this.createEntity('tugboat_1');
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
 		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
 		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
 
 
         // création du sprite curseur de destination
-		this.state.cursor = this.createEntity('cursor');
+		this.state.cursor = await this.createEntity('cursor');
 		this.state.cursor.sprite.z = Z_CURSOR;
     }
 

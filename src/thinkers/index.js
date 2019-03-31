@@ -1,8 +1,8 @@
-import balloon from './balloon';
-import aerostat from './aerostat';
-import cursor from './cursor';
-import boat from './boat';
-import wave from './wave';
+import balloon from './Balloon';
+import aerostat from './Aerostat';
+import cursor from './Cursor';
+import boat from './Boat';
+import wave from './Wave';
 
 export default {
     balloon,

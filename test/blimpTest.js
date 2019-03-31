@@ -4,7 +4,8 @@ const Vector = o876.geometry.Vector;
 
 
 describe('blimp thinker', function() {
-	const blimpThinker = require('../src/thinkers/aerostat').default;
+	const BlimpThinker = require('../src/thinkers/Aerostat').default;
+	const oBT = new BlimpThinker();
 	describe('displacement', function() {
 		it ('should not move', function() {
 			let entity = {
@@ -19,7 +20,7 @@ describe('blimp thinker', function() {
 					maxSpeed: 2
 				}
 			};
-			blimpThinker(entity);
+			oBT.process(entity);
 			expect(entity.data.position.x).toBe(0);
 			expect(entity.data.position.y).toBe(0);
 			expect(entity.data.angle).toBe(0);

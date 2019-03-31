@@ -1,2 +1,2 @@
 #!/bin/bash
-convert t_BW/????.png -gravity Center -crop 60%x60% +append -modulate 150 palette.png -interpolate Bicubic -clut tugboat_1.png
+convert b_bw/z????.png -gravity Center -crop 90%x90% -resize x64 +repage +append -modulate 150 palette.png -interpolate Bicubic -clut tugboat_1.png

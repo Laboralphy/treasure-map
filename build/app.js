@@ -656,10 +656,10 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 	}
 
 	processThinker(entity) {
-        entity.thinker(entity);
+        entity.thinker.think(entity);
     }
 
-	createEntity(sResRef) {
+	async createEntity(sResRef) {
     	let bp0 = _data__WEBPACK_IMPORTED_MODULE_5__["default"].blueprints[sResRef];
     	if (bp0 === undefined) {
     		throw new Error('this blueprint does not exist : "' + sResRef + '"');
@@ -685,17 +685,18 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
 		let id = ++this._lastEntityId;
 		let sprite = new _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Sprite();
 		this._spriteLayer.sprites.push(sprite);
-		sprite.define(blueprint.sprite);
+		await sprite.define(blueprint.sprite);
 		if (!(blueprint.thinker in _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"])) {
 			throw new Error('this thinker does not exist : "' + blueprint.thinker);
 		}
-		if (typeof _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker] !== 'function') {
-			throw new Error('this thinker is not valid : "' + blueprint.thinker);
-		}
+		const EntityThinker = _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker];
+		const oThinker = new EntityThinker();
+
 		let oEntity = {
 			id,
 			sprite,
-			thinker: _thinkers__WEBPACK_IMPORTED_MODULE_4__["default"][blueprint.thinker],
+            //thinker: THINKERS[blueprint.thinker],
+            thinker: oThinker,
 			data: blueprint,
 			game: this
 		};
@@ -722,14 +723,14 @@ class Game extends _osge__WEBPACK_IMPORTED_MODULE_1__["default"].Game {
         this.canvas(oCanvas);
 
         // création du joueur
-        this.state.player = this.createEntity('tugboat_0');
+		this.state.player = await this.createEntity('tugboat_1');
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
 		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
 		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
 
 
         // création du sprite curseur de destination
-		this.state.cursor = this.createEntity('cursor');
+		this.state.cursor = await this.createEntity('cursor');
 		this.state.cursor.sprite.z = Z_CURSOR;
     }
 
@@ -1692,14 +1693,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blimp */ "./src/data/blueprints/blimp.js");
 /* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cursor */ "./src/data/blueprints/cursor.js");
 /* harmony import */ var _tugboat_0__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tugboat_0 */ "./src/data/blueprints/tugboat_0.js");
-/* harmony import */ var _wave_0__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./wave_0 */ "./src/data/blueprints/wave_0.js");
+/* harmony import */ var _tugboat_1__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./tugboat_1 */ "./src/data/blueprints/tugboat_1.js");
+/* harmony import */ var _wave_0__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./wave_0 */ "./src/data/blueprints/wave_0.js");
+
 
 
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"], wave_0: _wave_0__WEBPACK_IMPORTED_MODULE_3__["default"]
+	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"], tugboat_1: _tugboat_1__WEBPACK_IMPORTED_MODULE_3__["default"], wave_0: _wave_0__WEBPACK_IMPORTED_MODULE_4__["default"]
 });
 
 /***/ }),
@@ -1718,6 +1721,26 @@ const DATA = {
     "enginePower": 0.1,             // inc/dec de la vitesse du moteur
     "maxSpeed": 2,                  // vitesse max
     "tileset": "tugboat_0",			// tile set
+    "thinker": "boat"			    // thinker
+};
+/* harmony default export */ __webpack_exports__["default"] = (DATA);
+
+/***/ }),
+
+/***/ "./src/data/blueprints/tugboat_1.js":
+/*!******************************************!*\
+  !*** ./src/data/blueprints/tugboat_1.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const DATA = {
+    "angleSpeed": 0.1,              // amplitude d emofication de l'angle
+    "enginePower": 0.1,             // inc/dec de la vitesse du moteur
+    "maxSpeed": 2,                  // vitesse max
+    "tileset": "tugboat_1",			// tile set
     "thinker": "boat"			    // thinker
 };
 /* harmony default export */ __webpack_exports__["default"] = (DATA);
@@ -1814,14 +1837,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _blimp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./blimp */ "./src/data/tiles/blimp.js");
 /* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cursor */ "./src/data/tiles/cursor.js");
 /* harmony import */ var _tugboat_0__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tugboat_0 */ "./src/data/tiles/tugboat_0.js");
-/* harmony import */ var _wave_0__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./wave_0 */ "./src/data/tiles/wave_0.js");
+/* harmony import */ var _tugboat_1__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./tugboat_1 */ "./src/data/tiles/tugboat_1.js");
+/* harmony import */ var _wave_0__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./wave_0 */ "./src/data/tiles/wave_0.js");
+
 
 
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"], wave_0: _wave_0__WEBPACK_IMPORTED_MODULE_3__["default"]
+	blimp: _blimp__WEBPACK_IMPORTED_MODULE_0__["default"], cursor: _cursor__WEBPACK_IMPORTED_MODULE_1__["default"], tugboat_0: _tugboat_0__WEBPACK_IMPORTED_MODULE_2__["default"], tugboat_1: _tugboat_1__WEBPACK_IMPORTED_MODULE_3__["default"], wave_0: _wave_0__WEBPACK_IMPORTED_MODULE_4__["default"]
 });
 
 /***/ }),
@@ -1837,6 +1862,24 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
 	"image": "tugboat_0",
+	"frames": 32,
+	"ref": {x: 0, y: 1}
+});
+
+
+/***/ }),
+
+/***/ "./src/data/tiles/tugboat_1.js":
+/*!*************************************!*\
+  !*** ./src/data/tiles/tugboat_1.js ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+	"image": "tugboat_1",
 	"frames": 32,
 	"ref": {x: 0, y: 1}
 });
@@ -5457,6 +5500,7 @@ const View = _o876__WEBPACK_IMPORTED_MODULE_1___default.a.geometry.View;
 const Vector = _o876__WEBPACK_IMPORTED_MODULE_1___default.a.geometry.Vector;
 
 
+const IMAGE_CACHE = {};
 
 class Game {
 
@@ -5524,7 +5568,12 @@ class Game {
 	 */
 	static async loadImage(sImage) {
 		return new Promise(resolve => {
+		    if (sImage in IMAGE_CACHE) {
+		        resolve(IMAGE_CACHE[sImage]);
+		        return;
+            }
 			let oImage = new Image();
+            IMAGE_CACHE[sImage] = oImage;
 			oImage.addEventListener('load', event => resolve(oImage));
 			oImage.setAttribute('src', sImage);
 		});
@@ -5854,9 +5903,9 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./src/thinkers/aerostat.js":
+/***/ "./src/thinkers/Aerostat.js":
 /*!**********************************!*\
-  !*** ./src/thinkers/aerostat.js ***!
+  !*** ./src/thinkers/Aerostat.js ***!
   \**********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -5870,118 +5919,114 @@ __webpack_require__.r(__webpack_exports__);
 const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
 const sb = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
 
-function advance(entity) {
-	let pdata = entity.data;
-	if (!pdata.destination.isEqual(pdata.position)) {
-		let vDiff = pdata.destination.sub(pdata.position);
-		let nDist = vDiff.magnitude();
-		let ms = pdata.maxSpeed;
-		let speed = pdata.speed;
-		let acc = pdata.enginePower;
 
-		const DECCEL_THRESHOLD_DIST = ms << 3;
+class Aerostat {
 
-		if (nDist < DECCEL_THRESHOLD_DIST) {
-			// en deça d'un certain seuil la vitesse max diminue
-			// proportionnellemnt à la distance restante
-			ms *= nDist / DECCEL_THRESHOLD_DIST;
+	advance(entity) {
+		let pdata = entity.data;
+		if (!pdata.destination.isEqual(pdata.position)) {
+			let vDiff = pdata.destination.sub(pdata.position);
+			let nDist = vDiff.magnitude();
+			let ms = pdata.maxSpeed;
+			let speed = pdata.speed;
+			let acc = pdata.enginePower;
+
+			const DECCEL_THRESHOLD_DIST = ms << 3;
+
+			if (nDist < DECCEL_THRESHOLD_DIST) {
+				// en deça d'un certain seuil la vitesse max diminue
+				// proportionnellemnt à la distance restante
+				ms *= nDist / DECCEL_THRESHOLD_DIST;
+			}
+			speed = Math.min(ms, speed + acc);
+			let vMove = Vector.fromPolar(pdata.angle, 1);
+			vMove.scale(speed);
+			pdata.speed = speed;
+			pdata.position.translate(vMove);
 		}
-		speed = Math.min(ms, speed + acc);
-		let vMove = Vector.fromPolar(pdata.angle, 1);
-		vMove.scale(speed);
-		pdata.speed = speed;
-		pdata.position.translate(vMove);
 	}
-}
 
 
-/**
- * Le blimp dispose des variables suivantes
- *
- * blimp.angleSpeed // vitesse de modification de l'angle
- * blimp.angle
- *
- * @param entity
- */
-function process(entity) {
-    let pdata = entity.data;
-    let input = entity.game.state.input;
-    if (!pdata.destination.isEqual(input.mouse.click)) {
-		pdata.destination.set(input.mouse.click);
-	}
-    if (!pdata.destination.isEqual(pdata.position)) {
-        if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
-			pdata.position.set(pdata.destination);
-			return;
-        }
-
-        if (!('angleVis' in pdata)) {
-			pdata.angleVis = pdata.angle;
+	think(entity) {
+		let pdata = entity.data;
+		let input = entity.game.state.input;
+		if (!pdata.destination.isEqual(input.mouse.click)) {
+			pdata.destination.set(input.mouse.click);
 		}
-		let fAngleCurr = pdata.angle;
-		let fAngleDest = pdata.destination.sub(pdata.position).direction();
-		let fAngle;
+		if (!pdata.destination.isEqual(pdata.position)) {
+			if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
+				pdata.position.set(pdata.destination);
+				return;
+			}
 
-        // si l'angle entre les deux vecteur est trop petit alors on les confond
-		let vBlimp = Vector.fromPolar(fAngleCurr, 1);
-		let vCap = Vector.fromPolar(fAngleDest, 1);
-		let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
-		if (fAngleDeriv < pdata.angleSpeed) {
-			fAngle = fAngleDest;
-		} else {
-			// angle de destination
-			let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
-			pdata.aimedAngle = fAngleDest;
-			let fAngleMod = 0;
-			if (Math.sign(fAngleDest) === Math.sign(fAngleCurr)) {
-				fAngleMod = Math.sign(fAngleDest - fAngleCurr);
+			if (!('angleVis' in pdata)) {
+				pdata.angleVis = pdata.angle;
+			}
+			let fAngleCurr = pdata.angle;
+			let fAngleDest = pdata.destination.sub(pdata.position).direction();
+			let fAngle;
+
+			// si l'angle entre les deux vecteur est trop petit alors on les confond
+			let vBlimp = Vector.fromPolar(fAngleCurr, 1);
+			let vCap = Vector.fromPolar(fAngleDest, 1);
+			let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
+			if (fAngleDeriv < pdata.angleSpeed) {
+				fAngle = fAngleDest;
 			} else {
-				fAngleMod = Math.sign(fAngleCurr - fAngleDestInv);
+				// angle de destination
+				let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
+				pdata.aimedAngle = fAngleDest;
+				let fAngleMod = 0;
+				if (Math.sign(fAngleDest) === Math.sign(fAngleCurr)) {
+					fAngleMod = Math.sign(fAngleDest - fAngleCurr);
+				} else {
+					fAngleMod = Math.sign(fAngleCurr - fAngleDestInv);
+				}
+				fAngleMod *= pdata.angleSpeed;
+				fAngle = pdata.angle + fAngleMod;
+				if (fAngle <= -Math.PI) {
+					fAngle += 2 * Math.PI;
+				}
+				if (fAngle >= Math.PI) {
+					fAngle -= 2 * Math.PI;
+				}
 			}
-			fAngleMod *= pdata.angleSpeed;
-			fAngle = pdata.angle + fAngleMod;
-			if (fAngle <= -Math.PI) {
-				fAngle += 2 * Math.PI;
+			pdata.angle = fAngle;
+			// changer le sprite
+			let nFract = entity.sprite.frameCount();
+			let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
+			let fAngle1 = fAngle / (2 * Math.PI);
+			let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
+			let iFract = sb.mod(Math.floor(fAngleFract * nFract), nFract);
+			if (iFract < 0) {
+				console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
+				throw new Error('WTF iFract < 0 !');
 			}
-			if (fAngle >= Math.PI) {
-				fAngle -= 2 * Math.PI;
-			}
-		}
-		pdata.angle = fAngle;
-        // changer le sprite
-		let nFract = entity.sprite.frameCount();
-		let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
-		let fAngle1 = fAngle / (2 * Math.PI);
-		let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
-		let iFract = sb.mod(Math.floor(fAngleFract * nFract), nFract);
-		if (iFract < 0) {
-			console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
-			throw new Error('WTF iFract < 0 !');
-		}
 
-		if (!('turning' in pdata)) {
-			pdata.turning = [iFract];
-		}
-		if (pdata.turning[0] === iFract) {
-			pdata.turning = [iFract];
-		} else {
-			pdata.turning.push(iFract);
-			while (pdata.turning.length > 6) {
-				pdata.turning.shift();
+			if (!('turning' in pdata)) {
+				pdata.turning = [iFract];
 			}
-			entity.sprite.frame(pdata.turning[0]);
+			if (pdata.turning[0] === iFract) {
+				pdata.turning = [iFract];
+			} else {
+				pdata.turning.push(iFract);
+				while (pdata.turning.length > 6) {
+					pdata.turning.shift();
+				}
+				entity.sprite.frame(pdata.turning[0]);
+			}
+			this.advance(entity);
 		}
-		advance(entity);
-    }
+	}
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (process);
+/* harmony default export */ __webpack_exports__["default"] = (Aerostat);
 
 /***/ }),
 
-/***/ "./src/thinkers/balloon.js":
+/***/ "./src/thinkers/Balloon.js":
 /*!*********************************!*\
-  !*** ./src/thinkers/balloon.js ***!
+  !*** ./src/thinkers/Balloon.js ***!
   \*********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -5993,98 +6038,103 @@ __webpack_require__.r(__webpack_exports__);
  * de manière à avoir un mouvement fluide.
  * @param entity
  */
-function process(entity) {
-    let pdata = entity.data;
-    if (!pdata.destination.isEqual(pdata.position)) {
-        let vDiff = pdata.destination.sub(pdata.position);
-        let nDist = vDiff.magnitude();
 
-        let ms = pdata.maxSpeed;
-        let speed = pdata.speed;
-        let acc = pdata.enginePower;
+class Balloon {
+    think(entity) {
+        let pdata = entity.data;
+        if (!pdata.destination.isEqual(pdata.position)) {
+            let vDiff = pdata.destination.sub(pdata.position);
+            let nDist = vDiff.magnitude();
 
-        const DECCEL_THRESHOLD_DIST = ms << 2;
+            let ms = pdata.maxSpeed;
+            let speed = pdata.speed;
+            let acc = pdata.enginePower;
 
-        if (nDist < DECCEL_THRESHOLD_DIST) {
-            // en deça d'un certain seuil la vitesse max diminue
-            // proportionnellemnt à la distance restante
-            ms *= nDist / DECCEL_THRESHOLD_DIST;
+            const DECCEL_THRESHOLD_DIST = ms << 2;
+
+            if (nDist < DECCEL_THRESHOLD_DIST) {
+                // en deça d'un certain seuil la vitesse max diminue
+                // proportionnellemnt à la distance restante
+                ms *= nDist / DECCEL_THRESHOLD_DIST;
+            }
+            speed = Math.min(ms, speed + acc);
+            let vNorm = vDiff.normalize();
+            let vMove = vNorm.mul(speed);
+            pdata.speed = speed;
+            pdata.position.translate(vMove);
         }
-        speed = Math.min(ms, speed + acc);
-        let vNorm = vDiff.normalize();
-        let vMove = vNorm.mul(speed);
-        pdata.speed = speed;
-        pdata.position.translate(vMove);
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (process);
+/* harmony default export */ __webpack_exports__["default"] = (Balloon);
 
 /***/ }),
 
-/***/ "./src/thinkers/boat.js":
+/***/ "./src/thinkers/Boat.js":
 /*!******************************!*\
-  !*** ./src/thinkers/boat.js ***!
+  !*** ./src/thinkers/Boat.js ***!
   \******************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
+/* harmony import */ var _Aerostat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Aerostat */ "./src/thinkers/Aerostat.js");
 /* harmony import */ var _wall_collider__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../wall-collider */ "./src/wall-collider/index.js");
 
 
 
-
-function processWave(entity) {
-    const game = entity.game;
-    const pdata = entity.data;
-    const position = pdata.position;
-    const wave = game.createEntity('wave_0');
-    wave.sprite.scale = 0.1;
-    wave.sprite.z = -10;
-    wave.sprite.alpha = 1;
-    //wave.sprite.fadeOut(0.02);
-    wave.data.position.set(position.x, position.y);
-}
-
-function process(entity) {
-    const xLast = entity.data.position.x;
-    const yLast = entity.data.position.y;
-    Object(_aerostat__WEBPACK_IMPORTED_MODULE_0__["default"])(entity);
-    let xNew = entity.data.position.x;
-    let yNew = entity.data.position.y;
-    const dx = xNew - xLast;
-    const dy = yNew - yLast;
-    const c = Object(_wall_collider__WEBPACK_IMPORTED_MODULE_1__["computeWallCollisions"])(
-        xLast,
-        yLast,
-        dx,
-        dy,
-        6,
-        16,
-        false,
-        (x, y) => {
-            const p = game.carto.getPhysicValue(x, y);
-            return !!p && p.type !== 11;
-        }
-    );
-    entity.data.position.set(c.pos.x, c.pos.y);
-    if (!entity.data.nextWave || game.state.time > entity.data.nextWave) {
-        entity.data.nextWave = entity.game.state.time + 16;
-        console.log('wave');
-        processWave(entity);
+class Boat extends _Aerostat__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    async processWave(entity) {
+        const game = entity.game;
+        const pdata = entity.data;
+        const position = pdata.position;
+        const wave = await game.createEntity('wave_0');
+        wave.sprite.scale = 0.1;
+        wave.sprite.z = -10;
+        wave.sprite.fadeOut(0.04);
+        wave.data.position.set(position.x, position.y);
+        wave.data.lifetime = game.state.time + 32;
     }
+
+    think(entity) {
+        const xLast = entity.data.position.x;
+        const yLast = entity.data.position.y;
+        super.think(entity);
+        let xNew = entity.data.position.x;
+        let yNew = entity.data.position.y;
+        const dx = xNew - xLast;
+        const dy = yNew - yLast;
+        const c = Object(_wall_collider__WEBPACK_IMPORTED_MODULE_1__["computeWallCollisions"])(
+            xLast,
+            yLast,
+            dx,
+            dy,
+            6,
+            16,
+            false,
+            (x, y) => {
+                const p = game.carto.getPhysicValue(x, y);
+                return !!p && p.type !== 11;
+            }
+        );
+        entity.data.position.set(c.pos.x, c.pos.y);
+        if (!entity.data.nextWave || game.state.time > entity.data.nextWave) {
+            const t = c.speed.x === 0 && c.speed.y === 0 ? 16 : 4;
+            entity.data.nextWave = entity.game.state.time + t;
+            this.processWave(entity);
+        }
+    }
+
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (process);
+/* harmony default export */ __webpack_exports__["default"] = (Boat);
 
 /***/ }),
 
-/***/ "./src/thinkers/cursor.js":
+/***/ "./src/thinkers/Cursor.js":
 /*!********************************!*\
-  !*** ./src/thinkers/cursor.js ***!
+  !*** ./src/thinkers/Cursor.js ***!
   \********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -6094,40 +6144,69 @@ __webpack_require__.r(__webpack_exports__);
 const PHASE_PLAYER_AT_CURSOR = 0;
 const PHASE_PLAYER_MOVING = 1;
 
+class Cursor {
+    processPulseScale(entity) {
+        entity.sprite.scale = Math.sin(entity.game.state.time / 8) / 8 + 1;
+    }
+    /**
+     * @param entity
+     */
+    think(entity) {
+        let player = entity.game.state.player;
+        let pdata = entity.data;
+        if (!('phase' in pdata)) {
+            pdata.phase = 0;
+            entity.sprite.fadeOut();
+        }
+        this.processPulseScale(entity);
+        let bPlayerAtCursor = pdata.position.isEqual(player.data.position);
+        switch (pdata.phase) {
+            case 0:
+                if (!bPlayerAtCursor) {
+                    pdata.phase = PHASE_PLAYER_MOVING;
+                    entity.sprite.fadeIn();
+                }
+                break;
 
-function processPulseScale(entity) {
-    entity.sprite.scale = Math.sin(entity.game.state.time / 8) / 8 + 1;
+            case 1:
+                if (bPlayerAtCursor) {
+                    pdata.phase = PHASE_PLAYER_AT_CURSOR;
+                    entity.sprite.fadeOut();
+                }
+                break;
+        }
+    }
 }
-/**
- * @param entity
- */
-function process(entity) {
-	let player = entity.game.state.player;
-	let pdata = entity.data;
-	if (!('phase' in pdata)) {
-		pdata.phase = 0;
-		entity.sprite.fadeOut();
-	}
-	processPulseScale(entity);
-	let bPlayerAtCursor = pdata.position.isEqual(player.data.position);
-	switch (pdata.phase) {
-		case 0:
-			if (!bPlayerAtCursor) {
-				pdata.phase = PHASE_PLAYER_MOVING;
-				entity.sprite.fadeIn();
-			}
-			break;
 
-		case 1:
-			if (bPlayerAtCursor) {
-				pdata.phase = PHASE_PLAYER_AT_CURSOR;
-				entity.sprite.fadeOut();
-			}
-			break;
+/* harmony default export */ __webpack_exports__["default"] = (Cursor);
+
+/***/ }),
+
+/***/ "./src/thinkers/Wave.js":
+/*!******************************!*\
+  !*** ./src/thinkers/Wave.js ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+class Wave {
+	processScaleAndAlpha(entity) {
+		entity.sprite.scale += 0.04;
+		if (entity.game.state.time > entity.data.lifetime) {
+			entity.game.destroyEntity(entity);
+		}
+	}
+	/**
+	 * @param entity
+	 */
+	think(entity) {
+		this.processScaleAndAlpha(entity);
 	}
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (process);
+/* harmony default export */ __webpack_exports__["default"] = (Wave);
 
 /***/ }),
 
@@ -6140,11 +6219,11 @@ function process(entity) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _balloon__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./balloon */ "./src/thinkers/balloon.js");
-/* harmony import */ var _aerostat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./aerostat */ "./src/thinkers/aerostat.js");
-/* harmony import */ var _cursor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cursor */ "./src/thinkers/cursor.js");
-/* harmony import */ var _boat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./boat */ "./src/thinkers/boat.js");
-/* harmony import */ var _wave__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./wave */ "./src/thinkers/wave.js");
+/* harmony import */ var _Balloon__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Balloon */ "./src/thinkers/Balloon.js");
+/* harmony import */ var _Aerostat__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Aerostat */ "./src/thinkers/Aerostat.js");
+/* harmony import */ var _Cursor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Cursor */ "./src/thinkers/Cursor.js");
+/* harmony import */ var _Boat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Boat */ "./src/thinkers/Boat.js");
+/* harmony import */ var _Wave__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Wave */ "./src/thinkers/Wave.js");
 
 
 
@@ -6152,39 +6231,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-    balloon: _balloon__WEBPACK_IMPORTED_MODULE_0__["default"],
-    aerostat: _aerostat__WEBPACK_IMPORTED_MODULE_1__["default"],
-    cursor: _cursor__WEBPACK_IMPORTED_MODULE_2__["default"],
-    boat: _boat__WEBPACK_IMPORTED_MODULE_3__["default"],
-    wave: _wave__WEBPACK_IMPORTED_MODULE_4__["default"]
+    balloon: _Balloon__WEBPACK_IMPORTED_MODULE_0__["default"],
+    aerostat: _Aerostat__WEBPACK_IMPORTED_MODULE_1__["default"],
+    cursor: _Cursor__WEBPACK_IMPORTED_MODULE_2__["default"],
+    boat: _Boat__WEBPACK_IMPORTED_MODULE_3__["default"],
+    wave: _Wave__WEBPACK_IMPORTED_MODULE_4__["default"]
 });
-
-/***/ }),
-
-/***/ "./src/thinkers/wave.js":
-/*!******************************!*\
-  !*** ./src/thinkers/wave.js ***!
-  \******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-function processScaleAndAlpha(entity) {
-    entity.sprite.scale += 0.02;
-	entity.sprite.alpha -= 0.02;
-    if (entity.sprite.alpha < 0 || entity.sprite.scale > 2) {
-		entity.game.destroyEntity(entity);
-	}
-}
-/**
- * @param entity
- */
-function process(entity) {
-	processScaleAndAlpha(entity);
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (process);
 
 /***/ }),
 

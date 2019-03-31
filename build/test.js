@@ -3428,9 +3428,9 @@ module.exports = {
 
 /***/ }),
 
-/***/ "./src/thinkers/aerostat.js":
+/***/ "./src/thinkers/Aerostat.js":
 /*!**********************************!*\
-  !*** ./src/thinkers/aerostat.js ***!
+  !*** ./src/thinkers/Aerostat.js ***!
   \**********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -3444,112 +3444,108 @@ __webpack_require__.r(__webpack_exports__);
 const Vector = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.geometry.Vector;
 const sb = _o876__WEBPACK_IMPORTED_MODULE_0___default.a.SpellBook;
 
-function advance(entity) {
-	let pdata = entity.data;
-	if (!pdata.destination.isEqual(pdata.position)) {
-		let vDiff = pdata.destination.sub(pdata.position);
-		let nDist = vDiff.magnitude();
-		let ms = pdata.maxSpeed;
-		let speed = pdata.speed;
-		let acc = pdata.enginePower;
 
-		const DECCEL_THRESHOLD_DIST = ms << 3;
+class Aerostat {
 
-		if (nDist < DECCEL_THRESHOLD_DIST) {
-			// en deça d'un certain seuil la vitesse max diminue
-			// proportionnellemnt à la distance restante
-			ms *= nDist / DECCEL_THRESHOLD_DIST;
+	advance(entity) {
+		let pdata = entity.data;
+		if (!pdata.destination.isEqual(pdata.position)) {
+			let vDiff = pdata.destination.sub(pdata.position);
+			let nDist = vDiff.magnitude();
+			let ms = pdata.maxSpeed;
+			let speed = pdata.speed;
+			let acc = pdata.enginePower;
+
+			const DECCEL_THRESHOLD_DIST = ms << 3;
+
+			if (nDist < DECCEL_THRESHOLD_DIST) {
+				// en deça d'un certain seuil la vitesse max diminue
+				// proportionnellemnt à la distance restante
+				ms *= nDist / DECCEL_THRESHOLD_DIST;
+			}
+			speed = Math.min(ms, speed + acc);
+			let vMove = Vector.fromPolar(pdata.angle, 1);
+			vMove.scale(speed);
+			pdata.speed = speed;
+			pdata.position.translate(vMove);
 		}
-		speed = Math.min(ms, speed + acc);
-		let vMove = Vector.fromPolar(pdata.angle, 1);
-		vMove.scale(speed);
-		pdata.speed = speed;
-		pdata.position.translate(vMove);
 	}
-}
 
 
-/**
- * Le blimp dispose des variables suivantes
- *
- * blimp.angleSpeed // vitesse de modification de l'angle
- * blimp.angle
- *
- * @param entity
- */
-function process(entity) {
-    let pdata = entity.data;
-    let input = entity.game.state.input;
-    if (!pdata.destination.isEqual(input.mouse.click)) {
-		pdata.destination.set(input.mouse.click);
-	}
-    if (!pdata.destination.isEqual(pdata.position)) {
-        if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
-			pdata.position.set(pdata.destination);
-			return;
-        }
-
-        if (!('angleVis' in pdata)) {
-			pdata.angleVis = pdata.angle;
+	think(entity) {
+		let pdata = entity.data;
+		let input = entity.game.state.input;
+		if (!pdata.destination.isEqual(input.mouse.click)) {
+			pdata.destination.set(input.mouse.click);
 		}
-		let fAngleCurr = pdata.angle;
-		let fAngleDest = pdata.destination.sub(pdata.position).direction();
-		let fAngle;
+		if (!pdata.destination.isEqual(pdata.position)) {
+			if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
+				pdata.position.set(pdata.destination);
+				return;
+			}
 
-        // si l'angle entre les deux vecteur est trop petit alors on les confond
-		let vBlimp = Vector.fromPolar(fAngleCurr, 1);
-		let vCap = Vector.fromPolar(fAngleDest, 1);
-		let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
-		if (fAngleDeriv < pdata.angleSpeed) {
-			fAngle = fAngleDest;
-		} else {
-			// angle de destination
-			let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
-			pdata.aimedAngle = fAngleDest;
-			let fAngleMod = 0;
-			if (Math.sign(fAngleDest) === Math.sign(fAngleCurr)) {
-				fAngleMod = Math.sign(fAngleDest - fAngleCurr);
+			if (!('angleVis' in pdata)) {
+				pdata.angleVis = pdata.angle;
+			}
+			let fAngleCurr = pdata.angle;
+			let fAngleDest = pdata.destination.sub(pdata.position).direction();
+			let fAngle;
+
+			// si l'angle entre les deux vecteur est trop petit alors on les confond
+			let vBlimp = Vector.fromPolar(fAngleCurr, 1);
+			let vCap = Vector.fromPolar(fAngleDest, 1);
+			let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
+			if (fAngleDeriv < pdata.angleSpeed) {
+				fAngle = fAngleDest;
 			} else {
-				fAngleMod = Math.sign(fAngleCurr - fAngleDestInv);
+				// angle de destination
+				let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
+				pdata.aimedAngle = fAngleDest;
+				let fAngleMod = 0;
+				if (Math.sign(fAngleDest) === Math.sign(fAngleCurr)) {
+					fAngleMod = Math.sign(fAngleDest - fAngleCurr);
+				} else {
+					fAngleMod = Math.sign(fAngleCurr - fAngleDestInv);
+				}
+				fAngleMod *= pdata.angleSpeed;
+				fAngle = pdata.angle + fAngleMod;
+				if (fAngle <= -Math.PI) {
+					fAngle += 2 * Math.PI;
+				}
+				if (fAngle >= Math.PI) {
+					fAngle -= 2 * Math.PI;
+				}
 			}
-			fAngleMod *= pdata.angleSpeed;
-			fAngle = pdata.angle + fAngleMod;
-			if (fAngle <= -Math.PI) {
-				fAngle += 2 * Math.PI;
+			pdata.angle = fAngle;
+			// changer le sprite
+			let nFract = entity.sprite.frameCount();
+			let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
+			let fAngle1 = fAngle / (2 * Math.PI);
+			let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
+			let iFract = sb.mod(Math.floor(fAngleFract * nFract), nFract);
+			if (iFract < 0) {
+				console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
+				throw new Error('WTF iFract < 0 !');
 			}
-			if (fAngle >= Math.PI) {
-				fAngle -= 2 * Math.PI;
-			}
-		}
-		pdata.angle = fAngle;
-        // changer le sprite
-		let nFract = entity.sprite.frameCount();
-		let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
-		let fAngle1 = fAngle / (2 * Math.PI);
-		let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
-		let iFract = sb.mod(Math.floor(fAngleFract * nFract), nFract);
-		if (iFract < 0) {
-			console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
-			throw new Error('WTF iFract < 0 !');
-		}
 
-		if (!('turning' in pdata)) {
-			pdata.turning = [iFract];
-		}
-		if (pdata.turning[0] === iFract) {
-			pdata.turning = [iFract];
-		} else {
-			pdata.turning.push(iFract);
-			while (pdata.turning.length > 6) {
-				pdata.turning.shift();
+			if (!('turning' in pdata)) {
+				pdata.turning = [iFract];
 			}
-			entity.sprite.frame(pdata.turning[0]);
+			if (pdata.turning[0] === iFract) {
+				pdata.turning = [iFract];
+			} else {
+				pdata.turning.push(iFract);
+				while (pdata.turning.length > 6) {
+					pdata.turning.shift();
+				}
+				entity.sprite.frame(pdata.turning[0]);
+			}
+			this.advance(entity);
 		}
-		advance(entity);
-    }
+	}
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (process);
+/* harmony default export */ __webpack_exports__["default"] = (Aerostat);
 
 /***/ }),
 
@@ -3566,7 +3562,8 @@ const Vector = o876.geometry.Vector;
 
 
 describe('blimp thinker', function() {
-	const blimpThinker = __webpack_require__(/*! ../src/thinkers/aerostat */ "./src/thinkers/aerostat.js").default;
+	const BlimpThinker = __webpack_require__(/*! ../src/thinkers/Aerostat */ "./src/thinkers/Aerostat.js").default;
+	const oBT = new BlimpThinker();
 	describe('displacement', function() {
 		it ('should not move', function() {
 			let entity = {
@@ -3581,7 +3578,7 @@ describe('blimp thinker', function() {
 					maxSpeed: 2
 				}
 			};
-			blimpThinker(entity);
+			oBT.process(entity);
 			expect(entity.data.position.x).toBe(0);
 			expect(entity.data.position.y).toBe(0);
 			expect(entity.data.angle).toBe(0);
