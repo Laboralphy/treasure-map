@@ -6,8 +6,8 @@ async function main() {
     const carto = new Cartography({
         cellSize: 256,
         hexSize: 16,
-        hexSpacing: 3,
-        scale: 2,
+        hexSpacing: 7,
+        scale: 32,
         seed: 0.111,
         preload: 1,
         drawGrid: true,
@@ -17,7 +17,12 @@ async function main() {
         verbose: true
     });
 
-    await carto.view(document.querySelector('canvas.world'), new Vector(0, 0), true);
+    await carto.viewMap(
+        document.querySelector('canvas.world'),
+        -128, -96,
+        256, 192,
+        4
+    );
 
 }
 

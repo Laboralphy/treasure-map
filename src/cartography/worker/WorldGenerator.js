@@ -93,13 +93,19 @@ class WorldGenerator {
 		if (!bInHexagon) {
 			return 1;
 		}
-		if (this._isOnHexaMesh(xg, yg, meshSize, c >> 2)) {
-			return 0.333;
+        if (this._isOnHexaMesh(xg, yg, meshSize, c >> 2)) {
+            return 0.2;
+        } else if (this._isOnHexaMesh(xg, yg, meshSize, c / 3)) {
+            return 0.3;
 		} else if (this._isOnHexaMesh(xg, yg, meshSize, c >> 1)) {
-			return 0.555;
+			return 0.4;
+        } else if (this._isOnHexaMesh(xg, yg, meshSize, c / 1.5)) {
+            return 0.5;
+        } else if (this._isOnHexaMesh(xg, yg, meshSize, c / 1.2)) {
+            return 0.6;
 		} else {
-			return 0.777;
-		}
+		    return 0.7;
+        }
 	}
 
 

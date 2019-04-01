@@ -17,7 +17,7 @@ class Game extends osge.Game {
         this.carto = new Cartography({
             cellSize: 256,
             hexSize: 16,
-            hexSpacing: 3,
+            hexSpacing: 7,
             scale: 2,
             seed: 0.111,
             preload: 1,

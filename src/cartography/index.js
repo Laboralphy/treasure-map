@@ -44,9 +44,7 @@ class Cartography {
 		}
 	}
 
-	adjustCacheSize(oCanvas) {
-		let w = oCanvas.width;
-		let h = oCanvas.height;
+	adjustCacheSize(w, h) {
 		let cellSize = this.cellSize();
 		let m = Cartography.getViewPointMetrics(this._view.x, this._view.y, w, h, cellSize, this.oWorldDef.preload);
 		let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
@@ -133,7 +131,7 @@ class Cartography {
 		return new Promise((resolve, reject) => {
 			let x = Math.round(vView.x);
 			let y = Math.round(vView.y);
-			this.adjustCacheSize(oCanvas);
+			this.adjustCacheSize(oCanvas.width, oCanvas.height);
 			if (!this._fetching) {
 				this._fetching = true;
 				this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
@@ -157,10 +155,16 @@ class Cartography {
 	 * @param oCanvas
 	 * @param vView
 	 */
-	viewMap(oCanvas, vView) {
-		return new Promise((resolve, reject) => {
+	async viewMap(oCanvas, x, y, w, h, fZoom) {
+		for (let iy = 0; iy < h; ++iy) {
+			for (let ix = 0; ix < w; ++ix) {
+				const oWorldTile = await this.fetchTile(ix + x, iy + y);
+				oWorldTile.paint();
+				const canvas = oWorldTile.canvas;
+				oCanvas.getContext('2d').drawImage(canvas, 0, 0, canvas.width, canvas.height, ix * fZoom, iy * fZoom, fZoom, fZoom);
+			}
+		}
 
-		});
 	}
 
 	cellSize() {
@@ -174,7 +178,8 @@ class Cartography {
 			let oWorldTile = new WorldTile(x, y, this.cellSize(), {
 				scale: this.oWorldDef.scale,
 				drawGrid: this.oWorldDef.drawGrid,
-				drawCoords: this.oWorldDef.drawCoords
+				drawCoords: this.oWorldDef.drawCoords,
+				seed: this.oWorldDef.seed
 			});
 			this._cache.push(x, y, oWorldTile).forEach(wt => !!wt && (typeof wt.free === 'function') && wt.free());
 			oWorldTile.lock();

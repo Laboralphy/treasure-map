@@ -112,6 +112,17 @@ class WorldTile {
         this.canvas = null;
         this._lock = false;
         this.options = options;
+        this._cash = WorldTile.computeChaosHash(this.options.seed, x, y);
+    }
+
+    get cash() {
+        return this._cash;
+    }
+
+    static computeChaosHash(seed, x, y) {
+        let h = seed + x * 374761393 + y * 668265263;
+        h = (h ^ (h >> 13)) * 1274126177;
+        return h ^ (h >> 16);
     }
 
     static get MESH_SIZE() {
