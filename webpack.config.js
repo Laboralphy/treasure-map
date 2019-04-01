@@ -6,6 +6,7 @@ const path = require('path');
 module.exports = {
     entry: {
         'app': path.resolve(__dirname, 'src/main.js'),
+        'map': path.resolve(__dirname, 'src/map.js'),
         'worker': path.resolve(__dirname, 'src/cartography/worker/index.js'),
         'test': path.resolve(__dirname, 'test/index.js')
 	},

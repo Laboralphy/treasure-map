@@ -27,6 +27,8 @@ class Cartography {
 
         this._view = new o876.geometry.Vector();
 		this._fetching = false;
+		this._viewedCanvas = null; // last canvas used in view()
+		this._viewedPosition = null; // last position used in view();
 	}
 
 	log(...args) {
@@ -118,21 +120,36 @@ class Cartography {
 		}
 	}
 
-	view(oCanvas, vView) {
-		let x = Math.round(vView.x);
-		let y = Math.round(vView.y);
-		this.adjustCacheSize(oCanvas);
-		if (!this._fetching) {
-			this._fetching = true;
-			this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
-				this._fetching = false;
-				if (tileFetched) {
-					this.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
-				}
-			});
-		}
-		this._view.set(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1));
-		this.renderTiles(oCanvas, x, y);
+	/**
+	 *
+	 * @param oCanvas
+	 * @param vView
+	 * @param bRender {boolean} if true, then the tiles are rendered after preload
+	 * @return {Promise<boolean>} returns true if no preload was currently running, returns false if there is a preload currently runing
+	 */
+	view(oCanvas, vView, bRender = false) {
+		this._viewedCanvas = oCanvas;
+		this._viewedPosition = vView;
+		return new Promise((resolve, reject) => {
+			let x = Math.round(vView.x);
+			let y = Math.round(vView.y);
+			this.adjustCacheSize(oCanvas);
+			if (!this._fetching) {
+				this._fetching = true;
+				this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
+					this._fetching = false;
+					if (tileFetched) {
+						this.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
+					}
+					if (bRender) {
+						this.renderTiles();
+					}
+					resolve(true);
+				});
+			}
+			this._view.set(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1));
+			resolve(false);
+		});
 	}
 
 	cellSize() {
@@ -195,7 +212,11 @@ class Cartography {
 		};
 	}
 
-	renderTiles(oCanvas, x, y) {
+	renderTiles() {
+		if (!this._viewedCanvas) {
+			throw new Error('view() has not been called');
+		}
+		const oCanvas = this._viewedCanvas, x = this._viewedPosition.x, y = this._viewedPosition.y;
 		let w = oCanvas.width;
 		let h = oCanvas.height;
 		let cellSize = this.cellSize();

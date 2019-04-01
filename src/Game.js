@@ -157,7 +157,10 @@ class Game extends osge.Game {
     }
 
     render() {
-		this.carto.view(this.renderCanvas, this.state.view);
+    	const v = this.state.view;
+    	const c = this.carto;
+		c.view(this.renderCanvas, v);
+		c.renderTiles();
     	super.render();
 	}
 }
