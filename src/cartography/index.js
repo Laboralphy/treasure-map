@@ -152,6 +152,17 @@ class Cartography {
 		});
 	}
 
+	/**
+	 * Same as view but for mapping purpose
+	 * @param oCanvas
+	 * @param vView
+	 */
+	viewMap(oCanvas, vView) {
+		return new Promise((resolve, reject) => {
+
+		});
+	}
+
 	cellSize() {
 		return this.oWorldDef.cellSize;
 	}

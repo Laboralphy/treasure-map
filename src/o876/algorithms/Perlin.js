@@ -67,9 +67,9 @@ class Perlin {
 		for (let x, y = 0; y < h; ++y) {
 			r = []; 
 			for (x = 0; x < w; ++x) {
-				r.push(rand.rand());
+				r[x] = rand.rand();
 			}
-			a.push(r);
+			a[y] = r;
 		}
 		return a;
 	}
@@ -145,9 +145,9 @@ class Perlin {
       			vBlend = (x - xs0) * fSampleFreq;
       			fTop = interpolate(bny0[xs0], bny1[xs0], hBlend);
       			fBottom = interpolate(bny0[xs1], bny1[xs1], hBlend);
-     			r.push(interpolate(fTop, fBottom, vBlend));
+     			r[x] = interpolate(fTop, fBottom, vBlend);
       		}
-      		aSmoothNoise.push(r);
+      		aSmoothNoise[y] = r;
 		}
 		return aSmoothNoise;
 	}
@@ -159,7 +159,7 @@ class Perlin {
 		let fPersist = 0.5;
 
 		for (let i = 0; i < nOctaveCount; ++i) {
-			aSmoothNoise.push(Perlin.generateSmoothNoise(aBaseNoise, i));
+			aSmoothNoise[i] = Perlin.generateSmoothNoise(aBaseNoise, i);
 		}
 
 		let aPerlinNoise = [];
@@ -170,9 +170,9 @@ class Perlin {
 		for (y = 0; y < h; ++y) {
 			r = [];
 			for (x = 0; x < w; ++x) {
-				r.push(0);
+				r[x] = 0;
 			}
-			aPerlinNoise.push(r);
+			aPerlinNoise[y] = r;
 		}
 
 		for (let iOctave = nOctaveCount - 1; iOctave >= 0; --iOctave) {
@@ -267,13 +267,14 @@ class Perlin {
 		const merge33 = a33 => {
 			let h = this.height();
 			let a = [];
+			let i = 0;
 			for (let y, ya = 0; ya < 3; ++ya) {
 				let a33ya = a33[ya];
 				let a33ya0 = a33ya[0];
 				let a33ya1 = a33ya[1];
 				let a33ya2 = a33ya[2];
 				for (y = 0; y < h; ++y) {
-					a.push(a33ya0[y].concat(a33ya1[y], a33ya2[y]));
+					a[i++] = a33ya0[y].concat(a33ya1[y], a33ya2[y]);
 				}
 			}
 			return a;
