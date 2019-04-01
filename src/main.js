@@ -63,3 +63,4 @@ function windowResize() {
 }
 
 window.addEventListener('load', main5);
+window.addEventListener('unload', () => game.carto.terminateService());

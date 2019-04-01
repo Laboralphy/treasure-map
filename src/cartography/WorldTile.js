@@ -109,6 +109,7 @@ class WorldTile {
         this.size = size;
         this.colormap = null;
         this.physicmap = null;
+        this.structures = null;
         this.canvas = null;
         this._lock = false;
         this.options = options;

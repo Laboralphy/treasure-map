@@ -47,4 +47,4 @@ class PatternIndexer {
 	}
 }
 
-module.exports = PatternIndexer;
+export default PatternIndexer;

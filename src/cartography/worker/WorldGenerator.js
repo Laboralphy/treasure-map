@@ -1,9 +1,11 @@
-const o876 = require('../../o876/index');
+import o876 from '../../o876/index';
+import SceneryGenerator from './SceneryGenerator';
 const Perlin = o876.algorithms.Perlin;
 
 class WorldGenerator {
 	constructor(options) {
 		this._cache = new o876.structures.Cache2D();
+		this._sg = new SceneryGenerator();
 		this._options = {};
 		// cellules
 		let pcell = new Perlin();
@@ -230,13 +232,8 @@ class WorldGenerator {
         return aMap;
     }
 
-    buildStructurePort(x, y, physicMap) {
-		// trouver un spot pres de l'eau
-
-	}
-
     buildStructures(x, y, physicMap) {
-		this.buildStructurePort(x, y, physicMap);
+		return this._sg.generatePort(0, x, y, physicMap);
 	}
 
     computeCell(xCurs, yCurs) {
@@ -263,11 +260,12 @@ class WorldGenerator {
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
         let structures = this.buildStructures(xCurs, yCurs, physicMap);
         return {
+            version: 5,
             x: xCurs,
             y: yCurs,
             colormap: colorMap,
             physicmap: physicMap,
-			structures
+            structures
         };
 	}
 
@@ -275,10 +273,11 @@ class WorldGenerator {
 		let payload = this._cache.getPayload(xCurs, yCurs);
 		if (!payload) {
 			payload = this.computeCell(xCurs, yCurs);
+			console.log(payload);
             this._cache.push(xCurs, yCurs, payload).forEach(wt => !!wt && (typeof wt.free === 'function') && wt.free());
 		}
 		return payload;
 	}
 }
 
-module.exports = WorldGenerator;
+export default WorldGenerator;

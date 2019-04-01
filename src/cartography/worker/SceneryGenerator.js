@@ -39,14 +39,18 @@ class SceneryGenerator {
                 }
             }
         }
+        aPatterns.push({x: 0, y: 0});
         return aPatterns;
     }
 
     generatePort(seed, x, y, physicmap) {
+        // const aPatterns = this.findPatterns(physicmap, [
+        //     [PHYS_SHORE, PHYS_SHORE, PHYS_WATER],
+        //     [PHYS_SHORE, PHYS_SHORE, PHYS_WATER],
+        //     [PHYS_SHORE, PHYS_SHORE, PHYS_WATER]
+        // ]);
         const aPatterns = this.findPatterns(physicmap, [
-            [PHYS_SHORE, PHYS_SHORE, PHYS_WATER],
-            [PHYS_SHORE, PHYS_SHORE, PHYS_WATER],
-            [PHYS_SHORE, PHYS_SHORE, PHYS_WATER]
+            [PHYS_WATER]
         ]);
         if (aPatterns.length > 0) {
             return {

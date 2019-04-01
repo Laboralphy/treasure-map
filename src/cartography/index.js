@@ -31,6 +31,10 @@ class Cartography {
 		this._viewedPosition = null; // last position used in view();
 	}
 
+	terminateService() {
+		this._wwio.terminate();
+	}
+
 	log(...args) {
         if (this.oWorldDef.verbose) {
             console.log('[world]', ...args);
@@ -186,6 +190,8 @@ class Cartography {
 			this._wwio.emit('tile', {...oWorldTile.getCoords()}, result => {
 				oWorldTile.colormap = result.tile.colormap;
 				oWorldTile.physicmap = result.tile.physicmap;
+				oWorldTile.structures = result.tile.structures;
+				console.log(result.tile);
 				oWorldTile.unlock();
 				resolve(oWorldTile);
 			});
