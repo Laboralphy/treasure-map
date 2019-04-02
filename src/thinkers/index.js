@@ -1,13 +1,13 @@
-import balloon from './Balloon';
-import aerostat from './Aerostat';
-import cursor from './Cursor';
-import boat from './Boat';
-import wave from './Wave';
+import Balloon from './Balloon';
+import Aerostat from './Aerostat';
+import Cursor from './Cursor';
+import Boat from './Boat';
+import Wave from './Wave';
 
 export default {
-    balloon,
-    aerostat,
-    cursor,
-    boat,
-    wave
+    balloon: new Balloon(),
+    aerostat: new Aerostat(),
+    cursor: new Cursor(),
+    boat: new Boat(),
+    wave: new Wave()
 };

@@ -25,6 +25,10 @@ class WorldGenerator {
 		this.options(options);
 	}
 
+    loadNames() {
+	    return this._sg.loadData();
+    }
+
 	_buildGradient(oPalette) {
 		return o876.Rainbow.gradient({
 			0: oPalette.abyss,
@@ -45,6 +49,9 @@ class WorldGenerator {
 		if ('palette' in options) {
 			this._gradient = this._buildGradient(options.palette);
 		}
+		for (let sOption in options) {
+            this._options[sOption] = options[sOption];
+        }
 	}
 
 	static _mod(n, d) {
@@ -232,9 +239,16 @@ class WorldGenerator {
         return aMap;
     }
 
-    buildStructures(x, y, physicMap) {
-		return this._sg.generatePort(0, x, y, physicMap);
+    buildSceneries(x, y, physicMap) {
+        const physicMapType = physicMap.map(r => r.map(c => c.type));
+        return this._sg.generate(WorldGenerator.computeChaosHash(this._options.seed, x, y), x, y, physicMapType);
 	}
+
+    static computeChaosHash(seed, x, y) {
+        let h = seed + x * 374761393 + y * 668265263;
+        h = (h ^ (h >> 13)) * 1274126177;
+        return h ^ (h >> 16);
+    }
 
     computeCell(xCurs, yCurs) {
         const MESH_SIZE = 16 / this._scale;
@@ -258,14 +272,14 @@ class WorldGenerator {
         );
         let colorMap = Perlin.colorize(heightMap, this._gradient);
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
-        let structures = this.buildStructures(xCurs, yCurs, physicMap);
+        let sceneries = this.buildSceneries(xCurs, yCurs, physicMap);
         return {
             version: 5,
             x: xCurs,
             y: yCurs,
             colormap: colorMap,
             physicmap: physicMap,
-            structures
+            sceneries
         };
 	}
 
@@ -273,7 +287,6 @@ class WorldGenerator {
 		let payload = this._cache.getPayload(xCurs, yCurs);
 		if (!payload) {
 			payload = this.computeCell(xCurs, yCurs);
-			console.log(payload);
             this._cache.push(xCurs, yCurs, payload).forEach(wt => !!wt && (typeof wt.free === 'function') && wt.free());
 		}
 		return payload;

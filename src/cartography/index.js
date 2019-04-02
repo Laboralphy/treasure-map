@@ -4,8 +4,6 @@ import Webworkio from 'webworkio';
 import COLORS from '../consts/colors';
 import WorldTile from './WorldTile';
 
-const CanvasHelper = o876.CanvasHelper;
-const Vector = o876.geometry.Vector;
 const CLUSTER_SIZE = 16;
 const sb = o876.SpellBook;
 
@@ -13,22 +11,28 @@ class Cartography {
 	constructor(wgd) {
 		this.oWorldDef = wgd;
 		this._cache = new o876.structures.Cache2D({size: 64});
-        this._wwio = new Webworkio();
-        this._wwio.worker(wgd.service);
-        this._wwio.emit('init', {
-        	seed: wgd.seed,
-			cellSize: wgd.cellSize,
-			clusterSize: CLUSTER_SIZE,
-			hexSize: wgd.hexSize,
-			hexSpacing: wgd.hexSpacing,
-            scale: wgd.scale,
-			palette: COLORS
-        });
 
         this._view = new o876.geometry.Vector();
 		this._fetching = false;
 		this._viewedCanvas = null; // last canvas used in view()
 		this._viewedPosition = null; // last position used in view();
+	}
+
+	startService() {
+		return new Promise(resolve => {
+			const wgd = this.oWorldDef;
+			this._wwio = new Webworkio();
+			this._wwio.worker(wgd.service);
+			this._wwio.emit('init', {
+				seed: wgd.seed,
+				cellSize: wgd.cellSize,
+				clusterSize: CLUSTER_SIZE,
+				hexSize: wgd.hexSize,
+				hexSpacing: wgd.hexSpacing,
+				scale: wgd.scale,
+				palette: COLORS
+			}, (r) => resolve(r));
+		});
 	}
 
 	terminateService() {
@@ -190,8 +194,8 @@ class Cartography {
 			this._wwio.emit('tile', {...oWorldTile.getCoords()}, result => {
 				oWorldTile.colormap = result.tile.colormap;
 				oWorldTile.physicmap = result.tile.physicmap;
-				oWorldTile.structures = result.tile.structures;
-				console.log(result.tile);
+				oWorldTile.sceneries = result.tile.sceneries;
+				if (oWorldTile.sceneries) console.log(oWorldTile.sceneries);
 				oWorldTile.unlock();
 				resolve(oWorldTile);
 			});

@@ -8,8 +8,9 @@ class Index {
         let wwio = new Webworkio();
 		wwio.worker();
 
-		wwio.on('init', (options) => {
+		wwio.on('init', (options, cb) => {
 		    this._generator = new WorldGenerator(options);
+			this._generator.loadNames().then(() => cb(true));
         });
 
 		wwio.on('options', (options) => {

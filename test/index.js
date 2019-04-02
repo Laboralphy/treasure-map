@@ -1,1 +1,1 @@
-require('./blimpTest');
+require('./patternFinderTest');

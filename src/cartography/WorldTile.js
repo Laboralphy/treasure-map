@@ -1,7 +1,8 @@
 import o876 from '../o876/index';
-const Perlin = o876.algorithms.Perlin;
-const Rainbow = o876.Rainbow;
+import sceneries from './sceneries';
+
 const CanvasHelper = o876.CanvasHelper;
+
 
 const FONT_DEFINITION = 'italic 13px Times New Roman';
 
@@ -14,6 +15,7 @@ function _buildCliparts() {
     const MESH_SIZE = 16;
     const WAVE_SIZE = 3;
     const HERB_SIZE = 3;
+    const HOUSE_SIZE = 5;
     const MNT_LENGTH = 7;
     const MNT_HEIGHT = MNT_LENGTH | 0.75 | 0;
     const FOREST_SIZE = 4;
@@ -87,6 +89,28 @@ function _buildCliparts() {
     ctx.lineTo(xMesh - MNT_LENGTH, yMesh + MNT_HEIGHT);
     ctx.stroke();
     cliparts.mount = c;
+
+
+    // Maison
+    c = CanvasHelper.create(MESH_SIZE, MESH_SIZE);
+    ctx = c.getContext('2d');
+    ctx.fillStyle = 'rgba(57, 25, 7, 0.6)';
+    ctx.strokeStyle = 'rgba(154, 117, 61, 0.75)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(xMesh - HOUSE_SIZE + 2, yMesh + HOUSE_SIZE);
+    ctx.lineTo(xMesh - HOUSE_SIZE + 2, yMesh);
+    ctx.lineTo(xMesh - HOUSE_SIZE, yMesh);
+    ctx.lineTo(xMesh , yMesh - HOUSE_SIZE);
+    ctx.lineTo(xMesh + HOUSE_SIZE, yMesh);
+    ctx.lineTo(xMesh + HOUSE_SIZE - 2, yMesh);
+    ctx.lineTo(xMesh + HOUSE_SIZE - 2, yMesh + HOUSE_SIZE);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    cliparts.house = c;
+
+
     return cliparts;
 }
 
@@ -109,21 +133,10 @@ class WorldTile {
         this.size = size;
         this.colormap = null;
         this.physicmap = null;
-        this.structures = null;
+        this.sceneries = null;
         this.canvas = null;
         this._lock = false;
         this.options = options;
-        this._cash = WorldTile.computeChaosHash(this.options.seed, x, y);
-    }
-
-    get cash() {
-        return this._cash;
-    }
-
-    static computeChaosHash(seed, x, y) {
-        let h = seed + x * 374761393 + y * 668265263;
-        h = (h ^ (h >> 13)) * 1274126177;
-        return h ^ (h >> 16);
     }
 
     static get MESH_SIZE() {
@@ -160,16 +173,13 @@ class WorldTile {
 
     /**
      * dessine des element de terrain (arbre, montagnes)
-     * @param xCurs {number} coordonnées cellule concernée
-     * @param yCurs {number} coordonnées cellule concernée
-     * @param tile {HTMLCanvasElement} canvas de sortie
-     * @param aHeightIndex {array} height map fourie par WorldGenerator
      */
     paintTerrainType() {
         let tile = this.canvas;
         let physicmap = this.physicmap;
         let ctx = tile.getContext('2d');
         physicmap.forEach((row, y) => row.forEach((cell, x) => {
+            //ctx.font = '6px'; ctx.fillText(cell.type, x * MESH_SIZE, y * MESH_SIZE);
             if ((x & 1) ^ (y & 1)) {
                 switch (cell.type) {
                     case 11: // vague
@@ -223,6 +233,11 @@ class WorldTile {
         }
     }
 
+    paintSceneries() {
+        if (!!this.sceneries) {
+            this.sceneries.forEach(s => sceneries.draw(this.canvas, s));
+        }
+    }
 
     /**
      * lorsque la cellule à été générée par le WorldGenerator
@@ -230,10 +245,7 @@ class WorldTile {
      */
     paint() {
         let scale = this.options.scale;
-        let xCurs = this.x;
-        let yCurs = this.y;
         let colormap = this.colormap;
-        let physicmap = this.physicmap;
         let cellSize = this.size;
         let tile = CanvasHelper.create(cellSize / scale, cellSize / scale);
         this.canvas = tile;
@@ -245,8 +257,9 @@ class WorldTile {
         if (scale !== 1) {
             this.canvas = tile = CanvasHelper.clone(tile, scale, scale);
         }
-        this.paintTerrainType(xCurs, yCurs, tile, physicmap);
-        this.paintLinesCoordinates(xCurs, yCurs, tile, physicmap);
+        this.paintTerrainType();
+        this.paintSceneries();
+        this.paintLinesCoordinates();
         return tile;
     }
 

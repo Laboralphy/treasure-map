@@ -109,7 +109,6 @@ class Sprite {
 				ctx.globalAlpha = a;
 			}
 			if (n >= this._frames.length) {
-				console.log(this)
 				throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);
 			}
 			let f = this._frames[n];

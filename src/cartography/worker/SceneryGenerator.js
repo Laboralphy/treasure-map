@@ -1,3 +1,6 @@
+import * as pf from '../../pattern-finder';
+import Names from '../../names';
+
 const PHYS_WATER = 11;
 const PHYS_SHORE = 12;
 const PHYS_COAST = 22;
@@ -6,59 +9,111 @@ const PHYS_FOREST = 33;
 const PHYS_PEAK = 55;
 
 
+const PATTERNS = {
+    port: {
+        size4east: [
+            [PHYS_COAST, PHYS_COAST, PHYS_SHORE, PHYS_WATER],
+            [PHYS_COAST, PHYS_COAST, PHYS_SHORE, PHYS_WATER],
+            [PHYS_COAST, PHYS_COAST, PHYS_SHORE, PHYS_WATER],
+            [PHYS_COAST, PHYS_COAST, PHYS_SHORE, PHYS_WATER],
+        ],
+
+        size4west: [
+            [PHYS_WATER, PHYS_SHORE, PHYS_COAST, PHYS_COAST],
+            [PHYS_WATER, PHYS_SHORE, PHYS_COAST, PHYS_COAST],
+            [PHYS_WATER, PHYS_SHORE, PHYS_COAST, PHYS_COAST],
+            [PHYS_WATER, PHYS_SHORE, PHYS_COAST, PHYS_COAST],
+        ],
+
+        size4south: [
+            [PHYS_COAST, PHYS_COAST, PHYS_COAST, PHYS_COAST],
+            [PHYS_COAST, PHYS_COAST, PHYS_COAST, PHYS_COAST],
+            [PHYS_SHORE, PHYS_SHORE, PHYS_SHORE, PHYS_SHORE],
+            [PHYS_WATER, PHYS_WATER, PHYS_WATER, PHYS_WATER],
+        ],
+
+        size4north: [
+            [PHYS_WATER, PHYS_WATER, PHYS_WATER, PHYS_WATER],
+            [PHYS_SHORE, PHYS_SHORE, PHYS_SHORE, PHYS_SHORE],
+            [PHYS_COAST, PHYS_COAST, PHYS_COAST, PHYS_COAST],
+            [PHYS_COAST, PHYS_COAST, PHYS_COAST, PHYS_COAST],
+        ]
+    }
+};
+
 
 class SceneryGenerator {
 
-    checkPatternAt(xPM, yPM, physicmap, pattern) {
-        const ymax = pattern.length;
-        const xmax = pattern[0].length;
-        for (let y = 0; y < ymax; ++y) {
-            const row = pattern[y];
-            for (let x = 0; x < xmax; ++x) {
-                if (row[x] !== physicmap[yPM + y][xPM + x]) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    findPatterns(physicmap, pattern) {
-        const aPatterns = [];
-        const firstPatternCell = pattern[0][0];
-        const ymax = physicmap.length - pattern.length + 1;
-        const xmax = physicmap[0].length - pattern[0].length + 1;
-        for (let y = 0; y < ymax; ++y) {
-            const row = physicmap[y];
-            for (let x = 0; x < xmax; ++x) {
-                const cell = row[x];
-                if (cell === firstPatternCell && this.checkPatternAt(x, y, physicmap, pattern)) {
-                    aPatterns.push({
-                        x, y
-                    });
-                }
-            }
-        }
-        aPatterns.push({x: 0, y: 0});
-        return aPatterns;
+    loadData() {
+        return Names.loadLists({
+            towns: '../public/data/towns-fr.txt'
+        });
     }
 
     generatePort(seed, x, y, physicmap) {
-        // const aPatterns = this.findPatterns(physicmap, [
-        //     [PHYS_SHORE, PHYS_SHORE, PHYS_WATER],
-        //     [PHYS_SHORE, PHYS_SHORE, PHYS_WATER],
-        //     [PHYS_SHORE, PHYS_SHORE, PHYS_WATER]
-        // ]);
-        const aPatterns = this.findPatterns(physicmap, [
-            [PHYS_WATER]
-        ]);
+        let aPatterns;
+        let aResults = [];
+
+        aPatterns = pf.findPatterns(physicmap, PATTERNS.port.size4east);
         if (aPatterns.length > 0) {
-            return {
+            const p = aPatterns[seed % aPatterns.length];
+            aResults.push({
                 type: 'city',
-                xmap: aPatterns[0].x,
-                ymap: aPatterns[0].y,
-                name: 'city-' + Math.random().toString().substr(2, 4)
-            };
+                x: p.x,
+                y: p.y,
+                dir: 'e',
+                width: 4,
+                height: 4,
+                name: ''
+            });
+        }
+
+        aPatterns = pf.findPatterns(physicmap, PATTERNS.port.size4west);
+        if (aPatterns.length > 0) {
+            const p = aPatterns[seed % aPatterns.length];
+            aResults.push({
+                type: 'city',
+                x: p.x,
+                y: p.y,
+                dir: 'w',
+                width: 4,
+                height: 4,
+                name: ''
+            });
+        }
+
+        aPatterns = pf.findPatterns(physicmap, PATTERNS.port.size4south);
+        if (aPatterns.length > 0) {
+            const p = aPatterns[seed % aPatterns.length];
+            aResults.push({
+                type: 'city',
+                x: p.x,
+                y: p.y,
+                dir: 's',
+                width: 4,
+                height: 4,
+                name: ''
+            });
+        }
+
+        aPatterns = pf.findPatterns(physicmap, PATTERNS.port.size4west);
+        if (aPatterns.length > 0) {
+            const p = aPatterns[seed % aPatterns.length];
+            aResults.push({
+                type: 'city',
+                x: p.x,
+                y: p.y,
+                dir: 'n',
+                width: 4,
+                height: 4,
+                name: ''
+            });
+        }
+
+        if (aResults.length > 0) {
+            const r = aResults[seed % aResults.length];
+            r.name = Names.generateTownName(seed);
+            return r;
         } else {
             return null;
         }
@@ -66,7 +121,9 @@ class SceneryGenerator {
 
 
     generate(seed, x, y, physicmap) {
-        return this.generatePort(seed, x, y, physicmap);
+        const a = [];
+        a.push(this.generatePort(seed, x, y, physicmap));
+        return a.filter(x => !!x);
     }
 }
 

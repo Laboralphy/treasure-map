@@ -90,13 +90,11 @@ class Game extends osge.Game {
 		if (!(blueprint.thinker in THINKERS)) {
 			throw new Error('this thinker does not exist : "' + blueprint.thinker);
 		}
-		const EntityThinker = THINKERS[blueprint.thinker];
-		const oThinker = new EntityThinker();
+		const oThinker = THINKERS[blueprint.thinker];
 
 		let oEntity = {
 			id,
 			sprite,
-            //thinker: THINKERS[blueprint.thinker],
             thinker: oThinker,
 			data: blueprint,
 			game: this
@@ -108,7 +106,7 @@ class Game extends osge.Game {
 	destroyEntity(entity) {
     	let i = this.state.entities.indexOf(entity);
 		if (i >= 0) {
-			this.state.entities.splice(i, 1)
+			this.state.entities.splice(i, 1);
 		}
 		i = this._spriteLayer.sprites.indexOf(entity.sprite);
 		if (i >= 0) {
@@ -119,6 +117,7 @@ class Game extends osge.Game {
 
     async init() {
         await super.init();
+        await this.carto.startService();
 		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
         this.canvas(oCanvas);
