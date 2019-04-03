@@ -4,8 +4,6 @@ import Cartography from './cartography';
 import Indicators from './Indicators';
 import THINKERS from './thinkers';
 import DATA from './data';
-import Names from "./names";
-import ImageLoader from './image-loader';
 
 const Vector = o876.geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
@@ -49,7 +47,7 @@ class Game extends osge.Game {
         entity.thinker.think(entity);
     }
 
-	async createEntity(sResRef) {
+	async createEntity(sResRef, vPosition) {
     	let bp0 = DATA.blueprints[sResRef];
     	if (bp0 === undefined) {
     		throw new Error('this blueprint does not exist : "' + sResRef + '"');
@@ -57,7 +55,7 @@ class Game extends osge.Game {
     	let blueprint = Object.assign({
 			"angle": 0,                   // angle de cap
 			"angleSpeed": 0,              // amplitude d emofication de l'angle
-			"position": new Vector(),     // position actuelle
+			"position": new Vector(vPosition.x, vPosition.y),     // position actuelle
 			"destination": new Vector(),  // position vers laquelle on se dirige
 			"enginePower": 0,             // inc/dec de la vitesse du moteur
 			"speed": 0,                   // vitesse actuelle
@@ -108,7 +106,7 @@ class Game extends osge.Game {
         await super.init();
 
         // chargement des ressources
-		await ImageLoader.load([
+		await osge.Game.loadImages([
 			'images/sceneries/city_0.png',
 			'images/sceneries/city_1.png',
 		]);
@@ -128,21 +126,20 @@ class Game extends osge.Game {
 			verbose: false
 		});
         await this.carto.startService();
-
         // layers
 		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
         this.canvas(oCanvas);
 
         // création du joueur
-		this.state.player = await this.createEntity('tugboat_1');
+		this.state.player = await this.createEntity('tugboat_1', new Vector(0, 0));
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
 		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
 		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
 
 
         // création du sprite curseur de destination
-		this.state.cursor = await this.createEntity('cursor');
+		this.state.cursor = await this.createEntity('cursor', new Vector(0, 0));
 		this.state.cursor.sprite.z = Z_CURSOR;
     }
 

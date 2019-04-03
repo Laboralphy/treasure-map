@@ -6,11 +6,10 @@ class Boat extends Aerostat {
         const game = entity.game;
         const pdata = entity.data;
         const position = pdata.position;
-        const wave = await game.createEntity('wave_0');
+        const wave = await game.createEntity('wave_0', position);
         wave.sprite.scale = 0.1;
         wave.sprite.z = -10;
         wave.sprite.fadeOut(0.04);
-        wave.data.position.set(position.x, position.y);
         wave.data.lifetime = game.state.time + 32;
     }
 

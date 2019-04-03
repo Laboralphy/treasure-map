@@ -34,7 +34,7 @@ class Cartography {
                 hexSpacing: wgd.hexSpacing,
                 scale: wgd.scale,
                 palette: COLORS
-            }, (status) => resolve(status));
+            }, status => resolve(status));
         });
 	}
 

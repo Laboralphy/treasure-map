@@ -12,7 +12,8 @@ class Sprite {
 		this.image = null;
 		this.frameWidth = 0;
 		this.frameHeight = 0;
-		this.animation = new Animation();
+		this.animation = null;
+		this.animations = [];
         this._iFrame = 0;
         this.alpha = 1;
         this._frames = [];
@@ -73,10 +74,13 @@ class Sprite {
 			}
 			y += this.frameHeight;
 		}
+		if ('animations' in data) {
+			this.animations = data.animations.map(anim => new Animation(anim));
+			this.setAnimation(0);
+		}
 		this.reference.x = (this.frameWidth >> 1) + data.ref.x;
 		this.reference.y = (this.frameHeight >> 1) + data.ref.y;
 		this._defined = true;
-		this.fadeIn();
 	}
 
 	frameCount() {
@@ -87,8 +91,16 @@ class Sprite {
 		return sb.prop(this, '_iFrame', n);
 	}
 
+	setAnimation(n) {
+		this.animation = this.animations[n];
+		this.animation.reset();
+		this.animation.frozen = false;
+	}
+
 	animate(nInc) {
-        this._iFrame = this.animation.animate(nInc);
+		if (this.animation) {
+			this._iFrame = this.animation.animate(nInc);
+		}
 	}
 
 	draw(ctx, vOffset) {
@@ -96,6 +108,9 @@ class Sprite {
 			return;
 		}
 		let n = this._iFrame;
+		if (n >= this._frames.length) {
+			throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);
+		}
 		let w = this.frameWidth;
 		let h = this.frameHeight;
 		const scale = this.scale;
@@ -107,9 +122,6 @@ class Sprite {
 			if (a !== 1) {
 				fSaveAlpha = ctx.globalAlpha;
 				ctx.globalAlpha = a;
-			}
-			if (n >= this._frames.length) {
-				throw new Error('no such frame : "' + n + '". frame count is ' + this._frames.length);
 			}
 			let f = this._frames[n];
 			const wScaled = w * scale;

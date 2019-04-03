@@ -84,12 +84,29 @@ class Game {
 		});
 	}
 
+	static async loadImages(aList) {
+		return Promise.all(aList.map(src => Game.loadImage(src)));
+	}
+
+	/**
+	 * Renvoi, de manière synchrone, une image qui a déja été chargé
+	 * provoque une erreur si l'image n'existe pas
+	 * @param src
+	 */
+	getImage(src) {
+		if (src in IMAGE_CACHE) {
+			return IMAGE_CACHE[src];
+		} else {
+			throw new Error('this image has not been loaded : "' + src + '"');
+		}
+	}
+
 	async init() {
 	}
 
 	updateLayer(li) {
         li.view = this.view;
-        li.update();
+        li.update(this._time.period);
 	}
 
 	update() {

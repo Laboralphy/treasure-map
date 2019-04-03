@@ -9,7 +9,7 @@ class Cursor {
         let player = entity.game.state.player;
         let pdata = entity.data;
         if (!('phase' in pdata)) {
-            pdata.phase = 0;
+            pdata.phase = 1;
             entity.sprite.fadeOut();
         }
         let bPlayerAtCursor = pdata.position.isEqual(player.data.position);

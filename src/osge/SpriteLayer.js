@@ -1,5 +1,4 @@
 import Layer from './Layer';
-import o876 from '../o876';
 
 class SpriteLayer extends Layer {
     constructor() {
@@ -9,6 +8,15 @@ class SpriteLayer extends Layer {
 
     sort(cb) {
         this.sprites = this.sprites.sort(cb);
+    }
+
+    update(period) {
+        super.update();
+        let v = this.sprites;
+        for (let i = 0, l = v.length; i < l; ++i) {
+            let vi = v[i];
+            vi.animate(period);
+        }
     }
 
 	/**

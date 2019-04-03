@@ -9,19 +9,28 @@ const LOOP_YOYO = 2;
 const LOOP_RANDOM = 3;
 
 class Animation {
-	constructor() {
-		this.start = 0; // frame de début
+	constructor({
+		start = 0,
+		duration = 0,
+		count = 1,
+		loop = 0
+	}) {
+		this.frozen = true;
+		this.start = start; // frame de début
 		this.index = 0; // index de la frame en cours d'affichage
-		this.count = 1; // nombre total de frames
-		this.duration = 0; // durée de chaque frame, plus la valeur est grande plus l'animation est lente
+		this.count = count; // nombre total de frames
+		this.duration = duration; // durée de chaque frame, plus la valeur est grande plus l'animation est lente
 		this.time = 0; // temps
-		this.loop = 0; // type de boucle 1: boucle forward; 2: boucle yoyo 3: random
+		this.loop = loop; // type de boucle 1: boucle forward; 2: boucle yoyo 3: random
 		this.frame = 0; // Frame actuellement affichée
 		this._loopDir = 1; // direction de la boucle (pour yoyo)
 	  	this._bOver = false;
 	}
 
 	animate(nInc) {
+		if (this.frozen) {
+			return this.frame;
+		}
 		if (this.count <= 1 || this.duration === 0) {
 			return this.index + this.start;
 		}
@@ -44,6 +53,7 @@ class Animation {
 		switch (this.loop) {
 			case 0:
 				if (this.index >= this.count) {
+					console.log(this.index, this.count);
 					this.index = this.count - 1;
 					this._bOver = true;
 				}
