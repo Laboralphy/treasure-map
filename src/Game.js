@@ -4,6 +4,8 @@ import Cartography from './cartography';
 import Indicators from './Indicators';
 import THINKERS from './thinkers';
 import DATA from './data';
+import Names from "./names";
+import ImageLoader from './image-loader';
 
 const Vector = o876.geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
@@ -14,19 +16,6 @@ const Z_CURSOR = -10;
 class Game extends osge.Game {
     constructor() {
         super();
-        this.carto = new Cartography({
-            cellSize: 256,
-            hexSize: 16,
-            hexSpacing: 7,
-            scale: 2,
-            seed: 0.111,
-            preload: 1,
-            drawGrid: true,
-            drawCoords: true,
-            service: '../build/worker.js',
-            progress: Indicators.progress,
-            verbose: false
-        });
         this._lastEntityId = 0;
         this.state = {
         	time: 0,
@@ -117,7 +106,30 @@ class Game extends osge.Game {
 
     async init() {
         await super.init();
+
+        // chargement des ressources
+		await ImageLoader.load([
+			'images/sceneries/city_0.png',
+			'images/sceneries/city_1.png',
+		]);
+
+        // cartographie
+		this.carto = new Cartography({
+			cellSize: 256,
+			hexSize: 16,
+			hexSpacing: 7,
+			scale: 2,
+			seed: 0.111,
+			preload: 1,
+			drawGrid: true,
+			drawCoords: true,
+			service: '../build/worker.js',
+			progress: Indicators.progress,
+			verbose: false
+		});
         await this.carto.startService();
+
+        // layers
 		this.layers.push(this._spriteLayer = new SpriteLayer());
         let oCanvas = document.querySelector('.world');
         this.canvas(oCanvas);

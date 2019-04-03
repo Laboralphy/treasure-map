@@ -1,5 +1,6 @@
 import WorldGenerator from './WorldGenerator';
 import Webworkio from 'webworkio';
+import Names from '../../names';
 
 
 class Index {
@@ -8,9 +9,10 @@ class Index {
         let wwio = new Webworkio();
 		wwio.worker();
 
-		wwio.on('init', (options, cb) => {
+		wwio.on('init', async (options, cb) => {
 		    this._generator = new WorldGenerator(options);
-			this._generator.loadNames().then(() => cb(true));
+		    await Names.loadLists({ towns: '../public/data/towns-fr.txt' });
+		    cb(true);
         });
 
 		wwio.on('options', (options) => {

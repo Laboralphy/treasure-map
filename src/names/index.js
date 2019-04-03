@@ -7,9 +7,9 @@ const DATA = {
 async function createNameCrafterFromURL(sURL) {
     const req = await fetch(sURL);
     const text = await req.text();
-    const aList = text.split('\n');
     const nc = new NameCrafter();
-    nc.setList(aList);
+    nc.pattern = 3;
+    nc.list = text.split('\n');
     return nc;
 }
 
@@ -18,7 +18,6 @@ async function loadLists(oLists) {
         DATA[s] = await createNameCrafterFromURL(oLists[s]);
     }
 }
-
 
 function generateTownName(seed) {
     const nc = DATA.towns;

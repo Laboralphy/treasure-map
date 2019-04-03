@@ -7,12 +7,48 @@ const MAX_TRIES = 1024;
 class NameCrafter {
 
     constructor() {
-        this._nPatternLength = 3;
+        this._pattern = 3;
         this._initReg = new CharRegistry();
         this._finalReg = {};
         this._midReg = {};
         this._random = new o876.Random();
         this._list = null;
+    }
+
+    /**
+     * reglages initiaux (a faire avant setList)
+     * - pattern : longueurs des pattern, conditionne la ressemblance des mots généré avec les mot de la liste
+     *      = 1: les mots générés ne ressemble pas trop à ceux de la liste, mais c'est le seul moyen d'en avoir si la liste est court
+     *      = 2: les mots générés ressemblent à ceux de la liste
+     *      = 3: idéal pour les liste très grandes
+     */
+
+    get pattern() {
+        return this._pattern;
+    }
+
+    set pattern(value) {
+        if (this._list === null) {
+            this._pattern = value;
+        } else {
+            throw new Error('name crafter : the pattern value must be set before the list property');
+        }
+    }
+
+    get random() {
+        return this._random;
+    }
+
+    set random(value) {
+        this._random = value;
+    }
+
+    get list() {
+        return this._list;
+    }
+
+    set list(value) {
+        this.setList(value);
     }
 
     /**
@@ -35,7 +71,7 @@ class NameCrafter {
     }
 
     addWord(word) {
-        const n = this._nPatternLength;
+        const n = this._pattern;
         const ri = this._initReg;
         const rm = this._midReg;
         const rf = this._finalReg;
@@ -59,7 +95,7 @@ class NameCrafter {
     }
 
     generate(nLength) {
-        const n = this._nPatternLength;
+        const n = this._pattern;
         const ri = this._initReg;
         const rm = this._midReg;
         const rf = this._finalReg;

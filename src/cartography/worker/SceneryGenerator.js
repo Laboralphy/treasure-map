@@ -43,13 +43,6 @@ const PATTERNS = {
 
 
 class SceneryGenerator {
-
-    loadData() {
-        return Names.loadLists({
-            towns: '../public/data/towns-fr.txt'
-        });
-    }
-
     generatePort(seed, x, y, physicmap) {
         let aPatterns;
         let aResults = [];

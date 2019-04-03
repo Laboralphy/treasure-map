@@ -18,21 +18,24 @@ class Cartography {
 		this._viewedPosition = null; // last position used in view();
 	}
 
+	/**
+	 * Le damarrage du service est une promesse a cause des chargements
+	 */
 	startService() {
-		return new Promise(resolve => {
-			const wgd = this.oWorldDef;
-			this._wwio = new Webworkio();
-			this._wwio.worker(wgd.service);
-			this._wwio.emit('init', {
-				seed: wgd.seed,
-				cellSize: wgd.cellSize,
-				clusterSize: CLUSTER_SIZE,
-				hexSize: wgd.hexSize,
-				hexSpacing: wgd.hexSpacing,
-				scale: wgd.scale,
-				palette: COLORS
-			}, (r) => resolve(r));
-		});
+	    return new Promise((resolve, reject) => {
+            const wgd = this.oWorldDef;
+            this._wwio = new Webworkio();
+            this._wwio.worker(wgd.service);
+            this._wwio.emit('init', {
+                seed: wgd.seed,
+                cellSize: wgd.cellSize,
+                clusterSize: CLUSTER_SIZE,
+                hexSize: wgd.hexSize,
+                hexSpacing: wgd.hexSpacing,
+                scale: wgd.scale,
+                palette: COLORS
+            }, (status) => resolve(status));
+        });
 	}
 
 	terminateService() {
@@ -195,7 +198,6 @@ class Cartography {
 				oWorldTile.colormap = result.tile.colormap;
 				oWorldTile.physicmap = result.tile.physicmap;
 				oWorldTile.sceneries = result.tile.sceneries;
-				if (oWorldTile.sceneries) console.log(oWorldTile.sceneries);
 				oWorldTile.unlock();
 				resolve(oWorldTile);
 			});

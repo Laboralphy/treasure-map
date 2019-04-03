@@ -35,6 +35,9 @@ class Boat extends Aerostat {
                 return !!p && p.type !== 11;
             }
         );
+        if (c.wcf.x || c.wcf.y) {
+            entity.data.stuck = (entity.data.stuck || 0) + 1;
+        }
         entity.data.position.set(c.pos.x, c.pos.y);
         if (!entity.data.nextWave || game.state.time > entity.data.nextWave) {
             const t = c.speed.x === 0 && c.speed.y === 0 ? 16 : 4;
