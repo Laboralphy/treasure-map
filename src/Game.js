@@ -54,7 +54,7 @@ class Game extends osge.Game {
 
 	processThinker(entity) {
         entity.thinker.think(entity);
-		entity.data.thinked = true;
+		entity.data.thought = true;
 		entity.sprite.visible = true;
     }
 
@@ -83,7 +83,6 @@ class Game extends osge.Game {
     	blueprint.sprite.ref = new Vector(blueprint.sprite.ref.x, blueprint.sprite.ref.y);
 		let id = ++this._lastEntityId;
 		let sprite = new osge.Sprite();
-		this._spriteLayer.add(sprite);
 		await sprite.define(blueprint.sprite);
 		sprite.z = bp0.z || 0;
 		if (!(blueprint.thinker in THINKERS)) {
@@ -98,8 +97,12 @@ class Game extends osge.Game {
 			data: blueprint,
 			game: this
 		};
-		this.state.entities.push(oEntity);
 		return oEntity;
+	}
+
+	linkEntity(entity) {
+		this._spriteLayer.add(entity.sprite);
+		this.state.entities.push(entity);
 	}
 
 	destroyEntity(entity) {
@@ -107,10 +110,7 @@ class Game extends osge.Game {
 		if (i >= 0) {
 			this.state.entities.splice(i, 1);
 		}
-		i = this._spriteLayer.sprites.indexOf(entity.sprite);
-		if (i >= 0) {
-			this._spriteLayer.sprites.splice(i, 1);
-		}
+		this._spriteLayer.remove(entity.sprite);
 	}
 
 
@@ -145,7 +145,8 @@ class Game extends osge.Game {
         this.canvas(oCanvas);
 
         // création du joueur
-		this.state.player = await this.createEntity('tugboat_1', new Vector(0, 0));
+		this.state.player = await this.createEntity('tugboat_1', new Vector(0, 0)); // link below
+		await this.linkEntity(this.state.player);
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
 		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
 		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
@@ -153,6 +154,7 @@ class Game extends osge.Game {
 
         // création du sprite curseur de destination
 		this.state.cursor = await this.createEntity('cursor', new Vector(0, 0));
+		await this.linkEntity(this.state.cursor);
     }
 
     sortSprite(e1, e2) {

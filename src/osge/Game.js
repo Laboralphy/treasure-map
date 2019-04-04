@@ -16,10 +16,13 @@ class Game {
 		this.screenCanvas = null;
 		this._time = new Time();
 		this._time.period = 40;
+		this._rendering = false;
 		this.view = new View();
 		this.layers = [];
 		this.mouse = new Vector();
 		this.domevents = new DOMEvents();
+		this._perfMonitor = [];
+		this._charge = 0;
 	}
 
 	start() {
@@ -35,14 +38,15 @@ class Game {
 	}
 
 	doomloop() {
-		let n = this._time.process(performance.now());
+		const pn = performance.now();
+		let n = this._time.process(pn);
 		if (n > 10) {
 			n = 10;
 		}
 		for (let i = 0; i < n; ++i) {
 			this.update();
         }
-		requestAnimationFrame(() => this.render());
+		this.render();
 	}
 
 	forEachLayer(f) {
@@ -86,8 +90,8 @@ class Game {
 			this.forEachLayer(l => {
 				l.render(rc);
             });
-            sc.getContext('2d')
-				.drawImage(this.renderCanvas, 0, 0);
+            requestAnimationFrame(() => sc.getContext('2d')
+				.drawImage(this.renderCanvas, 0, 0));
 		} else {
 			throw new Error('i need a canvas !');
 		}

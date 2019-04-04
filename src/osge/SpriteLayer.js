@@ -5,14 +5,19 @@ class SpriteLayer extends Layer {
         super();
         this.sprites = [];
         this._willBeAdded = [];
+        this._willBeRemoved = [];
     }
 
     add(sprite) {
         this._willBeAdded.push(sprite);
     }
 
+    remove(sprite) {
+        this._willBeRemoved.push(sprite);
+    }
+
     sort(cb) {
-        this.sprites = this.sprites.sort(cb);
+        this.sprites.sort(cb);
     }
 
     update(period) {
@@ -22,8 +27,14 @@ class SpriteLayer extends Layer {
             let vi = v[i];
             vi.animate(period);
         }
-        this._willBeAdded.forEach(s => v.push(s));
-        this._willBeAdded.splice(1, this._willBeAdded.length);
+        if (this._willBeAdded.length > 0) {
+            this._willBeAdded.forEach(s => v.push(s));
+            this._willBeAdded = [];
+        }
+        if (this._willBeRemoved) {
+            this._willBeRemoved.forEach(s => v.splice(v.indexOf(s), 1));
+            this._willBeRemoved = [];
+        }
     }
 
 	/**

@@ -21,16 +21,25 @@ class Cursor {
      */
     async think(entity) {
         let data = entity.data;
-        if (!('lifetime' in data)) {
+        if (!data.lifetime) {
             this.setup(entity);
+            return;
         }
         --data.lifetime;
         data.position.translate(data.movement);
-        if (data.lifetime > 0) {
-        } else {
+        if (data.lifetime <= 0) {
+            const p = data.target;
             // explo
-            await entity.game.createEntity('splash_0', data.position);
-            await entity.game.createEntity('wave_0', data.position);
+            const phys = entity.game.carto.getPhysicValue(p.x, p.y);
+            if (phys.type === 11) {
+                const puff = await entity.game.createEntity('splash_0', p); // link below
+                const wave = await entity.game.createEntity('wave_0', p); // link below
+                entity.game.linkEntity(wave);
+                entity.game.linkEntity(puff);
+            } else {
+                const puff = await entity.game.createEntity('explosion_0', p); // link below
+                entity.game.linkEntity(puff);
+            }
             entity.game.destroyEntity(entity);
         }
     }

@@ -5,6 +5,7 @@ import Boat from './Boat';
 import Wave from './Wave';
 import Vfx from './Vfx';
 import Bullet from './Bullet';
+import Smoke from './Smoke';
 
 export default {
     cursor: new Cursor(),
@@ -14,5 +15,6 @@ export default {
 
     bullet: new Bullet,
     wave: new Wave(),
-    vfx: new Vfx()
+    vfx: new Vfx(),
+    smoke: new Smoke()
 };

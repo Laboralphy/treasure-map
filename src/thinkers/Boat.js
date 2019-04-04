@@ -1,5 +1,6 @@
 import Aerostat from './Aerostat';
 import {computeWallCollisions} from '../wall-collider';
+import {geometry} from '../o876';
 
 class Boat extends Aerostat {
 
@@ -7,17 +8,22 @@ class Boat extends Aerostat {
         const game = entity.game;
         const pdata = entity.data;
         const position = pdata.position;
-        const bullet = await game.createEntity('bullet_0', position);
-        await game.createEntity('explosion_0', position);
-        bullet.data.target = vTarget;
+        const offset = geometry.Helper.polar2rect(pdata.angle, 16);
+        const posBullet = position.add(new geometry.Vector(offset.dx, offset.dy));
+        const bullet = await game.createEntity('bullet_0', posBullet); // link below
+        const explosion = await game.createEntity('smoke_0', posBullet); // link below
+        bullet.data.target = new geometry.Vector(vTarget);
         bullet.sprite.fadeIn(1);
+        await game.linkEntity(explosion);
+        await game.linkEntity(bullet);
     }
 
     async processWave(entity) {
         const game = entity.game;
         const pdata = entity.data;
         const position = pdata.position;
-        const wave = await game.createEntity('wave_0', position);
+        const wave = await game.createEntity('wave_0', position); // link below
+        await game.linkEntity(wave);
     }
 
     think(entity) {

@@ -139,26 +139,22 @@ class Cartography {
 	view(oCanvas, vView, bRender = false) {
 		this._viewedCanvas = oCanvas;
 		this._viewedPosition = vView;
-		return new Promise((resolve, reject) => {
-			let x = Math.round(vView.x);
-			let y = Math.round(vView.y);
-			this.adjustCacheSize(oCanvas.width, oCanvas.height);
-			if (!this._fetching) {
-				this._fetching = true;
-				this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
-					this._fetching = false;
-					if (tileFetched) {
-						this.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
-					}
-					if (bRender) {
-						this.renderTiles();
-					}
-					resolve(true);
-				});
-			}
-			this._view.set(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1));
-			resolve(false);
-		});
+		let x = Math.round(vView.x);
+		let y = Math.round(vView.y);
+		this.adjustCacheSize(oCanvas.width, oCanvas.height);
+		if (!this._fetching) {
+			this._fetching = true;
+			this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
+				this._fetching = false;
+				if (tileFetched) {
+					this.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
+				}
+				if (bRender) {
+					this.renderTiles();
+				}
+			});
+		}
+		this._view.set(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1));
 	}
 
 	/**
