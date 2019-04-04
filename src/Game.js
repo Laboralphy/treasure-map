@@ -103,6 +103,7 @@ class Game extends osge.Game {
 	linkEntity(entity) {
 		this._spriteLayer.add(entity.sprite);
 		this.state.entities.push(entity);
+		return entity;
 	}
 
 	destroyEntity(entity) {
@@ -146,7 +147,7 @@ class Game extends osge.Game {
 
         // création du joueur
 		this.state.player = await this.createEntity('tugboat_1', new Vector(0, 0)); // link below
-		await this.linkEntity(this.state.player);
+		this.linkEntity(this.state.player);
 		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
 		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
 		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
@@ -154,7 +155,7 @@ class Game extends osge.Game {
 
         // création du sprite curseur de destination
 		this.state.cursor = await this.createEntity('cursor', new Vector(0, 0));
-		await this.linkEntity(this.state.cursor);
+		this.linkEntity(this.state.cursor);
     }
 
     sortSprite(e1, e2) {

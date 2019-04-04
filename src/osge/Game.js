@@ -71,7 +71,8 @@ class Game {
         this.view.offset(new o876.geometry.Vector(-(w >> 1), -(h >> 1)));
 	}
 
-	async init() {
+	init() {
+		return Promise.resolve(true);
 	}
 
 	updateLayer(li) {

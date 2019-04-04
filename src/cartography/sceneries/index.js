@@ -75,12 +75,7 @@ function draw(oCanvas, data) {
 }
 
 
-function setImageStock(oImages) {
-    IMAGES = oImages;
-}
-
 
 export default {
     draw,
-    setImageStock
 }

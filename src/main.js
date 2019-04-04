@@ -2,7 +2,7 @@ import Game from './Game';
 
 let game;
 
-function main5() {
+function main() {
 	game = new Game();
 	game.init().then(resolve => {
 		window.game = game;
@@ -21,5 +21,5 @@ function windowResize() {
 	game.canvas(oCanvas);
 }
 
-window.addEventListener('load', main5);
+window.addEventListener('load', main);
 window.addEventListener('unload', () => game.carto && game.carto.terminateService());
