@@ -4,6 +4,11 @@ class SpriteLayer extends Layer {
     constructor() {
         super();
         this.sprites = [];
+        this._willBeAdded = [];
+    }
+
+    add(sprite) {
+        this._willBeAdded.push(sprite);
     }
 
     sort(cb) {
@@ -17,6 +22,8 @@ class SpriteLayer extends Layer {
             let vi = v[i];
             vi.animate(period);
         }
+        this._willBeAdded.forEach(s => v.push(s));
+        this._willBeAdded.splice(1, this._willBeAdded.length);
     }
 
 	/**
@@ -31,7 +38,9 @@ class SpriteLayer extends Layer {
         let vo = this.view.position().add(this.view.offset());
         for (let i = 0, l = v.length; i < l; ++i) {
             let vi = v[i];
-            vi.draw(ctx, p.add(vi.reference).add(vo));
+            if (vi.visible) {
+                vi.draw(ctx, p.add(vi.reference).add(vo));
+            }
         }
     }
 }

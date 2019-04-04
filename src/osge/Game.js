@@ -1,11 +1,12 @@
 import Time from './Time';
 import o876 from '../o876';
 import DOMEvents from './DOMEvents';
+import ImageLoader from '../image-loader';
+
 const View = o876.geometry.View;
 const Vector = o876.geometry.Vector;
 
 
-const IMAGE_CACHE = {};
 
 class Game {
 
@@ -64,41 +65,6 @@ class Game {
         this.view.width(w);
         this.view.height(h);
         this.view.offset(new o876.geometry.Vector(-(w >> 1), -(h >> 1)));
-	}
-
-	/**
-	 * chargement asynchrone d'une image
-	 * @param sImage {string} url de l'image
-	 * @returns {Promise<Image>}
-	 */
-	static async loadImage(sImage) {
-		return new Promise(resolve => {
-		    if (sImage in IMAGE_CACHE) {
-		        resolve(IMAGE_CACHE[sImage]);
-		        return;
-            }
-			let oImage = new Image();
-            IMAGE_CACHE[sImage] = oImage;
-			oImage.addEventListener('load', event => resolve(oImage));
-			oImage.setAttribute('src', sImage);
-		});
-	}
-
-	static async loadImages(aList) {
-		return Promise.all(aList.map(src => Game.loadImage(src)));
-	}
-
-	/**
-	 * Renvoi, de manière synchrone, une image qui a déja été chargé
-	 * provoque une erreur si l'image n'existe pas
-	 * @param src
-	 */
-	getImage(src) {
-		if (src in IMAGE_CACHE) {
-			return IMAGE_CACHE[src];
-		} else {
-			throw new Error('this image has not been loaded : "' + src + '"');
-		}
 	}
 
 	async init() {

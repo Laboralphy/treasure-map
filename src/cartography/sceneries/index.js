@@ -1,4 +1,3 @@
-import COLORS from '../../consts/colors';
 import ImageLoader from '../../image-loader';
 
 const MESH_SIZE = 16;
@@ -76,6 +75,12 @@ function draw(oCanvas, data) {
 }
 
 
+function setImageStock(oImages) {
+    IMAGES = oImages;
+}
+
+
 export default {
-    draw
+    draw,
+    setImageStock
 }

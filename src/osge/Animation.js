@@ -53,7 +53,6 @@ class Animation {
 		switch (this.loop) {
 			case 0:
 				if (this.index >= this.count) {
-					console.log(this.index, this.count);
 					this.index = this.count - 1;
 					this._bOver = true;
 				}

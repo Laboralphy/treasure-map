@@ -9,6 +9,11 @@ class Wave {
 	 * @param entity
 	 */
 	think(entity) {
+		if (!entity.data.thinked) {
+			entity.sprite.scale = 0.1;
+			entity.sprite.fadeOut(0.04);
+			entity.data.lifetime = entity.game.state.time + 32;
+		}
 		this.processScaleAndAlpha(entity);
 	}
 }

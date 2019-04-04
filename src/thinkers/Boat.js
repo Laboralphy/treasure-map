@@ -2,15 +2,22 @@ import Aerostat from './Aerostat';
 import {computeWallCollisions} from '../wall-collider';
 
 class Boat extends Aerostat {
+
+    async shoot(entity, vTarget) {
+        const game = entity.game;
+        const pdata = entity.data;
+        const position = pdata.position;
+        const bullet = await game.createEntity('bullet_0', position);
+        await game.createEntity('explosion_0', position);
+        bullet.data.target = vTarget;
+        bullet.sprite.fadeIn(1);
+    }
+
     async processWave(entity) {
         const game = entity.game;
         const pdata = entity.data;
         const position = pdata.position;
         const wave = await game.createEntity('wave_0', position);
-        wave.sprite.scale = 0.1;
-        wave.sprite.z = -10;
-        wave.sprite.fadeOut(0.04);
-        wave.data.lifetime = game.state.time + 32;
     }
 
     think(entity) {
@@ -42,6 +49,12 @@ class Boat extends Aerostat {
             const t = c.speed.x === 0 && c.speed.y === 0 ? 16 : 4;
             entity.data.nextWave = entity.game.state.time + t;
             this.processWave(entity);
+        }
+        let pdata = entity.data;
+        let input = entity.game.state.input;
+        if (input.mouse.fire) {
+            this.shoot(entity, input.mouse.shiftclick);
+            input.mouse.fire = false;
         }
     }
 

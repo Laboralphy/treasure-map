@@ -1,4 +1,4 @@
-class Wave {
+class Vfx {
 	/**
 	 * @param entity
 	 */
@@ -10,4 +10,4 @@ class Wave {
 	}
 }
 
-export default Wave;
+export default Vfx;

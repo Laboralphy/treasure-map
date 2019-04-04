@@ -1,6 +1,6 @@
 import o876 from '../o876/index';
 import Animation from './Animation';
-import Game from './Game';
+import ImageLoader from '../image-loader';
 
 const Vector = o876.geometry.Vector;
 const sb = o876.SpellBook;
@@ -21,6 +21,7 @@ class Sprite {
         this._fadeDiff = 0;
         this.z = 0;
         this.scale = 1;
+        this.visible = false;
 	}
 
     fadeIn(fSpeed = 0.05) {
@@ -51,7 +52,7 @@ class Sprite {
 	}
 
 	async define(data) {
-		this.image = await Game.loadImage('images/sprites/' + data.image + '.png');
+		this.image = await ImageLoader.load('images/sprites/' + data.image + '.png');
 		if (('width' in data) && ('height' in data)) {
 			this.frameWidth = data.width;
 			this.frameHeight = data.height;
