@@ -1,7 +1,7 @@
 import o876 from '../o876/index';
 import WorldGenerator from './worker/WorldGenerator';
 import Webworkio from 'webworkio';
-import COLORS from '../consts/colors';
+import {COLORS} from '../consts';
 import WorldTile from './WorldTile';
 
 const CLUSTER_SIZE = 16;

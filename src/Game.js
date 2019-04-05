@@ -21,11 +21,6 @@ class Game extends osge.Game {
         	time: 0,
         	input: {
         		keys: {},
-				mouse: {
-        			click: new Vector(),
-					shiftclick: new Vector(),
-					fire: false
-				}
 			},
             entities: [],
             player: null,
@@ -36,11 +31,10 @@ class Game extends osge.Game {
 	onClick(event) {
 		let p = this.mouse.add(this.carto._view);
     	if (event.shiftKey) {
-			this.state.input.mouse.shiftclick.set(p);
-			this.state.input.mouse.fire = true;
+			this.state.player.data.input.fire = new Vector(p);
 		} else {
 			this.state.cursor.data.position.set(p);
-			this.state.input.mouse.click.set(p);
+			this.state.player.data.destination.set(p);
 		}
 	}
 
@@ -75,9 +69,6 @@ class Game extends osge.Game {
 			"thinker": "",
 			"input": {
 				"keys": {},
-				"mouse": {
-					"click": new Vector()
-				}
 			}
 		}, bp0);
     	blueprint.sprite.ref = new Vector(blueprint.sprite.ref.x, blueprint.sprite.ref.y);

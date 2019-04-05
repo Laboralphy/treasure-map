@@ -33,10 +33,6 @@ class Aerostat {
 
 	think(entity) {
 		let pdata = entity.data;
-		let input = entity.game.state.input;
-		if (!pdata.destination.isEqual(input.mouse.click)) {
-			pdata.destination.set(input.mouse.click);
-		}
 		if (!pdata.destination.isEqual(pdata.position)) {
 			if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
 				pdata.position.set(pdata.destination);

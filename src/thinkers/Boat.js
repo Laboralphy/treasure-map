@@ -57,10 +57,10 @@ class Boat extends Aerostat {
             this.processWave(entity);
         }
         let pdata = entity.data;
-        let input = entity.game.state.input;
-        if (input.mouse.fire) {
-            this.shoot(entity, input.mouse.shiftclick);
-            input.mouse.fire = false;
+        let input = pdata.input;
+        if (input.fire) {
+            this.shoot(entity, input.fire);
+            input.fire = false;
         }
     }
 

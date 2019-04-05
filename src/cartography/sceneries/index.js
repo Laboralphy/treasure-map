@@ -1,5 +1,9 @@
 import ImageLoader from '../../image-loader';
 
+import {
+    DIR_EAST, DIR_WEST, DIR_NORTH, DIR_SOUTH
+} from "../../consts";
+
 const MESH_SIZE = 16;
 const FONT_SIZE = 28;
 const FONT_PAD = 4;
@@ -26,19 +30,19 @@ function drawCity(oCanvas, data) {
     const hm = height * MESH_SIZE;
 
     switch (data.dir) {
-        case 'w':
+        case DIR_WEST:
             ctx.drawImage(ImageLoader.getImage('images/sceneries/city_0.png'), xm + MESH_SIZE, ym);
             break;
 
-        case 'e':
+        case DIR_EAST:
             ctx.drawImage(ImageLoader.getImage('images/sceneries/city_0.png'), xm, ym);
             break;
 
-        case 'n':
+        case DIR_NORTH:
             ctx.drawImage(ImageLoader.getImage('images/sceneries/city_1.png'), xm, ym + MESH_SIZE);
             break;
 
-        case 's':
+        case DIR_SOUTH:
             ctx.drawImage(ImageLoader.getImage('images/sceneries/city_1.png'), xm, ym);
             break;
 
@@ -65,11 +69,32 @@ function drawCity(oCanvas, data) {
 }
 
 
+function drawUnknown(oCanvas, data) {
+    const {x, y, width, height} = data;
+    const ctx = oCanvas.getContext('2d');
+    const xm = x * MESH_SIZE, ym = y * MESH_SIZE;
+    const wm = width * MESH_SIZE;
+    const hm = height * MESH_SIZE;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(xm, ym, wm, hm);
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.strokeStyle = 'rgb(0, 0, 0)';
+    ctx.strokeText(data.type + '???', xm, ym + 15);
+    ctx.fillText(data.type + '???', xm, ym + 15);
+}
+
+
 
 function draw(oCanvas, data) {
     switch (data.type) {
-        case 'city':
+        case 'port/t1s4':
+        case 'port/t2s4':
             drawCity(oCanvas, data);
+            break;
+
+        default:
+            drawUnknown(oCanvas, data);
             break;
     }
 }

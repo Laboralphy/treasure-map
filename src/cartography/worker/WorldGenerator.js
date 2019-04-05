@@ -274,7 +274,6 @@ class WorldGenerator {
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
         let sceneries = this.buildSceneries(xCurs, yCurs, physicMap);
         return {
-            version: 5,
             x: xCurs,
             y: yCurs,
             colormap: colorMap,
