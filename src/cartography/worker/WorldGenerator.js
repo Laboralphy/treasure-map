@@ -2,6 +2,8 @@ import o876 from '../../o876/index';
 import SceneryGenerator from './SceneryGenerator';
 const Perlin = o876.algorithms.Perlin;
 
+import {PHYS_WATER} from '../../consts';
+
 class WorldGenerator {
 	constructor(options) {
 		this._cache = new o876.structures.Cache2D();
@@ -250,6 +252,25 @@ class WorldGenerator {
         return h ^ (h >> 16);
     }
 
+
+    isFullWater(pm) {
+        return pm.every(row => row.every(cell => cell.type === PHYS_WATER));
+    }
+
+
+    // generateNpc(x, y, seed, pm) {
+    //     if ((seed & 7) === 0 && this.isFullWater(pm)) {
+    //
+    //     }
+    // }
+
+
+    /**
+     * Déterminer le contenue d'une cellule en fonction des coordonées
+     * @param xCurs
+     * @param yCurs
+     * @return {{physicmap: Array, sceneries: *, x: *, y: *, colormap}}
+     */
     computeCell(xCurs, yCurs) {
         const MESH_SIZE = 16 / this._scale;
         let clusterSize = this._perlinCluster.size();
@@ -270,16 +291,21 @@ class WorldGenerator {
                 }
             }
         );
+        const nCellSeed = WorldGenerator.computeChaosHash(this._options.seed, xCurs, yCurs);
         let colorMap = Perlin.colorize(heightMap, this._gradient);
         let physicMap = this.buildCellPhysicMap(heightMap, MESH_SIZE);
         let sceneries = this.buildSceneries(xCurs, yCurs, physicMap);
-        return {
+//        let npc = this.generateNpc(xCurs, yCurs, nCellSeed, physicMap);
+
+        const cellData = {
             x: xCurs,
             y: yCurs,
             colormap: colorMap,
             physicmap: physicMap,
             sceneries
         };
+
+        return cellData;
 	}
 
 	computeCellCache(xCurs, yCurs) {

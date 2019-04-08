@@ -1,1 +1,2 @@
 require('./patternFinderTest');
+require('./AutomatonTest');

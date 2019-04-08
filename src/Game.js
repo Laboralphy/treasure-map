@@ -13,6 +13,9 @@ const SpriteLayer = osge.SpriteLayer;
 const Z_CURSOR = -20;
 
 
+window.Vector = Vector;
+
+
 class Game extends osge.Game {
     constructor() {
         super();
