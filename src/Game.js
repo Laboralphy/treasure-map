@@ -10,12 +10,6 @@ import ImageLoader from './image-loader';
 const Vector = o876.geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
 
-const Z_CURSOR = -20;
-
-
-window.Vector = Vector;
-
-
 class Game extends osge.Game {
     constructor() {
         super();

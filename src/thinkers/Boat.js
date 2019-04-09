@@ -44,7 +44,12 @@ class Boat extends Aerostat {
             false,
             (x, y) => {
                 const p = game.carto.getPhysicValue(x, y);
-                return !!p && p.type !== 11;
+                if (!!p && p.type !== 11) {
+                    return true; // solid land !
+                } else {
+                    // sea... let's check for boats
+                    return false;
+                }
             }
         );
         if (c.wcf.x || c.wcf.y) {

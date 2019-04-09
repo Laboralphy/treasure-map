@@ -3,6 +3,7 @@ const DATA = {
     "enginePower": 0.1,             // inc/dec de la vitesse du moteur
     "maxSpeed": 2,                  // vitesse max
     "tileset": "tugboat_0",			// tile set
-    "thinker": "boat"			    // thinker
+    "thinker": "aiboat",		    // thinker
+    "collision": 1
 };
 export default DATA;

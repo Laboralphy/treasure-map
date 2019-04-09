@@ -4,6 +4,15 @@ class Automaton {
         this._state = '';
         this._transitions = {};
         this._instance = null;
+        this._verbose = false;
+    }
+
+    get verbose() {
+        return this._verbose;
+    }
+
+    set verbose(value) {
+        this._verbose = value;
     }
 
     get state() {
@@ -20,6 +29,8 @@ class Automaton {
 
     set transitions(value) {
         this._transitions = value;
+        this._state = Object.keys(value).shift();
+        this.log('starting at state', this._state);
     }
 
     get instance() {
@@ -30,10 +41,17 @@ class Automaton {
         this._instance = value;
     }
 
-    _invokeTransition(test, state) {
+    log(...s) {
+        if (this._verbose) {
+            console.info('[auto]', ...s);
+        }
+    }
+
+    _invokeTransition(test, state, ...args) {
         if (test in this._instance) {
-            if (this._instance[test]()) {
+            if (this._instance[test](...args)) {
                 this._state = state;
+                this.log('transition', test, 'passed : go to state', state);
                 return true;
             }
         } else {
@@ -42,20 +60,20 @@ class Automaton {
         return false;
     }
 
-    _invokeState(s) {
+    _invokeState(s, ...args) {
         if (s in this._instance) {
-            this._instance[s]();
+            this._instance[s](...args);
         }
     }
 
-    process() {
+    process(...args) {
         const s = this._state;
-        this._invokeState(s);
+        this._invokeState(s, ...args);
         // compute transition
         if (s in this._transitions) {
             const transitions = this._transitions[s];
             for (let t in transitions) {
-                if (transitions.hasOwnProperty(t) && this._invokeTransition(t, transitions[t])) {
+                if (transitions.hasOwnProperty(t) && this._invokeTransition(t, transitions[t], ...args)) {
                     break;
                 }
             }
