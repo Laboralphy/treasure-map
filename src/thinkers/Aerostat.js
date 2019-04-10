@@ -25,6 +25,8 @@ class Aerostat {
 			speed = Math.min(ms, speed + acc);
 			let vMove = Vector.fromPolar(pdata.angle, 1);
 			vMove.scale(speed);
+			// vMove.translate(pdata.repulse);
+			// pdata.repulse.set(0, 0);
 			pdata.speed = speed;
 			pdata.position.translate(vMove);
 		}

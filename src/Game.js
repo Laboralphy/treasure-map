@@ -9,6 +9,7 @@ import ImageLoader from './image-loader';
 
 const Vector = o876.geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
+const COLLISION_DISTANCE = 512;
 
 class Game extends osge.Game {
     constructor() {
@@ -20,9 +21,11 @@ class Game extends osge.Game {
         		keys: {},
 			},
             entities: [],
-            player: null,
+			player: null,
             view: new Vector()
         };
+
+        this._collidingEntities = [];
     }
 
 	onClick(event) {
@@ -44,7 +47,8 @@ class Game extends osge.Game {
 	}
 
 	processThinker(entity) {
-        entity.thinker.think(entity);
+		this.processCollidingSprites(entity);
+		entity.thinker.think(entity);
 		entity.data.thought = true;
 		entity.sprite.visible = true;
     }
@@ -64,6 +68,11 @@ class Game extends osge.Game {
 			"maxSpeed": 0,                // vitesse max
 			"sprite": Object.assign({}, DATA.tiles[bp0.tileset]),
 			"thinker": "",
+			"repulse": new Vector(),
+			"sector": {
+				x: 0,
+				y: 0
+			},
 			"input": {
 				"keys": {},
 			}
@@ -91,6 +100,10 @@ class Game extends osge.Game {
 	linkEntity(entity) {
 		this._spriteLayer.add(entity.sprite);
 		this.state.entities.push(entity);
+		if (entity.data.collision === 1) {
+			console.log('entity has collision')
+			this._collidingEntities.push(entity);
+		}
 		return entity;
 	}
 
@@ -100,6 +113,12 @@ class Game extends osge.Game {
 			this.state.entities.splice(i, 1);
 		}
 		this._spriteLayer.remove(entity.sprite);
+		if (entity.data.collision === 1) {
+			i = this._collidingEntities.indexOf(entity);
+			if (i >= 0) {
+				this._collidingEntities.splice(i, 1);
+			}
+		}
 	}
 
 
@@ -153,11 +172,62 @@ class Game extends osge.Game {
 			: z;
 	}
 
+	/**
+	 * renvoie la liste des entités qui sont pas loin de l'entité spécifiée
+	 * @param entity
+	 */
+	processCollidingSprites(entity) {
+		if (entity.data.collision !== 1) {
+			return;
+		}
+		const entitySector = entity.data.sector;
+		const xm = entitySector.x;
+		const ym = entitySector.y;
+		const xEnt = entity.data.position.x;
+		const yEnt = entity.data.position.y;
+		const aColliders = this._collidingEntities.filter(e => {
+			if (e.data.collision !== 1) throw "WTF";
+			if (e === entity) {
+				return false;
+			} else {
+				const otherSector = e.data.sector;
+				const xe = otherSector.x;
+				const ye = otherSector.y;
+				return Math.abs(xm - xe) <= 1 &&
+					Math.abs(ym - ye) <= 1 &&
+					o876.geometry.Helper.squareDistance(
+						xEnt,
+						yEnt,
+						e.data.position.x,
+						e.data.position.y,
+					) < COLLISION_DISTANCE;
+			}
+		});
+		const repulse = entity.data.repulse;
+		const pEntity = entity.data.position;
+		aColliders.forEach(other => {
+			const pOther = other.data.position;
+			let r;
+			if (pOther.x === pEntity.x && pOther.y === pEntity.y) {
+				r = new Vector(1, 0);
+			} else {
+				r = pOther.sub(pEntity).scale(0.1);
+			}
+			repulse.translate(r.neg());
+			other.data.repulse.translate(r);
+		});
+	}
+
     update() {
         super.update();
         let state = this.state;
         let entities = state.entities;
-		entities.forEach(th => this.processThinker(th));
+		entities.forEach(th => {
+			th.data.repulse.set(0, 0);
+		});
+		entities.forEach(th => {
+			this.processThinker(th)
+		});
         // tous les sprites doivent etre relatifs à ce point de vue
 		let p = state.player.data.position;
 		entities.forEach(e => {

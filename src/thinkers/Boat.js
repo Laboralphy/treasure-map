@@ -32,8 +32,8 @@ class Boat extends Aerostat {
         super.think(entity);
         let xNew = entity.data.position.x;
         let yNew = entity.data.position.y;
-        const dx = xNew - xLast;
-        const dy = yNew - yLast;
+        const dx = xNew - xLast + entity.data.repulse.x;
+        const dy = yNew - yLast + entity.data.repulse.y;
         const c = computeWallCollisions(
             xLast,
             yLast,
@@ -44,12 +44,7 @@ class Boat extends Aerostat {
             false,
             (x, y) => {
                 const p = game.carto.getPhysicValue(x, y);
-                if (!!p && p.type !== 11) {
-                    return true; // solid land !
-                } else {
-                    // sea... let's check for boats
-                    return false;
-                }
+                return !!p && p.type !== 11;
             }
         );
         if (c.wcf.x || c.wcf.y) {
