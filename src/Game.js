@@ -1,4 +1,5 @@
 import o876 from './o876';
+import Geometry from './geometry'
 import osge from './osge';
 import Cartography from './cartography';
 import Indicators from './Indicators';
@@ -7,7 +8,7 @@ import DATA from './data';
 
 import ImageLoader from './image-loader';
 
-const Vector = o876.geometry.Vector;
+const Vector = Geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
 const COLLISION_DISTANCE = 512;
 
@@ -194,7 +195,7 @@ class Game extends osge.Game {
 				const ye = otherSector.y;
 				return Math.abs(xm - xe) <= 1 &&
 					Math.abs(ym - ye) <= 1 &&
-					o876.geometry.Helper.squareDistance(
+					Geometry.Helper.squareDistance(
 						xEnt,
 						yEnt,
 						e.data.position.x,

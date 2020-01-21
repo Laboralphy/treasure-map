@@ -5,7 +5,7 @@
  * Each sprites is tested against all other sprite in the surroundiing cells.
  */
 
-const Vector = require('../geometry/Vector');
+const Vector = require('../../geometry/Vector');
 const Grid = require('../structures/Grid');
 const Sector = require('./Sector');
 const SB = require('../SpellBook');

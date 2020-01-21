@@ -1,5 +1,6 @@
 import o876 from '../o876';
-const View = o876.geometry.View;
+import Geometry from '../geometry'
+const View = Geometry.View;
 
 class Layer {
     constructor() {

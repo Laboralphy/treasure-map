@@ -1,4 +1,4 @@
-import {geometry} from '../o876';
+import Geometry from '../geometry';
 import AIBoatAbstract from './AIBoatAbstract';
 
 const AI_SCHEMA = {
@@ -93,7 +93,7 @@ class AIBoatChaser extends AIBoatAbstract {
         const d = this.getDistanceFromTarget(entity, entity.data.ai.target);
         const dx = (Math.random() * 2 * d - d) * 0.125;
         const dy = (Math.random() * 2 * d - d) * 0.125;
-        const vAim = new geometry.Vector(dx, dy);
+        const vAim = new Geometry.Vector(dx, dy);
         vAim.translate(entity.data.ai.target.data.position);
         entity.data.input.fire = vAim;
     }

@@ -44,9 +44,9 @@ class SpriteLayer extends Layer {
 	render(canvas) {
         super.render(canvas);
         let ctx = canvas.getContext('2d');
-        let p = this.view.position();
+        let p = this.view.position;
         let v = this.sprites;
-        let vo = this.view.position().add(this.view.offset());
+        let vo = this.view.position.add(this.view.offset);
         for (let i = 0, l = v.length; i < l; ++i) {
             let vi = v[i];
             if (vi.visible) {

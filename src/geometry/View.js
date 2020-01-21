@@ -1,5 +1,4 @@
 const Vector = require('./Vector');
-const sb =  require('../SpellBook');
 
 class View {
 	constructor() {
@@ -9,24 +8,40 @@ class View {
 		this._height = 0;
 	}
 
-	offset(v) {
-		return sb.prop(this, '_offset', v);
+	get offset() {
+		return this._offset;
 	}
 
-	position(v) {
-		return sb.prop(this, '_position', v);
+	set offset(v) {
+		this._offset = v;
 	}
 
-	width(n) {
-		return sb.prop(this, '_width', n);
+	get position() {
+		return this._position;
 	}
 
-	height(n) {
-		return sb.prop(this, '_height', n);
+	set position(v) {
+		this._position = v;
+	}
+
+	get width() {
+		return this._width;
+	}
+
+	set width(v) {
+		this._width = v;
+	}
+
+	get height() {
+		return this._height;
+	}
+
+	set height(v) {
+		this._height = v;
 	}
 
 	center() {
-		this.offset(new Vector(this.width() >> 1, this.height() >> 1));
+		this.offset = new Vector(this.width >> 1, this.height >> 1);
 	}
 
 	points() {

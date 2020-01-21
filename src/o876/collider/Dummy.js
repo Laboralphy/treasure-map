@@ -3,7 +3,7 @@
  * This class manages a mobile object.
  */
 const sb = require('../SpellBook');
-const geometry = require('../geometry');
+const geometry = require('../../geometry');
 const Helper = geometry.Helper;
 const Vector = geometry.Vector;
 

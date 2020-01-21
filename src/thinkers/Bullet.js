@@ -1,18 +1,18 @@
 import o876 from '../o876';
 
-const geometry = o876.geometry;
-const Vector = geometry.Vector;
+import Geometry from '../geometry';
+const Vector = Geometry.Vector;
 
 class Cursor {
 
     setup(entity) {
         let data = entity.data;
         let target = data.target;
-        data.angle = geometry.Helper.angle(data.position.x, data.position.y, target.x, target.y);
-        data.distance = geometry.Helper.distance(data.position.x, data.position.y, target.x, target.y);
+        data.angle = Geometry.Helper.angle(data.position.x, data.position.y, target.x, target.y);
+        data.distance = Geometry.Helper.distance(data.position.x, data.position.y, target.x, target.y);
         // calculer le nombre d'update à faire
         data.lifetime = Math.floor(data.distance / data.maxSpeed);
-        const {dx, dy} = geometry.Helper.polar2rect(data.angle, data.maxSpeed);
+        const {dx, dy} = Geometry.Helper.polar2rect(data.angle, data.maxSpeed);
         data.movement = new Vector(dx, dy);
     }
 

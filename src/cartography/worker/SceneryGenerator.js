@@ -170,6 +170,21 @@ class SceneryGenerator {
     }
 
 
+    /**
+     * generates sceneries for the cell
+     * @param seed {number} random seed to use
+     * @param x {number} cell coordinates
+     * @param y {number}
+     * @param physicmap {array} physical heights
+     * @return {*[]}
+     *
+     * returns this format :
+     * [
+     *   {
+     *       name: string,
+     *       type: 'port/xxxx',   (port: [ts14, t2s4]...)
+     *   }
+     */
     generate(seed, x, y, physicmap) {
         const a = [];
         a.push(this.generatePort(seed, x, y, physicmap));

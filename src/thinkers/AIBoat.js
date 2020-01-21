@@ -1,6 +1,6 @@
 import Boat from './Boat';
 import Automaton from '../automaton';
-import {geometry} from '../o876';
+import Geometry from '../geometry';
 
 class AIBoat extends Boat {
 
@@ -58,12 +58,12 @@ class AIBoat extends Boat {
         const yTarget = oTarget.data.position.y;
         const xPos = entity.data.position.x;
         const yPos = entity.data.position.y;
-        return geometry.Helper.distance(xPos, yPos, xTarget, yTarget);
+        return Geometry.Helper.distance(xPos, yPos, xTarget, yTarget);
     }
 
     stopEngine(entity) {
-        const {dx, dy} = geometry.Helper.polar2rect(entity.data.angleVis, 16);
-        const v = new geometry.Vector(dx, dy);
+        const {dx, dy} = Geometry.Helper.polar2rect(entity.data.angleVis, 16);
+        const v = new Geometry.Vector(dx, dy);
         entity.data.destination = entity.data.position.add(v);
     }
 
@@ -110,7 +110,7 @@ class AIBoat extends Boat {
         const d = this.getDistanceFromTarget(entity);
         const dx = (Math.random() * 2 * d - d) * 0.125;
         const dy = (Math.random() * 2 * d - d) * 0.125;
-        const vAim = new geometry.Vector(dx, dy);
+        const vAim = new Geometry.Vector(dx, dy);
         vAim.translate(entity.data.ai.target.data.position);
         entity.data.input.fire = vAim;
     }

@@ -1,4 +1,4 @@
-const geometry = require('./geometry');
+const geometry = require('../geometry');
 const algorithms = require('./algorithms');
 const collider = require('./collider');
 const structures = require('./structures');

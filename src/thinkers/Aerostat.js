@@ -1,6 +1,7 @@
 import o876 from '../o876';
+import Geometry from '../geometry';
 
-const Vector = o876.geometry.Vector;
+const Vector = Geometry.Vector;
 const sb = o876.SpellBook;
 
 

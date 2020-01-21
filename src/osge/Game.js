@@ -2,9 +2,10 @@ import Time from './Time';
 import o876 from '../o876';
 import DOMEvents from './DOMEvents';
 import ImageLoader from '../image-loader';
+import Geometry from '../geometry'
 
-const View = o876.geometry.View;
-const Vector = o876.geometry.Vector;
+const View = Geometry.View;
+const Vector = Geometry.Vector;
 
 
 
@@ -66,9 +67,9 @@ class Game {
         this.renderCanvas = o876.CanvasHelper.clone(oCanvas);
         let w = oCanvas.width;
         let h = oCanvas.height;
-        this.view.width(w);
-        this.view.height(h);
-        this.view.offset(new o876.geometry.Vector(-(w >> 1), -(h >> 1)));
+        this.view.width = w;
+        this.view.height = h;
+        this.view.offset = new Geometry.Vector(-(w >> 1), -(h >> 1));
 	}
 
 	init() {

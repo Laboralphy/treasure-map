@@ -1,6 +1,7 @@
 import Cartography from "./cartography";
 import o876 from './o876';
-const Vector = o876.geometry.Vector;
+import Geometry from './geometry';
+const Vector = Geometry.Vector;
 
 async function main() {
     const carto = new Cartography({

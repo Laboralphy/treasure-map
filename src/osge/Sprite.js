@@ -1,8 +1,9 @@
 import o876 from '../o876/index';
+import Geometry from '../geometry';
 import Animation from './Animation';
 import ImageLoader from '../image-loader';
 
-const Vector = o876.geometry.Vector;
+const Vector = Geometry.Vector;
 const sb = o876.SpellBook;
 
 class Sprite {

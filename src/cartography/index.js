@@ -1,4 +1,5 @@
 import o876 from '../o876/index';
+import Geometry from '../geometry'
 import WorldGenerator from './worker/WorldGenerator';
 import Webworkio from 'webworkio';
 import {COLORS} from '../consts';
@@ -12,7 +13,7 @@ class Cartography {
 		this.oWorldDef = wgd;
 		this._cache = new o876.structures.Cache2D({size: 64});
 
-        this._view = new o876.geometry.Vector();
+        this._view = new Geometry.Vector();
 		this._fetching = false;
 		this._viewedCanvas = null; // last canvas used in view()
 		this._viewedPosition = null; // last position used in view();

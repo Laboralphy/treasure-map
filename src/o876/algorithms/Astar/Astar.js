@@ -2,11 +2,11 @@
  * Created by ralphy on 06/09/17.
  */
 
-const Helper = require('../../geometry/Helper');
+const Helper = require('../../../geometry/Helper');
 const Nood = require('./Nood');
 const NoodList = require('./NoodList');
 const Emitter = require('../../Emitter');
-const Point = require('../../geometry/Point');
+const Point = require('../../../geometry/Point');
 const SB = require('../../SpellBook');
 
 /**

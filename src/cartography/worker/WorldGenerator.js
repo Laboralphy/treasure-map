@@ -100,19 +100,19 @@ class WorldGenerator {
 
 	_cellDepthModulator(x, y, xg, yg, meshSize) {
 		let c = this._hexSpacing;
-		let bInHexagon = this._isOnHexaMesh(xg, yg, meshSize, c);
+		let bInHexagon = this._isDeepSea(xg, yg, meshSize, c);
 		if (!bInHexagon) {
 			return 1;
 		}
-        if (this._isOnHexaMesh(xg, yg, meshSize, c >> 2)) {
+        if (this._isDeepSea(xg, yg, meshSize, c >> 2)) {
             return 0.2;
-        } else if (this._isOnHexaMesh(xg, yg, meshSize, c / 3)) {
+        } else if (this._isDeepSea(xg, yg, meshSize, c / 3)) {
             return 0.3;
-		} else if (this._isOnHexaMesh(xg, yg, meshSize, c >> 1)) {
+		} else if (this._isDeepSea(xg, yg, meshSize, c >> 1)) {
 			return 0.4;
-        } else if (this._isOnHexaMesh(xg, yg, meshSize, c / 1.5)) {
+        } else if (this._isDeepSea(xg, yg, meshSize, c / 1.5)) {
             return 0.5;
-        } else if (this._isOnHexaMesh(xg, yg, meshSize, c / 1.2)) {
+        } else if (this._isDeepSea(xg, yg, meshSize, c / 1.2)) {
             return 0.6;
 		} else {
 		    return 0.7;
@@ -128,7 +128,7 @@ class WorldGenerator {
      * @param nThickness {number} épaisseur des ligne du maillage
      * @returns {boolean}
      */
-    _isOnHexaMesh(x, y, nSize, nThickness) {
+    _isDeepSea(x, y, nSize, nThickness) {
         const lte = (n, a) => (n - nThickness) <= a * nSize;
         const gte = (n, a) => (n + nThickness) >= a * nSize;
         const lt = (n, a) => (n + nThickness) < a * nSize;
