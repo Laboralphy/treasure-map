@@ -1,6 +1,6 @@
 import blimp from './blimp';
 import cursor from './cursor';
-import tugboat_0 from './tugboat_0';
+import tugboat_0_chaser from './tugboat_0_chaser';
 import tugboat_1 from './tugboat_1';
 import wave_0 from './wave_0';
 import splash_0 from './splash_0';
@@ -13,7 +13,7 @@ export default {
 
 	// ships
 	blimp,
-	tugboat_0,
+	tugboat_0_chaser,
 	tugboat_1,
 
 	// weapons

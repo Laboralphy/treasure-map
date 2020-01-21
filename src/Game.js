@@ -101,7 +101,6 @@ class Game extends osge.Game {
 		this._spriteLayer.add(entity.sprite);
 		this.state.entities.push(entity);
 		if (entity.data.collision === 1) {
-			console.log('entity has collision')
 			this._collidingEntities.push(entity);
 		}
 		return entity;

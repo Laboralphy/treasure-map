@@ -31,12 +31,12 @@ class Cursor {
             const p = data.target;
             // explo
             const phys = entity.game.carto.getPhysicValue(p.x, p.y);
-            if (phys.type === 11) {
+            if (!!phys && phys.type === 11) {
                 const puff = await entity.game.createEntity('splash_0', p); // link below
                 const wave = await entity.game.createEntity('wave_0', p); // link below
                 entity.game.linkEntity(wave);
                 entity.game.linkEntity(puff);
-            } else {
+            } else if (!!phys) {
                 const puff = await entity.game.createEntity('explosion_0', p); // link below
                 entity.game.linkEntity(puff);
             }
