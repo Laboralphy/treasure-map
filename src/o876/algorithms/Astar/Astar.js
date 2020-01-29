@@ -2,11 +2,11 @@
  * Created by ralphy on 06/09/17.
  */
 
-const Helper = require('../../geometry/Helper');
+const Helper = require('../../../geometry/Helper');
 const Nood = require('./Nood');
 const NoodList = require('./NoodList');
 const Emitter = require('../../Emitter');
-const Point = require('../../geometry/Point');
+const Point = require('../../../geometry/Point');
 const SB = require('../../SpellBook');
 
 /**
@@ -21,6 +21,8 @@ const SB = require('../../SpellBook');
  * 	max: maximum iteration (act as watch dog)
  * })
  * pf.find(xfrom, yfrom, xto, yto)
+ *
+ * it is restricted to squared grids
  */
 module.exports = class Astar {
 	constructor() {
@@ -42,10 +44,10 @@ module.exports = class Astar {
 		this.emitter = new Emitter();
 	}
 
-    on() { this.emitter.on(...arguments); return this; }
-    off() { this.emitter.off(...arguments); return this; }
-    one() { this.emitter.one(...arguments); return this; }
-    trigger() { this.emitter.trigger(...arguments); return this; }
+    on(...args) { this.emitter.on(...args); return this; }
+    off(...args) { this.emitter.off(...args); return this; }
+    one(...args) { this.emitter.one(...args); return this; }
+    trigger(...args) { this.emitter.trigger(...args); return this; }
 
     /**
 	 * modifies a cell value

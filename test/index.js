@@ -1,0 +1,2 @@
+require('./patternFinderTest');
+require('./AutomatonTest');

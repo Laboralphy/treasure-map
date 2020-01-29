@@ -34,3 +34,14 @@ canvas.world {
     transition-timing-function: linear;
     opacity: 0;
 }
+
+
+
+
+div.project3D {
+    perspective: 1024px;
+}
+
+canvas.project3D {
+    transform: translate3d(0, 0px, 0) rotate3d(1, 0, 0, 35deg) translate(0, -150px);
+}

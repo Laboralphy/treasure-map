@@ -10,6 +10,9 @@ class Cache2D {
 		}
 		this._cache = [];
 		this._cacheSize = size;
+		this._xLastRequest = null;
+		this._yLastRequest = null;
+		this._oLastRequest = null;
 	}
 
 	size(s) {
@@ -21,7 +24,12 @@ class Cache2D {
 	}
 
 	getMetaData(x, y) {
-		return this._cache.find(o => o.x === x && o.y === y);
+		if (this._xLastRequest === x && this._yLastRequest === y) {
+			return this._oLastRequest;
+		}
+		this._xLastRequest = x;
+		this._yLastRequest = y;
+		return this._oLastRequest = this._cache.find(o => o.x === x && o.y === y);
 	}
 
 	getPayload(x, y) {
@@ -33,18 +41,27 @@ class Cache2D {
 		}
 	}
 
-	push(x, y, payload) {
+	trim() {
 		let c = this._cache;
-		if (!this.getMetaData(x, y)) {
-			c.push({
-				x, y, payload
-			});
-		}
+		c.sort((a, b) => b.n - a.n);
 		let aDelete = [];
 		while (c.length > this._cacheSize) {
 			aDelete.push(c.shift());
 		}
 		return aDelete;
+	}
+
+	push(x, y, payload) {
+		let c = this._cache;
+		let md = this.getMetaData(x, y);
+		if (!md) {
+			c.push({
+				x, y, n: 0, payload
+			});
+		} else {
+			++md.n;
+		}
+		return this.trim();
 	}
 }
 

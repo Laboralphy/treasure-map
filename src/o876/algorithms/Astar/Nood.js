@@ -2,7 +2,7 @@
  * Created by ralphy on 04/09/17.
  */
 
-const Point = require('../../geometry/Point.js');
+const Point = require('../../../geometry/Point.js');
 
 module.exports = class Nood {
 	constructor() {

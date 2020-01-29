@@ -10,7 +10,7 @@
  *
  *
  */
-const View = require('../geometry/View');
+const View = require('../../geometry/View');
 const sb = require('../SpellBook');
 
 class TileLayer {
