@@ -1,6 +1,4 @@
-import o876 from '../o876';
-
-import Geometry from '../geometry';
+import Geometry from '../libs/geometry';
 const Vector = Geometry.Vector;
 
 class Cursor {
@@ -19,7 +17,7 @@ class Cursor {
     /**
      * @param entity
      */
-    async think(entity) {
+    async think(entity, game) {
         let data = entity.data;
         if (!data.lifetime) {
             this.setup(entity);
@@ -30,17 +28,14 @@ class Cursor {
         if (data.lifetime <= 0) {
             const p = data.target;
             // explo
-            const phys = entity.game.carto.getPhysicValue(p.x, p.y);
-            if (!!phys && phys.type === 11) {
-                const puff = await entity.game.createEntity('splash_0', p); // link below
-                const wave = await entity.game.createEntity('wave_0', p); // link below
-                entity.game.linkEntity(wave);
-                entity.game.linkEntity(puff);
+            const phys = game.cartography.getPhysicValue(p.x, p.y);
+            if (phys === 11) {
+                const puff = await game.spawnEntity('splash_0', p);
+                const wave = await game.spawnEntity('wave_0', p);
             } else if (!!phys) {
-                const puff = await entity.game.createEntity('explosion_0', p); // link below
-                entity.game.linkEntity(puff);
+                const puff = await game.spawnEntity('explosion_0', p);
             }
-            entity.game.destroyEntity(entity);
+            game.destroyEntity(entity);
         }
     }
 }

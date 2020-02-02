@@ -1,8 +1,7 @@
-import o876 from '../o876';
-import Geometry from '../geometry';
+import Geometry from '../libs/geometry';
+import {mod} from '../libs/r-mod';
 
 const Vector = Geometry.Vector;
-const sb = o876.SpellBook;
 
 
 class Aerostat {
@@ -34,7 +33,7 @@ class Aerostat {
 	}
 
 
-	think(entity) {
+	think(entity, game) {
 		let pdata = entity.data;
 		if (!pdata.destination.isEqual(pdata.position)) {
 			if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
@@ -80,7 +79,7 @@ class Aerostat {
 			let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
 			let fAngle1 = fAngle / (2 * Math.PI);
 			let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
-			let iFract = sb.mod(Math.floor(fAngleFract * nFract), nFract);
+			let iFract = mod(Math.floor(fAngleFract * nFract), nFract);
 			if (iFract < 0) {
 				console.log({nFract, fAngleInt, fAngle1, fAngleFract, iFract});
 				throw new Error('WTF iFract < 0 !');
@@ -96,7 +95,7 @@ class Aerostat {
 				while (pdata.turning.length > 6) {
 					pdata.turning.shift();
 				}
-				entity.sprite.frame(pdata.turning[0]);
+				entity.sprite.frame = pdata.turning[0];
 			}
 			this.advance(entity);
 		}

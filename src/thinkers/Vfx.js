@@ -2,10 +2,10 @@ class Vfx {
 	/**
 	 * @param entity
 	 */
-	think(entity) {
+	think(entity, game) {
 		const sprite = entity.sprite;
 		if (sprite.animation.isOver()) {
-			entity.game.destroyEntity(entity);
+			game.destroyEntity(entity);
 		}
 	}
 }

@@ -1,20 +1,20 @@
 class Wave {
-	processScaleAndAlpha(entity) {
+	processScaleAndAlpha(entity, game) {
 		entity.sprite.scale += 0.04;
-		if (entity.game.state.time > entity.data.lifetime) {
-			entity.game.destroyEntity(entity);
+		if (game.state.time > entity.data.lifetime) {
+			game.destroyEntity(entity);
 		}
 	}
 	/**
 	 * @param entity
 	 */
-	think(entity) {
+	think(entity, game) {
 		if (!entity.data.thought) {
 			entity.sprite.scale = 0.1;
 			entity.sprite.fadeOut(0.04);
-			entity.data.lifetime = entity.game.state.time + 32;
+			entity.data.lifetime = game.state.time + 32;
 		}
-		this.processScaleAndAlpha(entity);
+		this.processScaleAndAlpha(entity, game);
 	}
 }
 

@@ -1,29 +1,23 @@
 {
-  "name": "treasure-map",
+  "name": "perlin-pinpin",
   "version": "1.0.0",
-  "description": "A web browser game prototype featuring \"infinite\" size world. Treasure hunting on an immense ocean with millions of islands.",
-  "main": "index.js",
+  "description": "",
+  "main": "main.js",
   "scripts": {
-    "test": "./node_modules/.bin/jasmine build/test.js",
-    "webpack": "./node_modules/.bin/webpack --watch"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Laboralphy/treasure-map.git"
+    "test": "./node_modules/.bin/jasmine dist/tests.js",
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "deploy": "sudo . ./bin/deploy"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Laboralphy/treasure-map/issues"
+  "devDependencies": {
+    "jasmine": "^3.5.0",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
   },
-  "homepage": "https://github.com/Laboralphy/treasure-map#readme",
   "dependencies": {
     "webworkio": "^1.0.0"
-  },
-  "devDependencies": {
-    "jasmine": "^3.3.1",
-    "webpack": "^4.29.6",
-    "webpack-cli": "^3.3.0"
   }
 }

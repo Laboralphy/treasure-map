@@ -1,0 +1,7 @@
+{
+	"angleSpeed": 0.1,
+	"enginePower": 0.1,
+	"maxSpeed": 2,
+	"tileset": "blimp",
+	"thinker": "aerostat"
+}

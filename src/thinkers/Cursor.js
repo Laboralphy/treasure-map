@@ -5,8 +5,8 @@ class Cursor {
     /**
      * @param entity
      */
-    think(entity) {
-        let player = entity.game.state.player;
+    think(entity, game) {
+        let player = game.state.player;
         let pdata = entity.data;
         if (!('phase' in pdata)) {
             pdata.phase = 1;

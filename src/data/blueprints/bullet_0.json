@@ -1,0 +1,7 @@
+{
+	"angleSpeed": 0,
+	"enginePower": 0,
+	"maxSpeed": 16,
+	"tileset": "bullet_0",
+	"thinker": "bullet"
+}

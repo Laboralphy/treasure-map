@@ -1,12 +1,12 @@
-import o876 from './o876';
-import Geometry from './geometry'
-import osge from './osge';
-import Cartography from './cartography';
+import Geometry from './libs/geometry'
+import osge from './libs/osge';
+import Cartography from './libs/cartography';
 import Indicators from './Indicators';
 import THINKERS from './thinkers';
-import DATA from './data';
-
-import ImageLoader from './image-loader';
+import DATA from './data/index';
+import * as CARTOGRAPHY_CONSTS from './libs/cartography/consts';
+import CONFIG from "./config.json";
+import Entity from "./Entity";
 
 const Vector = Geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
@@ -15,7 +15,8 @@ const COLLISION_DISTANCE = 512;
 class Game extends osge.Game {
     constructor() {
         super();
-        this._lastEntityId = 0;
+        this.period = CONFIG.timer;
+        this._carto = null;
         this.state = {
         	time: 0,
         	input: {
@@ -25,12 +26,36 @@ class Game extends osge.Game {
 			player: null,
             view: new Vector()
         };
-
+        this._spriteLayer = null;
         this._collidingEntities = [];
     }
 
-	onClick(event) {
-		let p = this.mouse.add(this.carto._view);
+
+
+
+
+//            _   _                   ___              _   _
+//  __ _  ___| |_| |_ ___ _ __ ___   ( _ )    ___  ___| |_| |_ ___ _ __ ___
+// / _` |/ _ \ __| __/ _ \ '__/ __|  / _ \/\ / __|/ _ \ __| __/ _ \ '__/ __|
+//| (_| |  __/ |_| ||  __/ |  \__ \ | (_>  < \__ \  __/ |_| ||  __/ |  \__ \
+// \__, |\___|\__|\__\___|_|  |___/  \___/\/ |___/\___|\__|\__\___|_|  |___/
+// |___/
+
+    get cartography() {
+    	return this._carto;
+	}
+
+
+
+//      _                                        _         _                     _ _
+//   __| | ___  _ __ ___     _____   _____ _ __ | |_ ___  | |__   __ _ _ __   __| | | ___ _ __ ___
+//  / _` |/ _ \| '_ ` _ \   / _ \ \ / / _ \ '_ \| __/ __| | '_ \ / _` | '_ \ / _` | |/ _ \ '__/ __|
+// | (_| | (_) | | | | | | |  __/\ V /  __/ | | | |_\__ \ | | | | (_| | | | | (_| | |  __/ |  \__ \
+//  \__,_|\___/|_| |_| |_|  \___| \_/ \___|_| |_|\__|___/ |_| |_|\__,_|_| |_|\__,_|_|\___|_|  |___/
+
+
+	clickHandler(event) {
+		let p = this.mouse.add(this.cartography._view);
     	if (event.shiftKey) {
 			this.state.player.data.input.fire = new Vector(p);
 		} else {
@@ -39,65 +64,40 @@ class Game extends osge.Game {
 		}
 	}
 
-	onKeyUp(event) {
+	keyUpHandler(event) {
 		this.state.input.keys[event.keys] = true;
 	}
 
-	onKeyDown(event) {
+	keyDownHandler(event) {
 		this.state.input.keys[event.keys] = false;
 	}
 
-	processThinker(entity) {
-		this.processCollidingSprites(entity);
-		entity.thinker.think(entity);
-		entity.data.thought = true;
-		entity.sprite.visible = true;
-    }
 
-	async createEntity(sResRef, vPosition) {
-    	let bp0 = DATA.blueprints[sResRef];
-    	if (bp0 === undefined) {
-    		throw new Error('this blueprint does not exist : "' + sResRef + '"');
-		}
-    	let blueprint = Object.assign({
-			"angle": 0,                   // angle de cap
-			"angleSpeed": 0,              // amplitude d emofication de l'angle
-			"position": new Vector(vPosition.x, vPosition.y),     // position actuelle
-			"destination": new Vector(),  // position vers laquelle on se dirige
-			"enginePower": 0,             // inc/dec de la vitesse du moteur
-			"speed": 0,                   // vitesse actuelle
-			"maxSpeed": 0,                // vitesse max
-			"sprite": Object.assign({}, DATA.tiles[bp0.tileset]),
-			"thinker": "",
-			"repulse": new Vector(),
-			"sector": {
-				x: 0,
-				y: 0
-			},
-			"input": {
-				"keys": {},
-			}
-		}, bp0);
-    	blueprint.sprite.ref = new Vector(blueprint.sprite.ref.x, blueprint.sprite.ref.y);
-		let id = ++this._lastEntityId;
-		let sprite = new osge.Sprite();
-		await sprite.define(blueprint.sprite);
-		sprite.z = bp0.z || 0;
-		if (!(blueprint.thinker in THINKERS)) {
-			throw new Error('this thinker does not exist : "' + blueprint.thinker);
-		}
-		const oThinker = THINKERS[blueprint.thinker];
 
-		let oEntity = {
-			id,
-			sprite,
-            thinker: oThinker,
-			data: blueprint,
-			game: this
-		};
+//                                   _    ____ ___
+//    __ _  __ _ _ __ ___   ___     / \  |  _ \_ _|
+//   / _` |/ _` | '_ ` _ \ / _ \   / _ \ | |_) | |
+//  | (_| | (_| | | | | | |  __/  / ___ \|  __/| |
+//   \__, |\__,_|_| |_| |_|\___| /_/   \_\_|  |___|
+//   |___/
+
+
+	/**
+	 * création d'une entité. Les entité créées doivent être lié
+	 * avec la methode linkEntity
+	 * @param sResRef {string} reference du blueprint
+	 * @returns {Promise<{Entity}>}
+	 */
+	async createEntity(sResRef) {
+		const oEntity = new Entity(sResRef);
 		return oEntity;
 	}
 
+	/**
+	 * Integration de l'entité spécifé dans le jeu.
+	 * @param entity {*}
+	 * @returns {Entity}
+	 */
 	linkEntity(entity) {
 		this._spriteLayer.add(entity.sprite);
 		this.state.entities.push(entity);
@@ -107,6 +107,45 @@ class Game extends osge.Game {
 		return entity;
 	}
 
+
+	/**
+	 * Créaation et liaison d'une nouvelle entité
+	 * @param sResRef {string}
+	 * @param vPosition {Vector}
+	 * @returns {Promise<{Entity}>}
+	 */
+	async spawnEntity(sResRef, vPosition) {
+		const oEntity = await this.createEntity(sResRef);
+		await oEntity.spawn(vPosition);
+		this.linkEntity(oEntity);
+		return oEntity;
+	}
+
+	/**
+	 * Création d'une entité missile
+	 * @param entity {Entity} entité qui tire le missile
+	 * @param vTarget {Vector} point visé
+	 * @param vOffset {Vector} nombre de pixel de décalage
+	 * @returns {Entity}
+	 */
+	async spawnMissile(entity, vTarget, vOffset) {
+		const pdata = entity.data;
+		const position = pdata.position;
+		//const offset = //Geometry.Helper.polar2rect(pdata.angle, 16);
+		const posBullet = position.add(vOffset);
+		const bullet = await this.createEntity('bullet_0'); // link below
+		bullet.data.target = new Geometry.Vector(vTarget);
+		await bullet.spawn(posBullet);
+		this.linkEntity(bullet);
+		bullet.sprite.fadeIn(1);
+		const explosion = await this.spawnEntity('smoke_0', posBullet); // link below
+		return bullet;
+	}
+
+	/**
+	 * destruction de l'entité
+	 * @param entity {*}
+	 */
 	destroyEntity(entity) {
     	let i = this.state.entities.indexOf(entity);
 		if (i >= 0) {
@@ -122,50 +161,73 @@ class Game extends osge.Game {
 	}
 
 
+	/**
+	 * initialisation du jeu
+	 * @returns {Promise<void>}
+	 */
     async init() {
         await super.init();
 
-        // chargement des ressources pour la carto
-		await ImageLoader.load([
-			'images/sceneries/city_0.png',
-			'images/sceneries/city_1.png',
-		]);
+		const oCanvas = document.querySelector('canvas.world');
+		const oContext = oCanvas.getContext('2d');
 
-        // cartographie
-		this.carto = new Cartography({
-			cellSize: 256,
-			hexSize: 16,
-			hexSpacing: 7,
-			scale: 2,
-			seed: 0.111,
+		this.canvas(oCanvas);
+
+		oContext.fillStyle = 'rgb(0, 0, 0)';
+		oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
+
+		const c = new Cartography({
+			seed: 0,
 			preload: 1,
-			drawGrid: true,
-			drawCoords: true,
-			service: '../build/worker.js',
-			progress: Indicators.progress,
-			verbose: false
+			palette: DATA.palette,
+			cellSize: 25,
+			tileSize: 256,
+			worker: '../dist/worker.js',
+			brushes: DATA.brushes,
+			names: DATA.towns_fr,
+			physicGridSize: 16,
+			scale: 2,
+			progress: Indicators.progress
 		});
-		// transmission des image à la carto
-        await this.carto.startService();
-        // layers
+
+		this._carto = c;
 		this.layers.push(this._spriteLayer = new SpriteLayer());
-        let oCanvas = document.querySelector('.world');
-        this.canvas(oCanvas);
+
+		const vView = new Vector(0, 0);
+		await c.start();
+
+		// il faut trouver le point de départ du sprite-joueur
+		const oStartingTile = await c.findTile(CARTOGRAPHY_CONSTS.FIND_TILE_COAST_NEAR_DIRECTION, {x: 0, y: 0, a: 4});
 
         // création du joueur
-		this.state.player = await this.createEntity('tugboat_1', new Vector(0, 0)); // link below
-		this.linkEntity(this.state.player);
-		this.domevents.on(oCanvas, 'click', event => this.onClick(event));
-		this.domevents.on(document, 'keydown', event => this.onKeyUp(event));
-		this.domevents.on(document, 'keyup', event => this.onKeyDown(event));
-
+		this.state.player = await this.spawnEntity(
+			'tugboat_1',
+			new Vector(oStartingTile.x * 256, oStartingTile.y * 256)
+		); // link below
+		this.domevents.on(oCanvas, 'click', event => this.clickHandler(event));
+		this.domevents.on(document, 'keydown', event => this.keyUpHandler(event));
+		this.domevents.on(document, 'keyup', event => this.keyDownHandler(event));
 
         // création du sprite curseur de destination
-		this.state.cursor = await this.createEntity('cursor', new Vector(0, 0));
-		this.linkEntity(this.state.cursor);
+		this.state.cursor = await this.spawnEntity('cursor', this.state.player.position);
+
     }
 
-    sortSprite(e1, e2) {
+//              _            _         _   _     _
+//   _ __  _ __(_)_   ____ _| |_ ___  | |_| |__ (_)_ __   __ _ ___
+//  | '_ \| '__| \ \ / / _` | __/ _ \ | __| '_ \| | '_ \ / _` / __|
+//  | |_) | |  | |\ V / (_| | ||  __/ | |_| | | | | | | | (_| \__ \
+//  | .__/|_|  |_| \_/ \__,_|\__\___|  \__|_| |_|_|_| |_|\__, |___/
+//  |_|                                                  |___/
+	/**
+	 * tri des sprites pour que l'affichqage se pâsse bien
+	 * cette methode est utilisée au moment du rendu
+	 * @param e1 {Sprite}
+	 * @param e2 {Sprite}
+	 * @returns {number}
+	 * @private
+	 */
+    _sortSprites(e1, e2) {
 		const z = e1.z - e2.z;
 		return z === 0
 			? e1.position.y - e2.position.y
@@ -173,10 +235,22 @@ class Game extends osge.Game {
 	}
 
 	/**
+	 * Traitement de tous les thinkers
+	 * @param entity {*}
+	 * @private
+	 */
+	_processThinker(entity) {
+		this._processCollidingSprites(entity);
+		entity.thinker.think(entity, this);
+		entity.data.thought = true;
+		entity.sprite.visible = true;
+	}
+
+	/**
 	 * renvoie la liste des entités qui sont pas loin de l'entité spécifiée
 	 * @param entity
 	 */
-	processCollidingSprites(entity) {
+	_processCollidingSprites(entity) {
 		if (entity.data.collision !== 1) {
 			return;
 		}
@@ -218,6 +292,17 @@ class Game extends osge.Game {
 		});
 	}
 
+
+
+
+
+//                  _       _          ___                        _
+//  _   _ _ __   __| | __ _| |_ ___   ( _ )    _ __ ___ _ __   __| | ___ _ __
+// | | | | '_ \ / _` |/ _` | __/ _ \  / _ \/\ | '__/ _ \ '_ \ / _` |/ _ \ '__|
+// | |_| | |_) | (_| | (_| | ||  __/ | (_>  < | | |  __/ | | | (_| |  __/ |
+//  \__,_| .__/ \__,_|\__,_|\__\___|  \___/\/ |_|  \___|_| |_|\__,_|\___|_|
+//       |_|
+
     update() {
         super.update();
         let state = this.state;
@@ -226,7 +311,7 @@ class Game extends osge.Game {
 			th.data.repulse.set(0, 0);
 		});
 		entities.forEach(th => {
-			this.processThinker(th)
+			this._processThinker(th)
 		});
         // tous les sprites doivent etre relatifs à ce point de vue
 		let p = state.player.data.position;
@@ -240,10 +325,10 @@ class Game extends osge.Game {
 
     render() {
     	const v = this.state.view;
-    	const c = this.carto;
+    	const c = this.cartography;
 		c.view(this.renderCanvas, v);
 		c.renderTiles();
-		this._spriteLayer.sort(this.sortSprite);
+		this._spriteLayer.sort(this._sortSprites);
     	super.render();
 	}
 }

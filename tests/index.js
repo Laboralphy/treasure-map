@@ -1,0 +1,2 @@
+require('./CartographyTest');
+require('./PcgHashTest');
