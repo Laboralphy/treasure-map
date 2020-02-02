@@ -1,11 +1,11 @@
 import Boat from './Boat';
-import Automaton from '../automaton';
-import Geometry from '../geometry';
+import Automaton from '../libs/automaton';
+import Geometry from '../libs/geometry';
 
 class AIBoatAbstract extends Boat {
 
 
-    init(entity) {
+    init(entity, game) {
         entity.data.ai = {
             automaton: new Automaton(),
         };
@@ -24,7 +24,7 @@ class AIBoatAbstract extends Boat {
     /**
      * ne fait rien
      */
-    $idle(entity) {
+    $idle(entity, game) {
 
     }
 
@@ -42,18 +42,18 @@ class AIBoatAbstract extends Boat {
         entity.data.destination = entity.data.position.add(v);
     }
 
-    $always(entity) {
+    $always(entity, game) {
         return true;
     }
 
-    think(entity) {
+    think(entity, game) {
         if (!entity.data.thought) {
-            this.init(entity);
+            this.init(entity, game);
         }
-        if ((entity.game.state.time & 15) === 0) {
-            entity.data.ai.automaton.process(entity);
+        if ((game.state.time & 15) === 0) {
+            data.ai.automaton.process(entity, game);
         }
-        super.think(entity);
+        super.think(entity, game);
     }
 
 }

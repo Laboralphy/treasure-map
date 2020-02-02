@@ -18,23 +18,39 @@ canvas.world {
 }
 
 
-.indicator {
+div.indicator {
     color: rgb(200, 120, 55);
     font-family: serif;
     text-shadow: 0 0 0.4em rgb(0, 0, 0);
 }
-.indicator .value {
+
+div.indicator .value {
     font-weight: bold;
     font-family: monospace;
 }
 
-.indicator.hidden {
+div.indicator.hidden {
     transition-property: opacity;
     transition-duration: 1s;
     transition-timing-function: linear;
     opacity: 0;
 }
 
+div.indicator > div.progress {
+    vertical-align: sub;
+    display: inline-block;
+    width: 4em;
+    height: 0.8em;
+    border: solid thin rgb(200, 120, 55);
+    box-sizing: content-box;
+    padding: 1px;
+}
+
+div.indicator > div.progress > div.bar {
+    width: 50%;
+    height: 100%;
+    background-color: rgb(200, 120, 55);
+}
 
 
 

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+sDestDir=/var/www/html/perlin-pinpin
+
+doSync() {
+  rsync -avz --delete dist $sDestDir
+  rsync -avz --delete public $sDestDir
+}
+
+doSyncWatch() {
+  doSync
+  while inotifywait -e modify,create,delete,move dist
+  do
+    doSync
+  done
+}
+
+if [ -d "/var/www/html" ]
+then
+  doSyncWatch
+else
+  echo "the web directory /var/www/html does not exist : no need to deploy"
+fi

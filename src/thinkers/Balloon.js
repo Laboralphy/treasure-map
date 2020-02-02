@@ -5,7 +5,7 @@
  */
 
 class Balloon {
-    think(entity) {
+    think(entity, game) {
         let pdata = entity.data;
         if (!pdata.destination.isEqual(pdata.position)) {
             let vDiff = pdata.destination.sub(pdata.position);

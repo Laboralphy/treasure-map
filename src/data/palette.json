@@ -1,0 +1,42 @@
+[
+  {
+    "description": "abyss",
+    "altitude": 0,
+    "color": "#dec673"
+  },
+  {
+    "description": "depth",
+    "altitude": 40,
+    "color": "#efd69c"
+  },
+  {
+    "description": "shallow",
+    "altitude": 48,
+    "color": "#d6a563"
+  },
+  {
+    "description": "shore",
+    "altitude": 50,
+    "color": "#572507"
+  },
+  {
+    "description": "land",
+    "altitude": 55,
+    "color": "#d2a638"
+  },
+  {
+    "description": "forest",
+    "altitude": 75,
+    "color": "#996f21"
+  },
+  {
+    "description": "highland",
+    "altitude": 85,
+    "color": "#b98735"
+  },
+  {
+    "description": "summit",
+    "altitude": 99,
+    "color": "#efce8c"
+  }
+]

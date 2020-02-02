@@ -1,0 +1,75 @@
+[
+  {
+    "type": "land",
+    "code": 11,
+    "src": "assets/graphics/sceneries/s-wave-1.png",
+    "description": "wave, painted at sea level"
+  },
+  {
+    "type": "land",
+    "code": 23,
+    "src": "assets/graphics/sceneries/s-grass-1.png",
+    "description": "plain, grass, painted just above the sea-shore"
+  },
+  {
+    "type": "land",
+    "code": 33,
+    "src": "assets/graphics/sceneries/s-tree-1.png",
+    "description": "tree, temperate area, painted near mountains"
+  },
+  {
+    "type": "land",
+    "code": 55,
+    "src": "assets/graphics/sceneries/s-mountain-1.png",
+    "description": "mountain top"
+  },
+  {
+    "type": "city",
+    "orientation": "ew",
+    "code": "minaret",
+    "src": "assets/graphics/sceneries/city23-minaret.png",
+    "description": "oriental city with minaret"
+  },
+  {
+    "type": "city",
+    "orientation": "ew",
+    "code": "storage",
+    "src": "assets/graphics/sceneries/city23-storage.png",
+    "description": "occidental medieval city with storage"
+  },
+  {
+    "type": "city",
+    "orientation": "ns",
+    "code": "desert",
+    "src": "assets/graphics/sceneries/city32-desert.png",
+    "description": "oriental desert house with round roofs"
+  },
+  {
+    "type": "city",
+    "orientation": "ns",
+    "code": "temple",
+    "src": "assets/graphics/sceneries/city32-temple.png",
+    "description": "oriental desert house with round roofs"
+  },
+  {
+    "type": "city",
+    "orientation": "ns",
+    "code": "inn",
+    "src": "assets/graphics/sceneries/city32-inn.png",
+    "description": "occidental inn with round storage house"
+  },
+  {
+    "type": "city",
+    "orientation": "ns",
+    "code": "town",
+    "src": "assets/graphics/sceneries/city32-town.png",
+    "description": "occidental small town"
+  },
+  {
+    "type": "city",
+    "orientation": "ns",
+    "code": "village",
+    "src": "assets/graphics/sceneries/city32-village.png",
+    "description": "occidental small village"
+  }
+]
