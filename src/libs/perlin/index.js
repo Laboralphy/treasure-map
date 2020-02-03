@@ -1,6 +1,3 @@
-const Random = require('../random');
-
-
 class Perlin {
 
 	/**
@@ -30,31 +27,6 @@ class Perlin {
 	static cosineInterpolate(x0, x1, mu) {
 		let mu2 = (1 - Math.cos(mu * Math.PI)) / 2;
    		return x0 * (1 - mu2) + x1 * mu2;
-	}
-
-	/**
-	 * selects or define an interpolation function
-	 * @param f string | function the new interpolation function
-	 * f can be either a string ('cosine', 'linear') or a custom function
-	 */
-	interpolation(f) {
-		switch (typeof f) {
-			case 'string':
-				if ((f + 'Interpolate') in Perlin) {
-					this._interpolate = Perlin[f + 'Interpolate'];
-				} else {
-					throw new Error('only "linear" or "cosine" interpolation');
-				}
-				return this;
-				
-			case 'function':
-				this._interpolate = f;
-				return this;
-				
-			case 'undefined':
-				return this._interpolate;
-		}
-		return this;
 	}
 
 	static generateSmoothNoise(aBaseNoise, nOctave) {

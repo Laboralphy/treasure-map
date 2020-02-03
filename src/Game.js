@@ -160,6 +160,22 @@ class Game extends osge.Game {
 		}
 	}
 
+	initCartography(seed) {
+		return new Cartography({
+			seed,
+			preload: 1,
+			palette: DATA.palette,
+			cellSize: 25,
+			tileSize: 256,
+			worker: '../dist/worker.js',
+			brushes: DATA.brushes,
+			names: DATA.towns_fr,
+			physicGridSize: 16,
+			scale: 2,
+			progress: Indicators.progress
+		});
+	}
+
 
 	/**
 	 * initialisation du jeu
@@ -176,19 +192,7 @@ class Game extends osge.Game {
 		oContext.fillStyle = 'rgb(0, 0, 0)';
 		oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
 
-		const c = new Cartography({
-			seed: 0,
-			preload: 1,
-			palette: DATA.palette,
-			cellSize: 25,
-			tileSize: 256,
-			worker: '../dist/worker.js',
-			brushes: DATA.brushes,
-			names: DATA.towns_fr,
-			physicGridSize: 16,
-			scale: 2,
-			progress: Indicators.progress
-		});
+		const c = this.initCartography(0);
 
 		this._carto = c;
 		this.layers.push(this._spriteLayer = new SpriteLayer());
@@ -201,7 +205,7 @@ class Game extends osge.Game {
 
         // création du joueur
 		this.state.player = await this.spawnEntity(
-			'tugboat_1',
+			'blimp',
 			new Vector(oStartingTile.x * 256, oStartingTile.y * 256)
 		); // link below
 		this.domevents.on(oCanvas, 'click', event => this.clickHandler(event));

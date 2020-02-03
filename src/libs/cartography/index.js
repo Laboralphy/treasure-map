@@ -76,6 +76,10 @@ class Service {
         this._cacheAdjusted = false;
     }
 
+    get worldDef () {
+        return this._worldDef;
+    }
+
     get fetching() {
         return this._fetching;
     }

@@ -261,19 +261,20 @@ class WorldGenerator {
         const wn = Tools2D.createArray2D(size, size, (x, y) => {
             // bruit initial
             const f = this._rand.rand();
-            switch (seed % 7) {
-                case 0: // les altitudes sont divisée par deux
-                case 1: // les altitude sont convesifiées
-                case 2: // les altitude sont convesifiées
-                case 3: // les altitude sont convesifiées
-                case 4:
-                    return Math.sqrt(f);
+            switch (seed % 4) {
+                case 0:
+                    return f;
 
-                case 5: // les altitude sont concavifiées
+                case 1:
                     return f * f;
 
+                case 2:
+                    return pcghash(x, y, seed) > 0.5
+                        ? f * 0.5 + 0.49
+                        : f;
+
                 default:
-                    return f;
+                    return Math.sqrt(f);
             }
         });
         const pn = Perlin.generate(wn, 6);

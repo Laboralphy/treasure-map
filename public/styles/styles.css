@@ -47,7 +47,7 @@ div.indicator > div.progress {
 }
 
 div.indicator > div.progress > div.bar {
-    width: 50%;
+    width: 0;
     height: 100%;
     background-color: rgb(200, 120, 55);
 }
@@ -60,4 +60,9 @@ div.project3D {
 
 canvas.project3D {
     transform: translate3d(0, 0px, 0) rotate3d(1, 0, 0, 35deg) translate(0, -150px);
+}
+
+canvas.map-tile {
+    padding: 0;
+    margin: 0;
 }
