@@ -10,6 +10,7 @@ class Service {
 
     constructor({
         worker,     // url du service
+        workerCount = 1, // nombre de workers
         brushes,     // chemin des sceneries
         seed = 0, // graine aléatoire
         cellSize = 25, // taille des cellules voronoi (continents)
@@ -25,6 +26,7 @@ class Service {
     }) {
         this._worldDef = {
             worker,
+            workerCount,
             seed,
             cellSize,
             tileSize,
@@ -80,14 +82,6 @@ class Service {
         return this._fetching;
     }
 
-    checkResponse(response, resolve, reject) {
-        if (response.status === 'error') {
-            reject(new Error('web worker error: ' + response.error));
-        } else {
-            resolve(response);
-        }
-    }
-
     createWorker() {
         const wg = this._worldDef;
         return new Promise((resolve, reject) => {
@@ -120,7 +114,7 @@ class Service {
         this.log('starting service');
         await this._tr.loadBrushes(wgd.brushes);
         this.log('brushes loaded');
-        this._wwioHorde = new Array(4);
+        this._wwioHorde = new Array(wgd.workerCount);
         for (let iw = 0; iw < this._wwioHorde.length; ++iw) {
             this._wwioHorde[iw] = await this.createWorker();
         }

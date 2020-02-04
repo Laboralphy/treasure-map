@@ -182,7 +182,7 @@ class WorldGenerator {
         const vcs = m.voronoiCellSize;
         const vcs2 = vcs >> 1;
         const vcsOddOffset = odd ? vcs2 : 0;
-        const vcsDelta = Math.floor(vcs / 5);
+        const vcsDelta = Math.floor(vcs / 3.5);
         const xGerm_rpt = Math.floor(this.rpg_rpt(x_rpg) - vcsOddOffset + vcsDelta * hx);
         const yGerm_rpt = Math.floor(this.rpg_rpt(y_rpg) + vcsDelta * hy);
         return {x: xGerm_rpt, y: yGerm_rpt};
@@ -261,7 +261,9 @@ class WorldGenerator {
         const wn = Tools2D.createArray2D(size, size, (x, y) => {
             // bruit initial
             const f = this._rand.rand();
-            switch (seed % 4) {
+            let c = seed % 6;
+            c = 6;
+            switch (c) {
                 case 0:
                     return f;
 
@@ -269,12 +271,32 @@ class WorldGenerator {
                     return f * f;
 
                 case 2:
-                    return pcghash(x, y, seed) > 0.5
-                        ? f * 0.5 + 0.49
-                        : f;
+                    return f * 0.5 + 0.4;
 
-                default:
-                    return Math.sqrt(f);
+                case 3:
+                    // phat isles
+                    return Math.sqrt(1 - f);
+
+                case 4:
+                  // mountains !!
+                  return Geometry.Helper.distance(size / 2, size / 2, x, y) > (size * 0.2)
+                    ? f * 0.5 + 0.5
+                    : f;
+
+                case 5:
+                  // no mountains and not much land
+                  return Geometry.Helper.distance(size / 2, size / 2, x, y) > (size * 0.2)
+                    ? f * 0.333 + 0.333
+                    : f * 0.666;
+
+              case 6:
+                  // sunken south east
+                  return x < (size * 0.6) || y < (size * 0.6)
+                    ? f
+                    : f * 0.7;
+
+              default:
+                  return Math.sqrt(f);
             }
         });
         const pn = Perlin.generate(wn, 6);

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sDestDir=/var/www/html/perlin-pinpin
+sDestDir=/var/www/html/treasure-map
 
 doSync() {
   rsync -avz --delete dist $sDestDir
