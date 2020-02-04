@@ -1,6 +1,6 @@
 import Webworkio from 'webworkio';
 import {mod} from '../r-mod';
-import {View, Vector} from '../geometry';
+import {Helper, View, Vector} from '../geometry';
 import Cache2D from "../cache2d";
 import CanvasHelper from "../canvas-helper";
 import TileRenderer from "./TileRenderer";
@@ -63,10 +63,6 @@ class Service {
             throw new Error('Cartography: "physicGridSize" property must be defined');
         }
 
-
-
-
-
         this._view = new Vector();
         this._cache = new Cache2D({
             size: cache
@@ -92,30 +88,40 @@ class Service {
         }
     }
 
+    createWorker() {
+        const wg = this._worldDef;
+        return new Promise((resolve, reject) => {
+            const wwio = new Webworkio();
+            wwio.worker(wg.worker);
+            this.log('web worker instance created', wg.worker);
+            wwio.emit('init', {
+                seed: wg.seed,
+                vorCellSize: wg.cellSize,
+                vorClusterSize: 4,
+                tileSize: wg.tileSize,
+                palette: wg.palette,
+                cache: wg.cache,
+                names: wg.names,
+                physicGridSize: wg.physicGridSize,
+                altitudes: wg.altitudes,
+                scale: wg.scale
+            }, response => {
+                if (response.status === 'error') {
+                    reject(new Error('web worker error: ' + response.error));
+                } else {
+                    resolve(wwio);
+                }
+            });
+        });
+    }
+
     async start() {
         const wgd = this._worldDef;
         this.log('starting service');
         await this._tr.loadBrushes(wgd.brushes);
         this.log('brushes loaded');
-        return new Promise((resolve, reject) => {
-            this._wwio = new Webworkio();
-            this._wwio.worker(wgd.worker);
-            this.log('web worker instance created', wgd.worker);
-            this._wwio.emit('init', {
-                seed: wgd.seed,
-                vorCellSize: wgd.cellSize,
-                vorClusterSize: 4,
-                tileSize: wgd.tileSize,
-                palette: wgd.palette,
-                cache: wgd.cache,
-                names: wgd.names,
-                physicGridSize: wgd.physicGridSize,
-                altitudes: wgd.altitudes,
-                scale: wgd.scale
-            }, response => {
-                this.checkResponse(response, resolve, reject);
-            });
-        });
+        this._wwio = await this.createWorker();
+        this.log('web worker instance created', wgd.worker);
     }
 
     /**
@@ -261,13 +267,37 @@ class Service {
         let tStart = performance.now();
         let tileSize = this._worldDef.tileSize;
         let m = Service.getViewPointMetrics(x, y, w, h, tileSize, this._worldDef.preload);
-        let yTilePix = 0;
         let nTileCount = (m.yTo - m.yFrom + 1) * (m.xTo - m.xFrom + 1);
-        let iTile = 0;
         let nTileFetched = 0;
         let n100;
+        let xv = x / tileSize;
+        let yv = y / tileSize;
+        // premier balayage
+        const aTilesToLoad = [];
         for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
-            let xTilePix = 0;
+            for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
+                let wt = this._cache.load(xTile, yTile);
+                if (!wt) {
+                    aTilesToLoad.push({
+                        xTile,
+                        yTile,
+                        d: Helper.squareDistance(xTile, yTile, xv, yv)
+                    });
+                }
+            }
+        }
+        aTilesToLoad.sort((a, b) => a.d - b.d);
+        for (let iTile = 0, l = aTilesToLoad.length; iTile < l; ++iTile) {
+            const {xTile, yTile} = aTilesToLoad[iTile];
+            n100 = (100 * iTile / nTileCount | 0);
+            this.progress(n100);
+            ++nTileFetched;
+            await this.fetchTile(xTile, yTile);
+        }
+
+        /*
+        for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
+            //let xTilePix = 0;
             for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
                 let wt = this._cache.load(xTile, yTile);
                 if (!wt) {
@@ -278,11 +308,11 @@ class Service {
                     wt = await this.fetchTile(xTile, yTile);
                 }
                 // si la tile est partiellement visible il faut la dessiner
-                xTilePix += tileSize;
+                //xTilePix += tileSize;
                 ++iTile;
             }
             yTilePix += tileSize;
-        }
+        }*/
         if (nTileFetched) {
             n100 = 100;
             this.progress(n100);

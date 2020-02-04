@@ -32,7 +32,7 @@ class Perlin {
 	static generateSmoothNoise(aBaseNoise, nOctave) {
 		let w = aBaseNoise.length;
 		let h = aBaseNoise[0].length;
-		let aSmoothNoise = [];
+		let aSmoothNoise = new Array(h);
 		let r;
 		let nSamplePeriod = 1 << nOctave;
 		let fSampleFreq = 1 / nSamplePeriod;
@@ -43,7 +43,7 @@ class Perlin {
       		ys0 = y - (y % nSamplePeriod);
       		ys1 = (ys0 + nSamplePeriod) % h;
       		hBlend = (y - ys0) * fSampleFreq;
-      		r = [];
+      		r = new Float32Array(w);
 			let bny0 = aBaseNoise[ys0];
 			let bny1 = aBaseNoise[ys1];
       		for (x = 0; x < w; ++ x) {
@@ -68,20 +68,20 @@ class Perlin {
 	static generate(aBaseNoise, nOctaveCount) {
 		let w = aBaseNoise.length;
 		let h = aBaseNoise[0].length;
-		let aSmoothNoise = [];
+		let aSmoothNoise = new Array(nOctaveCount);
 		let fPersist = 0.5;
 
 		for (let i = 0; i < nOctaveCount; ++i) {
 			aSmoothNoise[i] = Perlin.generateSmoothNoise(aBaseNoise, i);
 		}
 
-		let aPerlinNoise = [];
+		let aPerlinNoise = new Array(h);
 		let fAmplitude = 1;
 		let fTotalAmp = 0;
 		let x, y, r;
 
 		for (y = 0; y < h; ++y) {
-			r = [];
+			r = new Float32Array(w);
 			for (x = 0; x < w; ++x) {
 				r[x] = 0;
 			}

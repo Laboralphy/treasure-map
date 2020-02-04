@@ -205,7 +205,7 @@ class Game extends osge.Game {
 
         // création du joueur
 		this.state.player = await this.spawnEntity(
-			'blimp',
+			'tugboat_1',
 			new Vector(oStartingTile.x * 256, oStartingTile.y * 256)
 		); // link below
 		this.domevents.on(oCanvas, 'click', event => this.clickHandler(event));
