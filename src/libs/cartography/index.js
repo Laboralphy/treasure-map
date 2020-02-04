@@ -120,7 +120,11 @@ class Service {
         this.log('starting service');
         await this._tr.loadBrushes(wgd.brushes);
         this.log('brushes loaded');
-        this._wwio = await this.createWorker();
+        this._wwioHorde = new Array(4);
+        for (let iw = 0; iw < this._wwioHorde.length; ++iw) {
+            this._wwioHorde[iw] = await this.createWorker();
+        }
+        this._wwio = this._wwioHorde[0];
         this.log('web worker instance created', wgd.worker);
     }
 
@@ -205,7 +209,7 @@ class Service {
         };
     }
 
-    async fetchTile(x, y) {
+    async fetchTile(x, y, bExtra = false) {
         return new Promise(resolve => {
             // verification en cache
             let oCanvas = CanvasHelper.createCanvas(
@@ -287,12 +291,24 @@ class Service {
             }
         }
         aTilesToLoad.sort((a, b) => a.d - b.d);
+
+        let ftPool = [];
         for (let iTile = 0, l = aTilesToLoad.length; iTile < l; ++iTile) {
             const {xTile, yTile} = aTilesToLoad[iTile];
             n100 = (100 * iTile / nTileCount | 0);
             this.progress(n100);
             ++nTileFetched;
-            await this.fetchTile(xTile, yTile);
+            if (ftPool.length < this._wwioHorde.length) {
+                ftPool.push(this.fetchTile(xTile, yTile));
+            }
+            if (ftPool.length >= this._wwioHorde.length) {
+                await Promise.all(ftPool);
+                console.log('flush', this._wwioHorde.length);
+                ftPool = [];
+            }
+        }
+        if (ftPool.length > 0) {
+            await Promise.all(ftPool);
         }
 
         /*
@@ -345,7 +361,7 @@ class Service {
             return this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
                 this._fetching = false;
                 if (tileFetched > 0) {
-                    this.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
+                    console.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
                 }
                 if (bRender) {
                     this.renderTiles();
