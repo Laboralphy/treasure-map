@@ -4,10 +4,9 @@ import {Helper, View, Vector} from '../geometry';
 import Cache2D from "../cache2d";
 import CanvasHelper from "../canvas-helper";
 import TileRenderer from "./TileRenderer";
-
+import Events from 'events';
 
 class Service {
-
     constructor({
         worker,     // url du service
         workerCount = 1, // nombre de workers
@@ -16,13 +15,15 @@ class Service {
         cellSize = 25, // taille des cellules voronoi (continents)
         tileSize, // taille des tuile de la carte
         palette,    // palette de couleurs
-        cache = 64, // taille du cache de tuiles
         preload = 0, // nombre de tuile a précharger autour de la zone de vue
         progress = null, // fonction callback appelée quand les tuiles se chargent
         scale = 1,  // zoom de tuiles
         altitudes, // url du json des altitudes
         physicGridSize,
-        names // nom des villes
+        names, // nom des villes
+        drawCoords = true, // ajouter des coordonnée
+        drawGrid = true, // ajouter des lignes sur le rendu
+        drawBrushes = true // dessiner les brush sur la carte
     }) {
         this._worldDef = {
             worker,
@@ -31,14 +32,16 @@ class Service {
             cellSize,
             tileSize,
             palette,
-            cache,
             preload,
             progress,
             brushes,
             scale,
             altitudes,
             physicGridSize,
-            names
+            names,
+            drawCoords,
+            drawGrid,
+            drawBrushes
         };
 
         if (worker === undefined) {
@@ -57,21 +60,30 @@ class Service {
             throw new Error('Cartography: "palette" property must be defined');
         }
 
-        if (cache === undefined) {
-            throw new Error('Cartography: "cache" property must be defined');
-        }
-
         if (physicGridSize === undefined) {
             throw new Error('Cartography: "physicGridSize" property must be defined');
         }
 
         this._view = new Vector();
         this._cache = new Cache2D({
-            size: cache
+            size: 64
         });
-        this._tr = new TileRenderer();
+
+        this._tr = new TileRenderer({
+            drawGrid, drawBrushes, drawCoords
+        });
         this._fetching = false;
         this._cacheAdjusted = false;
+        this._verbose = false;
+        this._events = new Events();
+    }
+
+    get verbose() {
+        return this._verbose;
+    }
+
+    set verbose(value) {
+        this._verbose = value;
     }
 
     get worldDef () {
@@ -80,6 +92,10 @@ class Service {
 
     get fetching() {
         return this._fetching;
+    }
+
+    get events() {
+        return this._events;
     }
 
     createWorker() {
@@ -94,7 +110,7 @@ class Service {
                 vorClusterSize: 4,
                 tileSize: wg.tileSize,
                 palette: wg.palette,
-                cache: wg.cache,
+                cache: this._cache.size,
                 names: wg.names,
                 physicGridSize: wg.physicGridSize,
                 altitudes: wg.altitudes,
@@ -110,16 +126,16 @@ class Service {
     }
 
     async start() {
-        const wgd = this._worldDef;
+        const wd = this._worldDef;
         this.log('starting service');
-        await this._tr.loadBrushes(wgd.brushes);
+        await this._tr.loadBrushes(wd.brushes);
         this.log('brushes loaded');
-        this._wwioHorde = new Array(wgd.workerCount);
+        this._wwioHorde = new Array(wd.workerCount);
         for (let iw = 0; iw < this._wwioHorde.length; ++iw) {
             this._wwioHorde[iw] = await this.createWorker();
         }
         this._wwio = this._wwioHorde[0];
-        this.log('web worker instance created', wgd.worker);
+        this.log('web worker instance created', wd.worker);
     }
 
     /**
@@ -138,7 +154,9 @@ class Service {
     }
 
     log(...args) {
-        //console.log('[c]', ...args);
+        if (this._verbose) {
+            console.log('[c]', ...args);
+        }
     }
 
     /**
@@ -148,22 +166,15 @@ class Service {
      * @returns {Promise<Boolean>}
      */
     adjustCacheSize(w, h) {
-        return new Promise(resolve => {
-            let tileSize = this._worldDef.tileSize;
-            let m = Service.getViewPointMetrics(this._view.x, this._view.y, w, h, tileSize, this._worldDef.preload);
-            let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
-            if (nNewSize !== this._worldDef.cache) {
-                this._worldDef.cache = nNewSize;
-                this._cache.size = nNewSize;
-                this._wwio.emit('options', {
-                    cacheSize: nNewSize
-                }, () => resolve(true));
-                this.log('new canvas size ( width', w, ', height', h, ')', 'adjusting cache size :', nNewSize);
-                this._cacheAdjusted = true;
-            } else {
-                resolve(true);
-            }
-        });
+        let tileSize = this._worldDef.tileSize;
+        let m = Service.getViewPointMetrics(this._view.x, this._view.y, w, h, tileSize, this._worldDef.preload);
+        let nNewSize = (m.yTo - m.yFrom + 2) * (m.xTo - m.xFrom + 2) * 2;
+        if (nNewSize !== this._cache.size) {
+            this._worldDef.cache = nNewSize;
+            this._cache.size = nNewSize;
+            this.log('new canvas size ( width', w, ', height', h, ')', 'adjusting cache size :', nNewSize);
+            this._cacheAdjusted = true;
+        }
     }
 
     /**
@@ -211,6 +222,7 @@ class Service {
                 this._worldDef.tileSize
             );
             const oTileData = {
+                x, y,
                 canvas: oCanvas,
                 painted: false,
                 physicMap: null
@@ -220,6 +232,7 @@ class Service {
                 this._tr.render(result, oCanvas);
                 oTileData.physicMap = result.physicMap;
                 oTileData.painted = true;
+                this._events.emit('tilepaint', oTileData);
                 resolve(oTileData);
             });
         });
@@ -297,7 +310,6 @@ class Service {
             }
             if (ftPool.length >= this._wwioHorde.length) {
                 await Promise.all(ftPool);
-                console.log('flush', this._wwioHorde.length);
                 ftPool = [];
             }
         }
@@ -305,24 +317,6 @@ class Service {
             await Promise.all(ftPool);
         }
 
-        /*
-        for (let yTile = m.yFrom; yTile <= m.yTo; ++yTile) {
-            //let xTilePix = 0;
-            for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
-                let wt = this._cache.load(xTile, yTile);
-                if (!wt) {
-                    // pas encore créée
-                    n100 = (100 * iTile / nTileCount | 0);
-                    this.progress(n100);
-                    ++nTileFetched;
-                    wt = await this.fetchTile(xTile, yTile);
-                }
-                // si la tile est partiellement visible il faut la dessiner
-                //xTilePix += tileSize;
-                ++iTile;
-            }
-            yTilePix += tileSize;
-        }*/
         if (nTileFetched) {
             n100 = 100;
             this.progress(n100);
@@ -341,7 +335,7 @@ class Service {
      * @param bRender {boolean} if true, then the tiles are rendered after preload
      * @return {Promise<boolean>} returns true if no preload was currently running, returns false if there is a preload currently runing
      */
-    view(oCanvas, vView, bRender = false) {
+    async view(oCanvas, vView, bRender = false) {
         this._viewedCanvas = oCanvas;
         this._viewedPosition = vView;
         let x = Math.round(vView.x);
@@ -352,19 +346,16 @@ class Service {
         this._view.set(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1));
         if (!this._fetching) {
             this._fetching = true;
-            return this.preloadTiles(x, y, oCanvas.width, oCanvas.height).then(({tileFetched, timeElapsed}) => {
-                this._fetching = false;
-                if (tileFetched > 0) {
-                    console.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
-                }
-                if (bRender) {
-                    this.renderTiles();
-                }
-                return true;
-            });
-        } else {
-            return Promise.resolve(true);
+            const {tileFetched, timeElapsed} = await this.preloadTiles(x, y, oCanvas.width, oCanvas.height);
+            this._fetching = false;
+            if (tileFetched > 0) {
+                this.log('fetched', tileFetched, 'tiles in', timeElapsed, 's.', (tileFetched * 10 / timeElapsed | 0) / 10, 'tiles/s');
+            }
+            if (bRender) {
+                this.renderTiles();
+            }
         }
+        return true;
     }
 
     renderTiles() {
@@ -387,6 +378,8 @@ class Service {
                     let yScreen = m.yOfs + yTilePix;
                     if (wt.painted) {
                         ctx.drawImage(wt.canvas, xScreen, yScreen);
+                    } else {
+                        console.log('wtf');
                     }
                 }
                 xTilePix += tileSize;

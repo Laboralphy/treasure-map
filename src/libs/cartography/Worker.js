@@ -44,7 +44,10 @@ class Worker {
       return true;
     }
 
-    actionOptions(options) {
+    actionOptions({
+        cache
+    }) {
+        this._wg._cache.tile.size = cache;
     }
 
     constructor() {
@@ -70,7 +73,6 @@ class Worker {
 
         wwio.on('find-tile', (oSearch, cb) => {
             let tile = null;
-            console.log(oSearch);
             switch (oSearch.type) {
                 case CONSTS.FIND_TILE_CLOSEST_BELOW_ALTITUDE:
                     tile = this._wg.findClosestTileBelowAltitude(

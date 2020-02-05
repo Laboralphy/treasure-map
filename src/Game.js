@@ -197,7 +197,6 @@ class Game extends osge.Game {
 		this._carto = c;
 		this.layers.push(this._spriteLayer = new SpriteLayer());
 
-		const vView = new Vector(0, 0);
 		await c.start();
 
 		// il faut trouver le point de départ du sprite-joueur

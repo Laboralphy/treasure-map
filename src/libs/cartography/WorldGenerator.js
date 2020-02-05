@@ -6,7 +6,6 @@ import Perlin from "../perlin";
 import Random from "../random";
 import * as Tools2D from '../tools2d';
 import TileGenerator from "./TileGenerator";
-import Names from '../names';
 import Rainbow from "../rainbow";
 import Bresenham from "../bresenham";
 
@@ -32,7 +31,6 @@ class WorldGenerator {
     constructor({
             seed = 0,
             palette,
-            cache = 64,
             tileSize,
             vorCellSize = 50,
             vorClusterSize = 6,
@@ -66,13 +64,12 @@ class WorldGenerator {
                 size: 4
             }),
             tile: new Cache2D({
-                size: cache
+                size: 64
             })
         };
         this._tileGenerator = new TileGenerator({
             seed,
             size: tileSize,
-            cache,
             physicGridSize,
             names,
             scale
@@ -83,7 +80,6 @@ class WorldGenerator {
             palette
         });
 
-        Names.setList('towns', names);
     }
 
     /**
@@ -261,8 +257,7 @@ class WorldGenerator {
         const wn = Tools2D.createArray2D(size, size, (x, y) => {
             // bruit initial
             const f = this._rand.rand();
-            let c = seed % 6;
-            c = 6;
+            let c = seed % 12;
             switch (c) {
                 case 0:
                     return f;
@@ -406,11 +401,11 @@ class WorldGenerator {
         const {cells, tiles} = vorCluster;
         const tileRow = tiles[sy_rpt];
         if (tileRow === undefined) {
-            throw new Error('this t is not located in this voronoi cluster');
+            throw new Error('this tile (' + x_rpt + ', ' + y_rpt + ') is not located in this voronoi cluster');
         }
         const tile = tileRow[sx_rpt];
         if (tile === undefined) {
-            throw new Error('this t is not located in this voronoi cluster');
+            throw new Error('this tile (' + x_rpt + ', ' + y_rpt + ') is not located in this voronoi cluster');
         }
         return tile;
     }
@@ -502,11 +497,20 @@ class WorldGenerator {
         });
 
         // à partir de ce point trouve un point d'altitude proche de la côte
-        const XXX = this.findClosestTileBelowAltitude(xLast, yLast, 0.45, 0.1);
-        console.log(XXX);
-        return XXX;
+        return this.findClosestTileBelowAltitude(xLast, yLast, 0.45, 0.1);
     }
 
+    /**
+     * Calcule les donnée nécessaire à l'exploitation d'une tile
+     * - colorMap : à transformer en canvas
+     * - physicMap : détermine les altitudes
+     * - sceneries : présence et position de villes
+     * - x, y : position de la tile
+     * - physicGridSize : taille pde la grille physique
+     * @param x_rpt {number} coordonnée Tile
+     * @param y_rpt {number} coordonnée Tile
+     * @returns {null|{sceneries, x: *, physicGridSize: *, y: *, colorMap: *, physicMap}}
+     */
     computeTile(x_rpt, y_rpt) {
         let oTile = this._cache.tile.load(x_rpt, y_rpt);
         if (oTile) {

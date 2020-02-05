@@ -3,6 +3,7 @@ import * as Tools2D from "../tools2d";
 import Random from "../random";
 import Perlin from "../perlin";
 import SceneryGenerator from "./SceneryGenerator";
+import Names from "../names";
 
 
 /**
@@ -10,19 +11,20 @@ import SceneryGenerator from "./SceneryGenerator";
  * les matrice de bruit sont fournie par la classe Cartography qui génère ce bruit en fonction d'une altitude global
  */
 class TileGenerator {
-
     constructor ({
-        cache = 64,
         seed = 0,
         size,
         physicGridSize,
         names,
         scale
     }) {
+        Names.setList('towns', names);
+
+        const CACHE_SIZE = 36;
         this._cache = {
-            wn: new Cache2D({size: cache}),
-            pn: new Cache2D({size: cache}),
-            t: new Cache2D({size: cache})
+            wn: new Cache2D({size: CACHE_SIZE}),
+            pn: new Cache2D({size: CACHE_SIZE}),
+            t: new Cache2D({size: CACHE_SIZE})
         };
         this._rand = new Random();
         this._scale = scale;

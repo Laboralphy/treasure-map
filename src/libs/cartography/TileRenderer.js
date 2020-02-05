@@ -19,26 +19,38 @@ const FONT_PAD = 4;
 const CITY_FONT_DEFINITION = 'px bold Times New Roman';
 
 class TileRenderer {
-    constructor() {
+    constructor({
+        drawGrid = true,
+        drawCoords = true,
+        drawBrushes = true
+    } = {}) {
         this._brushes = {};
-        this._drawGrid = true;
-        this._drawCoords = true;
+        this._drawGrid = drawGrid;
+        this._drawCoords = drawCoords;
+        this._drawBrushes = drawBrushes;
     }
 
     /**
      * Chargement des sceneries
+     * le format est le suivant :
+     * [
+     *   {
+     *      type,  type de brush (city, land...)
+     *      src,   url de l'image
+     *      code   code supplémentaire pour différentier kles brush de même type, cela varie en fonction du type
+     *   }
      */
     async loadBrushes(brushes) {
         // brushes
         for (let i = 0, l = brushes.length; i < l; ++i) {
-            const s = brushes[i];
-            const type = s.type;
+            const brush = brushes[i];
+            const type = brush.type;
             if (!(type in this._brushes)) {
                 this._brushes[type] = {};
             }
-            this._brushes[type][s.code] = {
-                img: await ImageLoader.load(s.src),
-                ...s
+            this._brushes[type][brush.code] = {
+                img: await ImageLoader.load(brush.src),
+                ...brush
             };
         }
         return this._brushes;
@@ -147,13 +159,29 @@ class TileRenderer {
 
 
     paintSceneries(oCanvas, data, physicGridSize) {
-        data.forEach(d => {
-            switch (d.type) {
-                case 'city':
-                    this.drawCity(oCanvas, d, physicGridSize);
-                    break;
-            }
-        });
+        if (this._drawBrushes) {
+            data.forEach(d => {
+                switch (d.type) {
+                    case 'city':
+                        this.drawCity(oCanvas, d, physicGridSize);
+                        break;
+                }
+            });
+        }
+    }
+
+    paintLandBrushes(ctx, physicMap, physicGridSize) {
+        if (this._drawBrushes) {
+            const oLandBrushes = this._brushes.land;
+            physicMap.forEach((row, y) => row.forEach((cell, x) => {
+                if ((x & 1) === (y & 1)) {
+                    const sScen = cell;
+                    if (sScen in oLandBrushes) {
+                        ctx.drawImage(oLandBrushes[sScen].img, x * physicGridSize, y * physicGridSize);
+                    }
+                }
+            }));
+        }
     }
 
 
@@ -171,17 +199,8 @@ class TileRenderer {
         // ajout des brushes
         const ctx = cvs.getContext('2d');
         ctx.drawImage(cvsColor, 0, 0, cvsColor.width, cvsColor.height, 0, 0, cvs.width, cvs.height);
-        const oLandBrushes = this._brushes.land;
-        physicMap.forEach((row, y) => row.forEach((cell, x) => {
-            if ((x & 1) === (y & 1)) {
-                const sScen = cell;
-                if (sScen in oLandBrushes) {
-                    ctx.drawImage(oLandBrushes[sScen].img, x * physicGridSize, y * physicGridSize);
-                }
-            }
-        }));
         // ajout des sceneries
-
+        this.paintLandBrushes(ctx, physicMap, physicGridSize);
         this.paintLinesCoordinates(cvs, oTileData.x, oTileData.y);
         this.paintSceneries(cvs, sceneries, physicGridSize);
         return cvs;
