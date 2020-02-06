@@ -6,7 +6,8 @@ async function drawMap() {
 	const wm = new WorldMap();
 	await wm.initCartography(0);
 	wm.installMapCanvas();
-	wm.render(0, 0);
+	window.wm = wm;
+	return wm.render(0, 0);
 }
 
 async function runGame() {

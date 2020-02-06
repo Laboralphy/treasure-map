@@ -398,16 +398,14 @@ class WorldGenerator {
     getVoronoiTile(vorCluster, x_rpt, y_rpt) {
         const sx_rpt = x_rpt.toString();
         const sy_rpt = y_rpt.toString();
-        const {cells, tiles} = vorCluster;
-        const tileRow = tiles[sy_rpt];
-        if (tileRow === undefined) {
-            throw new Error('this tile (' + x_rpt + ', ' + y_rpt + ') is not located in this voronoi cluster');
+        let {cells, tiles} = vorCluster;
+        let tileRow = tiles[sy_rpt];
+        if (tileRow !== undefined && tileRow[sx_rpt] !== undefined) {
+          return tileRow[sx_rpt];
         }
-        const tile = tileRow[sx_rpt];
-        if (tile === undefined) {
-            throw new Error('this tile (' + x_rpt + ', ' + y_rpt + ') is not located in this voronoi cluster');
-        }
-        return tile;
+        // il peut arriver que certain tile borderline ne soit pas calculée
+
+        throw new Error('this cannot be retrieved in any voronoi cluster')
     }
 
     _cellFilterMinMax(base, value) {

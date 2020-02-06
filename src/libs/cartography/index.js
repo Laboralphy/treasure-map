@@ -78,6 +78,10 @@ class Service {
         this._events = new Events();
     }
 
+    get cache() {
+        return this._cache;
+    }
+
     get verbose() {
         return this._verbose;
     }
@@ -214,9 +218,8 @@ class Service {
         };
     }
 
-    async fetchTile(x, y, bExtra = false) {
+    async fetchTile(x, y) {
         return new Promise(resolve => {
-            // verification en cache
             let oCanvas = CanvasHelper.createCanvas(
                 this._worldDef.tileSize,
                 this._worldDef.tileSize
@@ -227,6 +230,7 @@ class Service {
                 painted: false,
                 physicMap: null
             };
+            // verification en cache
             this._cache.store(x, y, oTileData);
             this._wwio.emit('tile', {x, y}, result => {
                 this._tr.render(result, oCanvas);
@@ -378,8 +382,6 @@ class Service {
                     let yScreen = m.yOfs + yTilePix;
                     if (wt.painted) {
                         ctx.drawImage(wt.canvas, xScreen, yScreen);
-                    } else {
-                        console.log('wtf');
                     }
                 }
                 xTilePix += tileSize;

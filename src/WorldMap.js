@@ -1,4 +1,3 @@
-import CanvasHelper from "./libs/canvas-helper";
 import Cartography from "./libs/cartography";
 import Geometry from './libs/geometry';
 import Indicators from "./Indicators";
@@ -43,12 +42,12 @@ class WorldMap {
             preload: 0,
             palette: DATA.palette,
             cellSize: 25,
-            tileSize: 16,
+            tileSize: 8,
             worker: '../dist/worker.js',
             workerCount: Math.max(1, navigator.hardwareConcurrency - 1),
             brushes: DATA.brushes,
             names: DATA.towns_fr,
-            physicGridSize: 16,
+            physicGridSize: 8,
             scale: 2,
             progress: Indicators.progress,
             drawGrid: true,
