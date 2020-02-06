@@ -29,15 +29,15 @@ class WorldGenerator {
 
 
     constructor({
-            seed = 0,
-            palette,
-            tileSize,
-            vorCellSize = 50,
-            vorClusterSize = 6,
-            physicGridSize,
-            names,
-            scale = 1
-        }) {
+                    seed = 0,
+                    palette,
+                    tileSize,
+                    vorCellSize = 50,
+                    vorClusterSize = 6,
+                    physicGridSize,
+                    names,
+                    scale = 1
+                }) {
         if (
             palette === undefined ||
             tileSize === undefined ||
@@ -257,41 +257,73 @@ class WorldGenerator {
         const wn = Tools2D.createArray2D(size, size, (x, y) => {
             // bruit initial
             const f = this._rand.rand();
+
+
+            return Math.sin(3 * Math.PI * f + Math.PI) * 0.5 + 0.5;
+
+
+            // sinusoid dbl puls
+            // des iles très inégale en tailles
+            // certaines ont un coutours très irrégulier
+            // certaines îles sont submergées
+            return 0.5 * Math.sin(2 * Math.PI * f) + 0.5;
+
+            // sinusoid
+            // un peu comme inv square mais avec des surface d'îles plus reduite
+            // même genre de relief que inv square
+            return Math.sin(Math.PI * f);
+
+            // inv square
+            // des îles moyennes avec parfois des reliefs en cricques
+            // mais généralement des formes convexes et des côtes peu accidentée
+            // les îles les plus petites ont peu de hauts sommets
+            // une bonne alternative à l'identité
+            return 1 - (f * 2 - 1) * (f * 2 - 1);
+
+            // identity
+            // des îles très irrégulière, et parfois totalement immergées
+            // les contours sont très irréguliers
+            return f;
+
+            // square root
+            // des iles moyennes aux contours parfois irregulier
+            // avec quelques petits lacs
+            return Math.sqrt(f);
+
             let c = seed % 12;
             switch (c) {
                 case 0:
+                    // normal elevation
                     return f;
 
                 case 1:
-                    return f * f;
-
-                case 2:
+                    // élève le niveau moyen des terre
                     return f * 0.5 + 0.4;
 
-                case 3:
+                case 2:
                     // phat isles
                     return Math.sqrt(1 - f);
 
+                case 3:
+                    // mountains !!
+                    return Geometry.Helper.distance(size / 2, size / 2, x, y) > (size * 0.2)
+                        ? f * 0.5 + 0.5
+                        : f;
+
                 case 4:
-                  // mountains !!
-                  return Geometry.Helper.distance(size / 2, size / 2, x, y) > (size * 0.2)
-                    ? f * 0.5 + 0.5
-                    : f;
+                    // no mountains and not much land
+                    return Geometry.Helper.distance(size / 2, size / 2, x, y) > (size * 0.2)
+                        ? f * 0.333 + 0.333
+                        : f * 0.666;
 
                 case 5:
-                  // no mountains and not much land
-                  return Geometry.Helper.distance(size / 2, size / 2, x, y) > (size * 0.2)
-                    ? f * 0.333 + 0.333
-                    : f * 0.666;
+                    // sunken south east
+                    return x < (size * 0.6) || y < (size * 0.6)
+                        ? f
+                        : f * 0.7;
 
-              case 6:
-                  // sunken south east
-                  return x < (size * 0.6) || y < (size * 0.6)
-                    ? f
-                    : f * 0.7;
-
-              default:
-                  return Math.sqrt(f);
+                default:
+                    return Math.sqrt(f);
             }
         });
         const pn = Perlin.generate(wn, 6);
@@ -401,7 +433,7 @@ class WorldGenerator {
         let {cells, tiles} = vorCluster;
         let tileRow = tiles[sy_rpt];
         if (tileRow !== undefined && tileRow[sx_rpt] !== undefined) {
-          return tileRow[sx_rpt];
+            return tileRow[sx_rpt];
         }
         // il peut arriver que certain tile borderline ne soit pas calculée
 
