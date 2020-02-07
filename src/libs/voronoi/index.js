@@ -1,4 +1,4 @@
-import Geometry from '../geometry';
+import Geometry from '../geometry'
 
 class Voronoi {
     constructor() {
@@ -48,31 +48,41 @@ class Voronoi {
         });
     }
 
+
+    createNearest(p, pi) {
+        return {
+          x: pi.x,
+          y: pi.y,
+          distance: (pi.x - p.x) * (pi.x - p.x) + (pi.y - p.y) * (pi.y - p.y),
+          index:  pi.index,
+          median: {
+            x: (pi.x + p.x) / 2,
+            y: (pi.y + p.y) / 2
+          }
+        };
+    }
+
     computeNearestPoint(p, n) {
-        const aNearestFound = this._germs
+
+        // renvoie true si pAsking est déja classé comme voisin par pChecked
+        const hasChoseThisPoint = (pAsking, pChecked) => !!pChecked.nearest.find(xx => xx.nearest === pAsking.index)
+        const germs = this._germs;
+        const aNearestFound = germs
             .filter(pi => pi.index !== p.index)
-            .map(pi => ({
-                x: pi.x,
-                y: pi.y,
-                distance: (pi.x - p.x) * (pi.x - p.x) + (pi.y - p.y) * (pi.y - p.y),
-                index: {
-                    origin: p.index,
-                    nearest: pi.index
-                },
-                median: {
-                    x: (pi.x + p.x) / 2,
-                    y: (pi.y + p.y) / 2
-                }
-            }));
+            .map(pi => this.createNearest(p, pi));
+
         if (aNearestFound.length >= n) {
             aNearestFound.sort((pa, pb) => pa.distance - pb.distance)
-                .slice(0, n)
-                .forEach(pi => p.nearest.push(pi));
+              .slice(0, n)
+              .forEach(pi => {
+                p.nearest.push(pi);
+              });
         }
     }
 
     computeNearest(n) {
-        this._germs
+        const germs = this._germs;
+        germs
             .filter(p => p.interior)
             .forEach(p => {
                 this.computeNearestPoint(p, n);
@@ -97,7 +107,7 @@ class Voronoi {
     }
 
     isInsideAllSemiPlanes(x, y, p) {
-        return p.nearest.every(pi => this.isInsideSemiPlaneNearest(x, y, p, pi));
+        return p.nearest.length > 0 && p.nearest.every(pi => this.isInsideSemiPlaneNearest(x, y, p, pi));
     }
 
     _computeCellPointDistance(x, y, p) {
@@ -143,9 +153,9 @@ class Voronoi {
         }
         germ.regions.inner = [{x: xInnerMin, y: yInnerMin}, {x: xInnerMax, y: yInnerMax}];
         this._region[0].x = Math.min(this._region[0].x, xInnerMin);
-        this._region[0].y = Math.min(this._region[0].y, xInnerMax);
-        this._region[1].x = Math.min(this._region[1].x, xInnerMax);
-        this._region[1].y = Math.min(this._region[1].y, yInnerMax);
+        this._region[0].y = Math.min(this._region[0].y, yInnerMin);
+        this._region[1].x = Math.max(this._region[1].x, xInnerMax);
+        this._region[1].y = Math.max(this._region[1].y, yInnerMax);
         return aPoints;
     }
 

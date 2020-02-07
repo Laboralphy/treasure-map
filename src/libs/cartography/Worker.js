@@ -26,7 +26,8 @@ class Worker {
         vorCellSize,
         vorClusterSize,
         physicGridSize,
-        scale
+        scale,
+        turbulence
     }) {
 
       this.log('creating world generator');
@@ -39,7 +40,8 @@ class Worker {
         vorClusterSize,
         names,
         physicGridSize,
-        scale
+        scale,
+        turbulence
       });
       return true;
     }
@@ -70,6 +72,10 @@ class Worker {
         wwio.on('tile', ({x, y}, cb) => {
             cb(this._wg.computeTile(x, y));
         });
+
+        wwio.on('vor', ({x, y}, cb) => {
+            cb(this._wg.computeVoronoiHeightMap(x, y));
+        })
 
         wwio.on('find-tile', (oSearch, cb) => {
             let tile = null;

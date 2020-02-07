@@ -23,7 +23,8 @@ class Service {
         names, // nom des villes
         drawCoords = true, // ajouter des coordonnée
         drawGrid = true, // ajouter des lignes sur le rendu
-        drawBrushes = true // dessiner les brush sur la carte
+        drawBrushes = true, // dessiner les brush sur la carte
+        turbulence = 0.3
     }) {
         this._worldDef = {
             worker,
@@ -41,7 +42,8 @@ class Service {
             names,
             drawCoords,
             drawGrid,
-            drawBrushes
+            drawBrushes,
+            turbulence
         };
 
         if (worker === undefined) {
@@ -118,7 +120,8 @@ class Service {
                 names: wg.names,
                 physicGridSize: wg.physicGridSize,
                 altitudes: wg.altitudes,
-                scale: wg.scale
+                scale: wg.scale,
+                turbulence: wg.turbulence
             }, response => {
                 if (response.status === 'error') {
                     reject(new Error('web worker error: ' + response.error));
@@ -218,7 +221,7 @@ class Service {
         };
     }
 
-    async fetchTile(x, y) {
+    async fetchTile(x, y, iWorker = 0) {
         return new Promise(resolve => {
             let oCanvas = CanvasHelper.createCanvas(
                 this._worldDef.tileSize,
@@ -232,7 +235,8 @@ class Service {
             };
             // verification en cache
             this._cache.store(x, y, oTileData);
-            this._wwio.emit('tile', {x, y}, result => {
+            const ww = this._wwioHorde[iWorker];
+            ww.emit('tile', {x, y}, result => {
                 this._tr.render(result, oCanvas);
                 oTileData.physicMap = result.physicMap;
                 oTileData.painted = true;
@@ -310,7 +314,8 @@ class Service {
             this.progress(n100);
             ++nTileFetched;
             if (ftPool.length < this._wwioHorde.length) {
-                ftPool.push(this.fetchTile(xTile, yTile));
+                const iww = ftPool.length;
+                ftPool.push(this.fetchTile(xTile, yTile, iww));
             }
             if (ftPool.length >= this._wwioHorde.length) {
                 await Promise.all(ftPool);
@@ -388,6 +393,49 @@ class Service {
             }
             yTilePix += tileSize;
         }
+    }
+
+    renderVoronoiCluster(oCanvas, x, y) {
+        this._wwio.emit('vor', {x, y}, vor => {
+            const {tiles} = vor;
+            const w2 = oCanvas.width >> 1;
+            const h2 = oCanvas.height >> 1;
+            const ctx = oCanvas.getContext('2d');
+            for (let sYBase in tiles) {
+              for (let sXBase in tiles[sYBase]) {
+                const t = tiles[sYBase][sXBase];
+                const xb = parseInt(sXBase);
+                const yb = parseInt(sYBase);
+                const n = (new Array(3)).fill(t.z * 255 | 0).join(', ');
+                ctx.fillStyle = 'rgba(' + n + ', 0.5)';
+                ctx.fillRect(w2 + xb, h2 + yb, 1, 1);
+              }
+            }
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(
+              w2 + vor.vor._region[0].x,
+              h2 + vor.vor._region[0].y,
+              vor.vor._region[1].x - vor.vor._region[0].x + 1,
+              vor.vor._region[1].y - vor.vor._region[0].y + 1
+            );
+            vor.vor._germs.forEach(g => {
+                ctx.fillStyle = 'green';
+                ctx.strokeStyle = 'rgba(0, 0, 255, 0.4)';
+                ctx.fillRect(w2 + g.x, h2 + g.y, 2, 2);
+                ctx.fillStyle = 'white';
+                /*g.nearest.forEach(n => {
+                  ctx.beginPath();
+                  const x1 = w2 + g.x, y1 = h2 + g.y;
+                  const x2 = n.x + w2, y2 = n.y + h2;
+                  const x3 = (x1 * 3 + x2) >> 2;
+                  const y3 = (y1 * 3 + y2) >> 2;
+                  ctx.moveTo(x1, y1);
+                  ctx.lineTo(x2, y2);
+                  ctx.stroke();
+                  ctx.fillRect(x3 - 1, y3 - 1, 3, 3);
+                });*/
+            });
+        });
     }
 }
 

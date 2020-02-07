@@ -36,7 +36,8 @@ class WorldGenerator {
                     vorClusterSize = 6,
                     physicGridSize,
                     names,
-                    scale = 1
+                    scale = 1,
+                    turbulence = 0.25
                 }) {
         if (
             palette === undefined ||
@@ -51,6 +52,7 @@ class WorldGenerator {
         this._rand = new Random();
         this._rand.seed = seed;
         this._physicGridSize = physicGridSize;
+        this._turbulence = turbulence;
         this._scale = scale;
 
         this._metrics = {
@@ -178,7 +180,7 @@ class WorldGenerator {
         const vcs = m.voronoiCellSize;
         const vcs2 = vcs >> 1;
         const vcsOddOffset = odd ? vcs2 : 0;
-        const vcsDelta = Math.floor(vcs / 3.5);
+        const vcsDelta = Math.floor(this._turbulence * vcs);
         const xGerm_rpt = Math.floor(this.rpg_rpt(x_rpg) - vcsOddOffset + vcsDelta * hx);
         const yGerm_rpt = Math.floor(this.rpg_rpt(y_rpg) + vcsDelta * hy);
         return {x: xGerm_rpt, y: yGerm_rpt};
@@ -199,10 +201,6 @@ class WorldGenerator {
         // position rpg de debut
         const xBase_rpg = this.rpv_rpg(x_rpv);
         const yBase_rpg = this.rpv_rpg(y_rpv);
-
-        // position rpg de fin
-        const xEnd_rpg = xBase_rpg + VOR_CLUSTER_SIZE_RPG;
-        const yEnd_rpg = yBase_rpg + VOR_CLUSTER_SIZE_RPG;
 
         // bordure additionnelle
         // les germes sont espacés de voronoiCellSize tuiles
@@ -240,7 +238,7 @@ class WorldGenerator {
                 );
             }
         }
-        v.compute(6);
+        v.compute(9);
         return v;
     }
 
@@ -253,13 +251,11 @@ class WorldGenerator {
      */
     computeContinentalPerlinNoise(map, size, seed) {
         this._rand.seed = seed;
-
         const wn = Tools2D.createArray2D(size, size, (x, y) => {
             // bruit initial
             const f = this._rand.rand();
 
-
-            return Math.sin(3 * Math.PI * f + Math.PI) * 0.5 + 0.5;
+            return 1 - Math.pow(Math.sin(Math.PI * f + 0.5 * Math.PI), 4);
 
 
             // sinusoid dbl puls
@@ -275,7 +271,7 @@ class WorldGenerator {
 
             // inv square
             // des îles moyennes avec parfois des reliefs en cricques
-            // mais généralement des formes convexes et des côtes peu accidentée
+            // mais généralement des formes convexes et des côtes peu accidentées
             // les îles les plus petites ont peu de hauts sommets
             // une bonne alternative à l'identité
             return 1 - (f * 2 - 1) * (f * 2 - 1);
@@ -428,16 +424,15 @@ class WorldGenerator {
      * @param y_rpt {number} coordonnée Y de la tuile
      */
     getVoronoiTile(vorCluster, x_rpt, y_rpt) {
-        const sx_rpt = x_rpt.toString();
-        const sy_rpt = y_rpt.toString();
-        let {cells, tiles} = vorCluster;
-        let tileRow = tiles[sy_rpt];
-        if (tileRow !== undefined && tileRow[sx_rpt] !== undefined) {
-            return tileRow[sx_rpt];
+        let {tiles} = vorCluster;
+        const x$ = x_rpt.toString();
+        const y$ = y_rpt.toString();
+        let tileRow = tiles[y$];
+        if (tileRow !== undefined && tileRow[x$] !== undefined) {
+          return tileRow[x$];
+        } else {
+            return null;
         }
-        // il peut arriver que certain tile borderline ne soit pas calculée
-
-        throw new Error('this cannot be retrieved in any voronoi cluster')
     }
 
     _cellFilterMinMax(base, value) {

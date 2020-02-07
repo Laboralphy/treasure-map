@@ -173,7 +173,8 @@ class Game extends osge.Game {
       names: DATA.towns_fr,
       physicGridSize: 16,
       scale: 2,
-      progress: Indicators.progress
+      progress: Indicators.progress,
+      turbulence: 0.3
     });
   }
 

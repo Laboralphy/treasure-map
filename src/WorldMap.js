@@ -53,6 +53,7 @@ class WorldMap {
             drawGrid: true,
             drawBrushes: false,
             drawCoords: false,
+            turbulence: 0.3
         });
         this._carto = c;
         c.events.on('tilepaint', ({
