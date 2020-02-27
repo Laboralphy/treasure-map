@@ -174,7 +174,7 @@ class Game extends osge.Game {
       physicGridSize: 16,
       scale: 2,
       progress: Indicators.progress,
-      turbulence: 0.3
+      turbulence: 0.8
     });
   }
 
@@ -197,7 +197,7 @@ class Game extends osge.Game {
 
     // création du joueur
     this.state.player = await this.spawnEntity(
-      'tugboat_1',
+      'raft_0',
       new Vector(oStartingTile.x * 256, oStartingTile.y * 256)
     ); // link below
     this.domevents.on(oCanvas, 'click', event => this.clickHandler(event));

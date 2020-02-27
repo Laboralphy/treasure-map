@@ -1,0 +1,8 @@
+{
+    "angleSpeed": 0.1,
+    "enginePower": 0.1,
+    "maxSpeed": 2,
+    "tileset": "raft_0",
+    "thinker": "boat",
+    "collision": 1
+}

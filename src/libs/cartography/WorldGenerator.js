@@ -239,7 +239,7 @@ class WorldGenerator {
                 );
             }
         }
-        v.compute(9);
+        v.compute(36);
         return v;
     }
 
@@ -256,7 +256,7 @@ class WorldGenerator {
             // bruit initial
             const r = this._rand.rand();
             const n = pcghash(x, y, seed);
-            const f = noise_functions[n % noise_functions.length];
+            const f = noise_functions[1];
             return f(r);
         });
         const pn = Perlin.generate(wn, 6);

@@ -21,3 +21,6 @@ then
 else
   echo "the web directory /var/www/html does not exist : no need to deploy"
 fi
+
+
+
