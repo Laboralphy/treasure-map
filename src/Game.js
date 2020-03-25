@@ -174,7 +174,7 @@ class Game extends osge.Game {
       physicGridSize: 16,
       scale: 2,
       progress: Indicators.progress,
-      turbulence: 0.8
+      turbulence: 0.2
     });
   }
 

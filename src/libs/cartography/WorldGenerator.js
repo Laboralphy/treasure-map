@@ -239,7 +239,7 @@ class WorldGenerator {
                 );
             }
         }
-        v.compute(36);
+        v.compute(18);
         return v;
     }
 

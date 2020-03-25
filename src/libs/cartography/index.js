@@ -24,7 +24,7 @@ class Service {
         drawCoords = true, // ajouter des coordonnée
         drawGrid = true, // ajouter des lignes sur le rendu
         drawBrushes = true, // dessiner les brush sur la carte
-        turbulence = 0.3
+        turbulence = 0.2
     }) {
         this._worldDef = {
             worker,
