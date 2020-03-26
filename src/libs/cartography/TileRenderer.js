@@ -56,6 +56,15 @@ class TileRenderer {
         return this._brushes;
     }
 
+    getBrushesStatus() {
+        const a = [];
+        for (let b in this._brushes) {
+            const brush = this._brushes[b];
+            a.push({type: b, count: Object.keys(brush).length})
+        }
+        return a;
+    }
+
     paintLinesCoordinates(tile, xCurs, yCurs) {
         let ctx = tile.getContext('2d');
         if (this._drawGrid) {
@@ -156,8 +165,6 @@ class TileRenderer {
         ctx.fillText(name, xf, yf);
     }
 
-
-
     paintSceneries(oCanvas, data, physicGridSize) {
         if (this._drawBrushes) {
             data.forEach(d => {
@@ -183,7 +190,6 @@ class TileRenderer {
             }));
         }
     }
-
 
     render(oTileData, cvs) {
         const {colorMap, physicMap, sceneries, physicGridSize} = oTileData;

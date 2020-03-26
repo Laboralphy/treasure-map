@@ -137,6 +137,7 @@ class Service {
         this.log('starting service');
         await this._tr.loadBrushes(wd.brushes);
         this.log('brushes loaded');
+        this._tr.getBrushesStatus().forEach(s => this.log('brush type :', s.type, s.count, 'item' + (s.count > 1 ? 's' :'')));
         this._wwioHorde = new Array(wd.workerCount);
         for (let iw = 0; iw < this._wwioHorde.length; ++iw) {
             this._wwioHorde[iw] = await this.createWorker();
@@ -242,14 +243,6 @@ class Service {
                 oTileData.painted = true;
                 this._events.emit('tilepaint', oTileData);
                 resolve(oTileData);
-            });
-        });
-    }
-
-    findTile(type, oParameters) {
-        return new Promise((resolve, reject) => {
-            this._wwio.emit('find-tile', {type, ...oParameters}, result => {
-                resolve(result);
             });
         });
     }
@@ -395,48 +388,6 @@ class Service {
         }
     }
 
-    renderVoronoiCluster(oCanvas, x, y) {
-        this._wwio.emit('vor', {x, y}, vor => {
-            const {tiles} = vor;
-            const w2 = oCanvas.width >> 1;
-            const h2 = oCanvas.height >> 1;
-            const ctx = oCanvas.getContext('2d');
-            for (let sYBase in tiles) {
-              for (let sXBase in tiles[sYBase]) {
-                const t = tiles[sYBase][sXBase];
-                const xb = parseInt(sXBase);
-                const yb = parseInt(sYBase);
-                const n = (new Array(3)).fill(t.z * 255 | 0).join(', ');
-                ctx.fillStyle = 'rgba(' + n + ', 0.5)';
-                ctx.fillRect(w2 + xb, h2 + yb, 1, 1);
-              }
-            }
-            ctx.strokeStyle = 'red';
-            ctx.strokeRect(
-              w2 + vor.vor._region[0].x,
-              h2 + vor.vor._region[0].y,
-              vor.vor._region[1].x - vor.vor._region[0].x + 1,
-              vor.vor._region[1].y - vor.vor._region[0].y + 1
-            );
-            vor.vor._germs.forEach(g => {
-                ctx.fillStyle = 'green';
-                ctx.strokeStyle = 'rgba(0, 0, 255, 0.4)';
-                ctx.fillRect(w2 + g.x, h2 + g.y, 2, 2);
-                ctx.fillStyle = 'white';
-                /*g.nearest.forEach(n => {
-                  ctx.beginPath();
-                  const x1 = w2 + g.x, y1 = h2 + g.y;
-                  const x2 = n.x + w2, y2 = n.y + h2;
-                  const x3 = (x1 * 3 + x2) >> 2;
-                  const y3 = (y1 * 3 + y2) >> 2;
-                  ctx.moveTo(x1, y1);
-                  ctx.lineTo(x2, y2);
-                  ctx.stroke();
-                  ctx.fillRect(x3 - 1, y3 - 1, 3, 3);
-                });*/
-            });
-        });
-    }
 }
 
 export default Service;

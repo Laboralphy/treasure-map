@@ -1,8 +1,6 @@
 import Game from './Game';
 import parseSearch from "./libs/parse-search";
 import WorldMap from './WorldMap';
-import Voronoi from './libs/voronoi'
-import WorldGenerator from './libs/cartography/WorldGenerator'
 
 async function drawMap() {
 	const wm = new WorldMap();
@@ -10,15 +8,6 @@ async function drawMap() {
 	wm.installMapCanvas();
 	window.wm = wm;
 	return wm.render(0, 0);
-}
-
-async function drawVoronoi() {
-  const wm = new WorldMap();
-  await wm.initCartography(0);
-  wm.installMapCanvas();
-  window.wm = wm;
-  //wm._carto.renderVoronoiCluster(document.querySelector('canvas.world'), 0, 0);
-  wm._carto.renderVoronoiCluster(document.querySelector('canvas.world'), 2, 0);
 }
 
 async function runGame() {
