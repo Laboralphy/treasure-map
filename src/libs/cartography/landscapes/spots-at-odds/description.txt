@@ -1,0 +1,2 @@
+Un générateur qui place de petites îles aux coordonnées x, y avec x et y impairs.
+Chaque île est un disque ayant pour diamètre la moitié de la longueur du côté de la tuile.

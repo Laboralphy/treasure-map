@@ -2,11 +2,11 @@ import Geometry from '../geometry';
 import Cache2D from "../cache2d";
 import Random from "../random";
 import * as Tools2D from '../tools2d';
-import TileGenerator from "./TileGenerator";
 import Rainbow from "../rainbow";
 import SceneryGenerator from "./SceneryGenerator";
+import Names from "../names";
 
-import computeHeightMap from './landscapes/spots-at-odds';
+import computeHeightMap from './landscapes/continental-perlin';
 
 const {Vector, View, Point} = Geometry;
 
@@ -37,24 +37,30 @@ class WorldGenerator {
         this._tileSize = tileSize;
         this._scaledTileSize = this.getScaledValue(tileSize);
         this._sceneryGenerator = new SceneryGenerator();
+        this._heightMap = [];
 
         this._cache = {
             tile: new Cache2D({
                 size: 64
             })
         };
-        this._tileGenerator = new TileGenerator({
-            seed,
-            size: tileSize,
-            physicGridSize,
-            names,
-            scale
-        });
+
+        Names.setList('towns', names);
 
         this._palette = [];
         this.options({
             palette
         });
+    }
+
+    resizeHeightMap(size) {
+        if (this._heightMap.length !== size) {
+            const heightMap = new Array(size);
+            for (let y = 0; y < size; ++y) {
+                heightMap[y] = new Float32Array(size);
+            }
+            this._heightMap = heightMap;
+        }
     }
 
     getScaledValue(n) {
@@ -112,21 +118,13 @@ class WorldGenerator {
         return {xOfs, yOfs, size};
     }
 
-    _cellFilterMinMax(base, value) {
-        if (base < 0.45) {
-            return base * value;
-        } else {
-            return Math.max(0, Math.min(0.999, Math.sqrt(value + base - 0.45)));
-        }
-    }
-
     /**
      * Permet d'indexer des zone physique de terrain (déduite à partir de l'altitude min et l'altitude max
      * @param data
-     * @param meshSize
      * @returns {Array}
      */
-    computePhysicMap(data, meshSize) {
+    computePhysicMap(data) {
+        const meshSize = this._scaledPhysicGridSize;
         let aMap = [];
         function disc(n) {
             if (n < 0.5) {
@@ -154,20 +152,30 @@ class WorldGenerator {
                     aMap[yMesh][xMesh] = {
                         min: 5,
                         max: 0,
-                        type: 0
                     };
                 }
                 let m = aMap[yMesh][xMesh];
                 m.min = Math.min(m.min, cell);
                 m.max = Math.max(m.max, cell);
-                m.type = disc(m.min) * 10 + disc(m.max);
             });
         });
-        return Tools2D.map2D(aMap, (x, y, cell) => cell.type);
+        return Tools2D.map2DUint8(aMap, (x, y, m) => m.type = disc(m.min) * 10 + disc(m.max));
     }
 
     computeHeightMap(x_rpt, y_rpt) {
-        return computeHeightMap(x_rpt, y_rpt, this._scaledTileSize);
+        const sts = this._scaledTileSize;
+        this.resizeHeightMap(sts);
+        /**
+         * carte de hauteur de la tuille x_rpt, yrpt,
+         * chaque entrée est une valeur entre 0 (fond de l'océan) et 1 (top montagne)
+         * @type {Float32Array[]}
+         */
+        const heightMap = this._heightMap;
+        for (let y = 0; y < sts; ++y) {
+            heightMap[y] = new Float32Array(sts);
+        }
+        computeHeightMap(heightMap, x_rpt, y_rpt, sts, this.seed);
+        return heightMap;
     }
 
     computeColorMap(heightMap) {
@@ -199,7 +207,7 @@ class WorldGenerator {
             return oTile;
         }
         const heightMap = this.computeHeightMap(x_rpt, y_rpt);
-        const physicMap = this.computePhysicMap(heightMap, this._scaledPhysicGridSize);
+        const physicMap = this.computePhysicMap(heightMap);
         const colorMap = this.computeColorMap(heightMap);
         const sceneries = this._sceneryGenerator.generate(this.seed, x_rpt, y_rpt, physicMap);
         oTile = {

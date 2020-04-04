@@ -174,7 +174,7 @@ class Game extends osge.Game {
       physicGridSize: 16,
       scale: 2,
       progress: Indicators.progress,
-      turbulence: 0.2
+      drawBrushes: false
     });
   }
 
@@ -193,7 +193,7 @@ class Game extends osge.Game {
     await c.start();
 
     // il faut trouver le point de départ du sprite-joueur
-    const oStartingTile = {x: 0, y: 0};
+    const oStartingTile = {x: 15, y: 15};
 
     // création du joueur
     this.state.player = await this.spawnEntity(

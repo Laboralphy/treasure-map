@@ -1,9 +1,10 @@
-import Geometry from "../../../geometry";
+import HeightMapPerlinizer from "../../HeightMapPerlinizer";
 
-/*
-Cette fonction créé des îles circulaires, de rayon tileSize / 4, dans chaque tuiles (x, y) ayant x et y impairs
- */
+const hmp = new HeightMapPerlinizer(128, 0);
 
+function computeTile(x, y) {
+    return hmp.generate(x, y);
+}
 
 /**
  * fonction principale
@@ -15,13 +16,12 @@ Cette fonction créé des îles circulaires, de rayon tileSize / 4, dans chaque 
  * @returns {[]}
  */
 function main(heightMap, x, y, tileSize, seed) {
-    const bIsle = (x & 1) === 1 && (y & 1) === 1;
+    const hm = computeTile(x, y);
     for (let iy = 0; iy < tileSize; ++iy) {
         const row = heightMap[iy];
+        const hrow = hm[iy];
         for (let ix = 0; ix < tileSize; ++ix) {
-            row[ix] = bIsle
-                ? Math.max(0, 1 - (Geometry.Helper.distance(ix, iy, tileSize >> 1, tileSize >> 1) / (tileSize >> 1)))
-                : 0;
+            row[ix] = hrow[ix];
         }
     }
 }

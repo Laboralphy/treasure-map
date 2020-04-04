@@ -6,8 +6,11 @@ import DATA from "./data";
 class WorldMap {
     constructor() {
         this._carto = null;
-        window.carto = this;
         this._mapCanvas = null;
+    }
+
+    get cartography() {
+        return this._carto;
     }
 
     installMapCanvas() {
@@ -31,18 +34,16 @@ class WorldMap {
 
     render(x, y) {
         const vView = new Geometry.Vector(x, y);
-        console.log('view', x, y);
         return this._carto.view(this._mapCanvas, vView, true);
     }
 
 
-    initCartography(seed) {
+    initCartography(seed, params) {
         const c = new Cartography({
             seed,
             preload: 0,
             palette: DATA.palette,
-            cellSize: 25,
-            tileSize: 8,
+            tileSize: 16,
             worker: '../dist/worker.js',
             workerCount: Math.max(1, navigator.hardwareConcurrency - 1),
             brushes: DATA.brushes,
@@ -52,10 +53,10 @@ class WorldMap {
             progress: Indicators.progress,
             drawGrid: true,
             drawBrushes: false,
-            drawCoords: false,
-            turbulence: 0.3
+            drawCoords: false
         });
         this._carto = c;
+        c.verbose = true;
         c.events.on('tilepaint', ({
             canvas, x, y
         }) => {

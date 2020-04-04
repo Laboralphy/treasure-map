@@ -12,7 +12,6 @@ class Service {
         workerCount = 1, // nombre de workers
         brushes,     // chemin des sceneries
         seed = 0, // graine aléatoire
-        cellSize = 25, // taille des cellules voronoi (continents)
         tileSize, // taille des tuile de la carte
         palette,    // palette de couleurs
         preload = 0, // nombre de tuile a précharger autour de la zone de vue
@@ -24,13 +23,11 @@ class Service {
         drawCoords = true, // ajouter des coordonnée
         drawGrid = true, // ajouter des lignes sur le rendu
         drawBrushes = true, // dessiner les brush sur la carte
-        turbulence = 0.2
     }) {
         this._worldDef = {
             worker,
             workerCount,
             seed,
-            cellSize,
             tileSize,
             palette,
             preload,
@@ -42,8 +39,7 @@ class Service {
             names,
             drawCoords,
             drawGrid,
-            drawBrushes,
-            turbulence
+            drawBrushes
         };
 
         if (worker === undefined) {
@@ -78,6 +74,8 @@ class Service {
         this._cacheAdjusted = false;
         this._verbose = false;
         this._events = new Events();
+
+        this._lastProgress = -1;
     }
 
     get cache() {
@@ -89,7 +87,15 @@ class Service {
     }
 
     set verbose(value) {
-        this._verbose = value;
+        if (value !== this._verbose) {
+            if (!value) {
+                this.log('verbose mode off');
+            }
+            this._verbose = value;
+            if (value) {
+                this.log('verbose mode on');
+            }
+        }
     }
 
     get worldDef () {
@@ -112,16 +118,13 @@ class Service {
             this.log('web worker instance created', wg.worker);
             wwio.emit('init', {
                 seed: wg.seed,
-                vorCellSize: wg.cellSize,
-                vorClusterSize: 4,
                 tileSize: wg.tileSize,
                 palette: wg.palette,
                 cache: this._cache.size,
                 names: wg.names,
                 physicGridSize: wg.physicGridSize,
                 altitudes: wg.altitudes,
-                scale: wg.scale,
-                turbulence: wg.turbulence
+                scale: wg.scale
             }, response => {
                 if (response.status === 'error') {
                     reject(new Error('web worker error: ' + response.error));
@@ -138,12 +141,15 @@ class Service {
         await this._tr.loadBrushes(wd.brushes);
         this.log('brushes loaded');
         this._tr.getBrushesStatus().forEach(s => this.log('brush type :', s.type, s.count, 'item' + (s.count > 1 ? 's' :'')));
-        this._wwioHorde = new Array(wd.workerCount);
-        for (let iw = 0; iw < this._wwioHorde.length; ++iw) {
+        const wwc = wd.workerCount;
+        this._wwioHorde = new Array(wwc);
+        this.log('creation of', wwc, 'worker' + (wwc > 1 ? 's' : ''));
+        for (let iw = 0; iw < wwc; ++iw) {
             this._wwioHorde[iw] = await this.createWorker();
         }
         this._wwio = this._wwioHorde[0];
-        this.log('web worker instance created', wd.worker);
+        const sVersion = await this.version();
+        console.info('cartography service version', sVersion);
     }
 
     /**
@@ -155,9 +161,12 @@ class Service {
     }
 
     progress(n100) {
-        this.log('progress', n100 + '%');
-        if (typeof this._worldDef.progress === 'function') {
-            this._worldDef.progress(n100);
+        if (this._lastProgress !== n100) {
+            this.log('progress', n100 + '%');
+            if (typeof this._worldDef.progress === 'function') {
+                this._worldDef.progress(n100);
+            }
+            this._lastProgress = n100;
         }
     }
 
@@ -190,6 +199,14 @@ class Service {
      */
     clearCache() {
         this._cacheAdjusted = false;
+    }
+
+    version() {
+        return new Promise((resolve, reject) => {
+            this._wwio.emit('version', {}, ({version}) => {
+                resolve(version);
+            });
+        });
     }
 
     /**
@@ -276,6 +293,7 @@ class Service {
     }
 
     async preloadTiles(x, y, w, h) {
+        this.log('preloading tiles', x, y, w, h);
         let tStart = performance.now();
         let tileSize = this._worldDef.tileSize;
         let m = Service.getViewPointMetrics(x, y, w, h, tileSize, this._worldDef.preload);

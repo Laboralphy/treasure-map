@@ -2,9 +2,11 @@ import Game from './Game';
 import parseSearch from "./libs/parse-search";
 import WorldMap from './WorldMap';
 
-async function drawMap() {
+async function drawMap({size = 16}) {
 	const wm = new WorldMap();
-	await wm.initCartography(0);
+	await wm.initCartography(0, {
+	    tileSize: size
+    });
 	wm.installMapCanvas();
 	window.wm = wm;
 	return wm.render(0, 0);
@@ -22,9 +24,7 @@ async function runGame() {
 function main() {
     const params = parseSearch();
     if (params.map == 1) {
-      return drawMap();
-    } else if (params.map == 2) {
-      return drawVoronoi();
+      return drawMap(params);
     } else {
         return runGame()
     }
