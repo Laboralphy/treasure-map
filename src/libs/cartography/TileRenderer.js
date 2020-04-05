@@ -16,6 +16,7 @@ const PHYS_PEAK = 55;
 const COORDS_FONT_DEFINITION = 'italic 13px Times New Roman';
 const FONT_SIZE = 28;
 const FONT_PAD = 4;
+const FONT_STROKE_WIDTH = 2;
 const CITY_FONT_DEFINITION = 'px bold Times New Roman';
 
 class TileRenderer {
@@ -79,7 +80,8 @@ class TileRenderer {
             let sText;
             ctx.font = COORDS_FONT_DEFINITION;
             ctx.textBaseline = 'top';
-            ctx.strokeStyle = '#efce8c';
+            ctx.strokeStyle = '#c7ab74';
+            ctx.lineWidth = 2;
             ctx.fillStyle = 'rgba(57, 25, 7)';
             sText = 'lat:  ' + yCurs.toString();
             ctx.strokeText(sText, 25, 4);
@@ -95,7 +97,8 @@ class TileRenderer {
 
     setCityNameFont(ctx, nFontSize) {
         ctx.textBaseline = 'top';
-        ctx.strokeStyle = '#efce8c';
+        ctx.strokeStyle = '#c7ab74';
+        ctx.lineWidth = FONT_STROKE_WIDTH;
         ctx.fillStyle = 'rgba(57, 25, 7)';
         ctx.font = nFontSize + CITY_FONT_DEFINITION;
     }

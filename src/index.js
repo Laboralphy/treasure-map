@@ -2,14 +2,22 @@ import Game from './Game';
 import parseSearch from "./libs/parse-search";
 import WorldMap from './WorldMap';
 
-async function drawMap({size = 16}) {
+async function drawMap(
+    {
+        size = 16,
+        x = 0,
+        y = 0,
+        seed = 0
+    }) {
 	const wm = new WorldMap();
 	await wm.initCartography(0, {
-	    tileSize: size
+	    tileSize: parseInt(size),
+        seed: parseInt(seed)
     });
 	wm.installMapCanvas();
 	window.wm = wm;
-	return wm.render(0, 0);
+
+	return wm.render(x, y);
 }
 
 async function runGame() {

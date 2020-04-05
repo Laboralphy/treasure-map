@@ -173,8 +173,7 @@ class Game extends osge.Game {
       names: DATA.towns_fr,
       physicGridSize: 16,
       scale: 2,
-      progress: Indicators.progress,
-      drawBrushes: false
+      progress: Indicators.progress
     });
   }
 
@@ -193,7 +192,7 @@ class Game extends osge.Game {
     await c.start();
 
     // il faut trouver le point de départ du sprite-joueur
-    const oStartingTile = {x: 15, y: 15};
+    const oStartingTile = {x: 0, y: 0};
 
     // création du joueur
     this.state.player = await this.spawnEntity(

@@ -50,6 +50,7 @@ class Entity {
         }
         this.thinker = THINKERS[blueprint.thinker];
         blueprint.position.set(vPosition);
+        blueprint.destination.set(vPosition);
         this.sprite = sprite;
     }
 }

@@ -28,6 +28,7 @@ class WorldMap {
                     y - (oCanvas.height >> 1)
                 )
             );
+            console.info('viewing', v.x, v.y);
             this.render(v.x, v.y);
         });
     }
@@ -53,10 +54,10 @@ class WorldMap {
             progress: Indicators.progress,
             drawGrid: true,
             drawBrushes: false,
-            drawCoords: false
+            drawCoords: false,
+            ...params
         });
         this._carto = c;
-        c.verbose = true;
         c.events.on('tilepaint', ({
             canvas, x, y
         }) => {
