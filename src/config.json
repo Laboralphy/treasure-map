@@ -2,5 +2,8 @@
     "timer": 40,
     "player": {
         "blueprint": "blimp"
+    },
+    "world": {
+        "continent": 16
     }
 }

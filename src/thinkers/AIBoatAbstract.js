@@ -1,6 +1,6 @@
 import Boat from './Boat';
-import Automaton from '../libs/automaton';
-import Geometry from '../libs/geometry';
+import Automaton from 'libs/automaton';
+import Geometry from 'libs/geometry';
 
 class AIBoatAbstract extends Boat {
 

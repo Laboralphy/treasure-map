@@ -4,6 +4,11 @@
 const path = require('path');
 
 module.exports = {
+    resolve: {
+        alias: {
+            libs: path.resolve(__dirname, 'src/libs')
+        }
+    },
     entry: {
         'app': path.resolve(__dirname, 'src/index.js'),
         'worker': path.resolve(__dirname, 'src/worker.js'),

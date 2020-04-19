@@ -1,4 +1,4 @@
-import Geometry from '../libs/geometry';
+import Geometry from 'libs/geometry';
 import AIBoatAbstract from './AIBoatAbstract';
 
 const AI_SCHEMA = {

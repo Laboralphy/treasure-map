@@ -159,7 +159,7 @@ class WorldGenerator {
                 m.max = Math.max(m.max, cell);
             });
         });
-        return Tools2D.map2DUint8(aMap, (x, y, m) => m.type = disc(m.min) * 10 + disc(m.max));
+        return Tools2D.map2D(aMap, (x, y, m) => m.type = disc(m.min) * 10 + disc(m.max), Uint8Array);
     }
 
     computeHeightMap(x_rpt, y_rpt) {

@@ -13,11 +13,11 @@ class WorldMap {
         return this._carto;
     }
 
-    installMapCanvas() {
+    installMapCanvas({width = 1024, height = 768} = {}) {
         const oCanvas = document.querySelector('canvas.world');
         const elemMapContainer = document.querySelector('div.world-container');
-        oCanvas.width = 1024;
-        oCanvas.height = 768;
+        oCanvas.width = width;
+        oCanvas.height = height;
         elemMapContainer.appendChild(oCanvas);
         this._mapCanvas = oCanvas;
         oCanvas.addEventListener('click', event => {
@@ -59,7 +59,7 @@ class WorldMap {
         });
         this._carto = c;
         c.events.on('tilepaint', ({
-            canvas, x, y
+            canvas, x, y, sceneries
         }) => {
             const ctx = canvas.getContext("2d");
             if (x === 0 && y === 0) {

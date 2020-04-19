@@ -2,9 +2,7 @@ import Geometry from './libs/geometry'
 import osge from './libs/osge';
 import Cartography from './libs/cartography';
 import Indicators from './Indicators';
-import THINKERS from './thinkers';
 import DATA from './data/index';
-import * as CARTOGRAPHY_CONSTS from './libs/cartography/consts';
 import CONFIG from "./config.json";
 import Entity from "./Entity";
 
@@ -173,7 +171,8 @@ class Game extends osge.Game {
       names: DATA.towns_fr,
       physicGridSize: 16,
       scale: 2,
-      progress: Indicators.progress
+      progress: Indicators.progress,
+      drawPhysicCodes: false
     });
   }
 

@@ -78,9 +78,9 @@ class HeightMapPerlinizer {
 
     generateWhiteNoise() {
         const rand = this._rand;
-        return Tools2D.createArray2DFloat32(this.size, this.size, (x, y) => {
+        return Tools2D.createArray2D(this.size, this.size, (x, y) => {
             return rand.rand()
-        });
+        }, Float32Array);
     }
 
     /**
@@ -103,7 +103,7 @@ class HeightMapPerlinizer {
         return parseFloat(s);
     }
 
-    generate(x, y, callbacks) {
+    generate(x, y, options) {
         if (x >= Number.MAX_SAFE_INTEGER || x <= -Number.MAX_SAFE_INTEGER || y >= Number.MAX_SAFE_INTEGER || y <= -Number.MAX_SAFE_INTEGER) {
             throw new Error('trying to generate x:' + x + ' - y:' + y + ' - maximum safe integer is ' + Number.MAX_SAFE_INTEGER + ' !');
         }
@@ -111,9 +111,9 @@ class HeightMapPerlinizer {
         if (cached) {
             return cached;
         }
-        callbacks = callbacks || {};
-        const perlin = 'perlin' in callbacks ? callbacks.perlin : null;
-        const noise = 'noise' in callbacks ? callbacks.noise : null;
+        options = options || {};
+        const perlin = 'perlin' in options ? options.perlin : null;
+        const noise = 'noise' in options ? options.noise : null;
         const rand = this._rand;
         let wnCache = this._cache.wn;
         const gwn = (xg, yg) => {
@@ -159,7 +159,7 @@ class HeightMapPerlinizer {
         ];
 
         let a1 = merge33(a0);
-        let a2 = Perlin.generate(a1, this._octaves);
+        let a2 = !options.disabled ? Perlin.generate(a1, this._octaves) : a1;
         let a3 = extract33(a2);
         if (perlin) {
             a3 = perlin(x, y, a3);

@@ -3,39 +3,33 @@
  * @param w {number}
  * @param h {number}
  * @param feed {function}
+ * @param pType {ArrayConstructor|Uint8ArrayConstructor|Uint16ArrayConstructor|Uint32ArrayConstructor|BigUint64ArrayConstructor|Int8ArrayConstructor|Int16ArrayConstructor|Int32ArrayConstructor|BigInt64ArrayConstructor|Float32ArrayConstructor|Float64ArrayConstructor} row type (default : Array, can be Uint8Array, Float32Array ...)
  * @returns {[]}
  * @private
  */
-export function createArray2D (w, h, feed) {
+export function createArray2D (w, h, feed, pType = Array) {
     const a = [];
     for (let y = 0; y < h; ++y) {
-        const r = [];
+        const r = new pType(w);
         for (let x = 0; x < w; ++x) {
-            r.push(feed(x, y));
-        }
-        a.push(r);
-    }
-    return a;
-}
-
-/**
- * création rapide d'une matrice 2D constituée de flottant 32
- * @param w {number}
- * @param h {number}
- * @param feed {function}
- * @returns {[]}
- * @private
- */
-export function createArray2DFloat32 (w, h, feed) {
-    const a = new Array(h);
-    for (let y = 0; y < h; ++y) {
-        const r = new Float32Array(w);
-        for (let x = 0; x < w; ++x) {
-            r[x] = feed(x, y);
+            r[x] = feed instanceof Function
+                ? feed(x, y)
+                : feed;
         }
         a[y] = r;
     }
     return a;
+}
+
+
+function _createRow(aRow, pType = Array) {
+    switch (pType) {
+        case Array:
+            return aRow;
+
+        default:
+            return new pType(aRow);
+    }
 }
 
 /**
@@ -55,26 +49,25 @@ export function walk2D(aArray2D, cb) {
 /**
  * comme walk2D mais créé un nouveau tableau
  * @param aArray2D
+ * @param pType {ArrayConstructor} row type (default : Array, can be Uint8Array, Float32Array ...)
  * @param cb
  */
-export function map2D(aArray2D, cb) {
-    return aArray2D.map((row, y) => row.map((cell, x) => cb(x, y, cell)));
+export function map2D(aArray2D, cb, pType = Array) {
+    return aArray2D.map((row, y) => _createRow(row.map((cell, x) => cb(x, y, cell))), pType);
 }
 
-/**
- * comme map2D mais créé un tableau de Uint8Array
- * @param aArray2D
- * @param cb
- */
-export function map2DUint8(aArray2D, cb) {
-    return aArray2D.map((row, y) => new Uint8Array(row.map((cell, x) => cb(x, y, cell))));
+export function rotate(aArray, bDirect = false) {
+    const n = aArray.length;
+    if (n === 0) {
+        return [];
+    }
+    return createArray2D(n, n, (x, y) => bDirect
+        ? aArray[x][n - y - 1]
+        : aArray[n - x - 1][y], aArray[0].constructor
+    );
 }
 
-/**
- * comme map2D mais créé un tableau de Float32Array
- * @param aArray2D
- * @param cb
- */
-export function map2DFloat32(aArray2D, cb) {
-    return aArray2D.map((row, y) => new Float32Array(row.map((cell, x) => cb(x, y, cell))));
+export function rotateTwice(aArray) {
+    const a = rotate(aArray);
+    return rotate(aArray, a);
 }

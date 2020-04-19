@@ -4,13 +4,14 @@ import * as LinearInterpolator from "../../../linear-interpolator";
 import {mod} from "../../../r-mod";
 import Cache2D from "../../../cache2d";
 import Geometry from "../../../geometry";
+import CONFIG from "./config.json"
 
-const CONTINENT_SIZE = 16;
+const CONTINENT_SIZE = CONFIG.continentSize;
 
 class ContinentalPerlinGenerator {
     constructor(nTileSize, nContinentSize, seed) {
         this._oCache = {
-            cont: new Cache2D({ size: 36 })
+            cont: new Cache2D({ size: 4 })
         };
         this._nContinentSize = nContinentSize;
         this._hmpCont = new HeightMapPerlinizer(CONTINENT_SIZE, seed);
@@ -57,21 +58,29 @@ class ContinentalPerlinGenerator {
         return modYf * t + (1 - modYf) * b;
     }
 
-    cellFilterMinMax(base, value) {
-        if (base < 0.45) {
+    cellFilterMinMax(base, value, fThreshold = 0.45) {
+        if (base < fThreshold) {
             return base * value;
         } else {
-            return Math.max(0, Math.min(0.999, Math.sqrt(value + base - 0.45)));
+            return Math.max(0, Math.min(0.999, Math.sqrt(value + base - fThreshold)));
         }
     }
 
-    getBaseElevationCircleIslands(xTile, yTile, nRadius) {
+    getBaseElevationCircleIslands(x, y, nRadius, fBorder) {
         const nCircleSectorSize = nRadius << 1;
-        const xSectorOffset = mod(xTile, nCircleSectorSize);
-        const ySectorOffset = mod(yTile, nCircleSectorSize);
+        const xSectorOffset = mod(x, nCircleSectorSize);
+        const ySectorOffset = mod(y, nCircleSectorSize);
         const d = Geometry.Helper.distance(xSectorOffset, ySectorOffset, nRadius, nRadius);
-        //return Math.min(1, Math.abs((d - nRadius) / 4));
-        return Math.min(1, Math.sqrt(2 * Math.abs((d - nRadius) / nRadius)));
+        const f = Math.min(1, Math.abs((d - nRadius) / nRadius));
+        return LinearInterpolator.interpolate(f, [
+            { x: 0, y: 0 },
+            { x: fBorder / 2, y: 0.4 },
+            { x: fBorder, y: 0.7 },
+            { x: fBorder * 2, y: 0.7 },
+            { x: fBorder * 4, y: 0.78 },
+            { x: fBorder * 8, y: 1 },
+            { x: 1, y: 1 }
+        ]);
     }
 
     getContinentCell(xCont, yCont, xCell, yCell) {
@@ -107,6 +116,7 @@ class ContinentalPerlinGenerator {
 
     computeTile(xTile, yTile) {
         return this._hmpTile.generate(xTile, yTile, {
+            disabled: false,
             noise: (xComputedTile, yComputedTile, aNoise) => {
                 const cs = this._nContinentSize;
                 Tools2D.walk2D(aNoise, (xPix, yPix, cell) => {
@@ -114,10 +124,15 @@ class ContinentalPerlinGenerator {
                     const yCont = Math.floor(yComputedTile / cs);
                     const xContMod = mod(xComputedTile, cs);
                     const yContMod = mod(yComputedTile, cs);
-                    const base0 = this.getBaseElevationCircleIslands(xComputedTile, yComputedTile, this._nContinentSize);
+                    const s =  this._hmpTile.size;
+                    const base0 = this.getBaseElevationCircleIslands(
+                        xComputedTile * s + xPix,
+                        yComputedTile * s + yPix,
+                        this._nContinentSize * s,
+                        0.05
+                    );
                     const base1 = this.getBaseElevation(xCont, yCont, xContMod, yContMod, xPix, yPix);
-                    const base = base0 * base1;
-                    return this.cellFilterMinMax(base, cell);
+                    return this.cellFilterMinMax(base0 * base1, cell, 0.45);
                 });
                 return aNoise;
             }

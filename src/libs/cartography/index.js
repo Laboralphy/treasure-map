@@ -23,6 +23,7 @@ class Service {
         drawCoords = true, // ajouter des coordonnée
         drawGrid = true, // ajouter des lignes sur le rendu
         drawBrushes = true, // dessiner les brush sur la carte
+        drawPhysicCodes = false // dessiner les codes physiques (debug)
     }) {
         this._worldDef = {
             worker,
@@ -39,7 +40,8 @@ class Service {
             names,
             drawCoords,
             drawGrid,
-            drawBrushes
+            drawBrushes,
+            drawPhysicCodes
         };
 
         if (worker === undefined) {
@@ -68,7 +70,10 @@ class Service {
         });
 
         this._tr = new TileRenderer({
-            drawGrid, drawBrushes, drawCoords
+            drawGrid,
+            drawBrushes,
+            drawCoords,
+            drawPhysicCodes
         });
         this._fetching = false;
         this._cacheAdjusted = false;
@@ -249,7 +254,9 @@ class Service {
                 x, y,
                 canvas: oCanvas,
                 painted: false,
-                physicMap: null
+                alpha: 0,
+                physicMap: null,
+                sceneries: null
             };
             // verification en cache
             this._cache.store(x, y, oTileData);
@@ -257,6 +264,7 @@ class Service {
             ww.emit('tile', {x, y}, result => {
                 this._tr.render(result, oCanvas);
                 oTileData.physicMap = result.physicMap;
+                oTileData.sceneries = result.sceneries;
                 oTileData.painted = true;
                 this._events.emit('tilepaint', oTileData);
                 resolve(oTileData);
@@ -393,12 +401,22 @@ class Service {
             let xTilePix = 0;
             for (let xTile = m.xFrom; xTile <= m.xTo; ++xTile) {
                 let wt = this._cache.load(xTile, yTile);
-                if (wt) {
-                    let xScreen = m.xOfs + xTilePix;
-                    let yScreen = m.yOfs + yTilePix;
-                    if (wt.painted) {
-                        ctx.drawImage(wt.canvas, xScreen, yScreen);
+                let xScreen = m.xOfs + xTilePix;
+                let yScreen = m.yOfs + yTilePix;
+                if (wt && wt.painted) {
+                    const bSemiTrans = wt.alpha < 1;
+                    if (bSemiTrans) {
+                        ctx.clearRect(xScreen, yScreen, this.worldDef.tileSize, this.worldDef.tileSize);
+                        ctx.save();
+                        ctx.globalAlpha = wt.alpha;
+                        wt.alpha += 0.05;
                     }
+                    ctx.drawImage(wt.canvas, xScreen, yScreen);
+                    if (bSemiTrans) {
+                        ctx.restore();
+                    }
+                } else {
+                    ctx.clearRect(xScreen, yScreen, this.worldDef.tileSize, this.worldDef.tileSize);
                 }
                 xTilePix += tileSize;
             }

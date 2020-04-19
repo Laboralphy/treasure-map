@@ -195,14 +195,14 @@ function computeTile(xTile, yTile, tileSize) {
     const noise = (xg, yg, aNoise) => {
         const xt = mod(xg, CELL_SIZE) * tileSize;
         const yt = mod(yg, CELL_SIZE) * tileSize;
-        return Tools2D.map2DFloat32(aNoise, (x, y, cell) => {
+        return Tools2D.map2D(aNoise, (x, y, cell) => {
             const xtt = xt + x;
             const ytt = yt + y;
             const h1 = LinearInterpolator.interpolate(xtt, aSegments.x);
             const h2 = LinearInterpolator.interpolate(ytt, aSegments.y);
             const result = h1 * h2 * (1 + cell * 0);
             return Math.min(1, Math.max(0, result));
-        });
+        }, Float32Array);
     };
     hmp.size = tileSize;
     return hmp.generate(xTile, yTile, { noise });
