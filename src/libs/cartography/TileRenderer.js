@@ -2,7 +2,7 @@
  * A partir des donnée d'une tuile, créé un canvas et ajoute des information visuel, et paysagique
  */
 import CanvasHelper from "../canvas-helper";
-import PixelProcessor from "../pixel-processor";
+import PixelProcessor from "@laboralphy/pixel-processor";
 import Rainbow from "../rainbow";
 import ImageLoader from "../image-loader";
 
@@ -188,7 +188,7 @@ class TileRenderer {
     render(oTileData, cvs) {
         const {colorMap, physicMap, sceneries, physicGridSize} = oTileData;
         const cvsColor = CanvasHelper.createCanvas(colorMap.length, colorMap.length);
-        PixelProcessor.process(cvsColor, pp => {
+        PixelProcessor.paint(cvsColor, pp => {
             const nColor = colorMap[pp.y][pp.x];
             let oColor = Rainbow.parse(nColor);
             pp.color.r = oColor.r;

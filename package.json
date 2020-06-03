@@ -14,10 +14,11 @@
   "license": "ISC",
   "devDependencies": {
     "jasmine": "^3.5.0",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10"
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
   },
   "dependencies": {
+    "@laboralphy/pixel-processor": "^1.0.1",
     "webworkio": "^1.0.0"
   }
 }
