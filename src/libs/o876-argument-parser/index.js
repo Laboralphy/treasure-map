@@ -216,7 +216,7 @@ function parseCommandLineArguments(aArgs) {
 
 function parse(aArgs) {
     if (!Array.isArray(aArgs)) {
-        throw new TypeError('ArgumentPArser.parse : This function requires an array.')
+        throw new TypeError('ArgumentParser.parse : This function requires an array.')
     }
     const r = parseCommandLineArguments(aArgs);
     return buildArgumentStructure(r.switches, getArgumentDefinition());
