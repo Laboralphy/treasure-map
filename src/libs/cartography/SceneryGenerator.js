@@ -1,7 +1,7 @@
-import * as pf from 'libs/pattern-finder';
-import Names from 'libs/names';
-import pcghash from "libs/pcghash";
-import * as Tools2D from 'libs/tools2d'
+const pf = require('../pattern-finder');
+const Names = require('../names');
+const pcghash = require('../pcghash');
+const Tools2D = require('../tools2d');
 
 const PHYS_WATER = 11;
 const PHYS_SHORE = 12;
@@ -19,84 +19,95 @@ const PATTERN_CHAR_MATCHER = {
     'M': PHYS_PEAK
 };
 
-function getMatcher(sChar) {
-    if (sChar in PATTERN_CHAR_MATCHER) {
-        return PATTERN_CHAR_MATCHER[sChar];
-    } else {
-        throw new Error('this pattern char does not exist : "' + sChar + '"');
-    }
-}
-
-function convertCharPattern(aCharPattern) {
-    return aCharPattern
-        .map(row => new Uint8Array(
-            row
-                .split('')
-                .map(getMatcher)
-        ));
-}
-
-const PATTERN_BASE = {
-    port_north: convertCharPattern([
+const BASE_PATTERNS = {
+    port_north: [
         '....',
         '****',
         '----',
         '----'
-    ]),
-    port_north_east: convertCharPattern([
+    ],
+    port_north_east: [
         '**..',
         '-**.',
         '--**',
         '---*'
-    ]),
-    port_south_west: convertCharPattern([
-        '----',
+    ],
+    port_south_west: [
         '----',
         '*---',
-        '**--'
-    ])
-}
-
-const PATTERNS = {
-    port: [
-        {
-            name: 'size4east',
-            dir: 'e',
-            pattern: Tools2D.rotate(PATTERN_BASE.port_north)
-        }, {
-            name: 'size4west',
-            dir: 'w',
-            pattern: Tools2D.rotate(PATTERN_BASE.port_north, true)
-        }, {
-            name: 'size4south',
-            dir: 's',
-            pattern: Tools2D.rotateTwice(PATTERN_BASE.port_north)
-        }, {
-            name: 'size4north',
-            dir: 'n',
-            pattern: PATTERN_BASE.port_north
-        }, {
-            name: 'size4northeast',
-            dir: 'n',
-            pattern: PATTERN_BASE.port_north_east
-        }, {
-            name: 'size4northwest',
-            dir: 'n',
-            pattern: Tools2D.rotate(PATTERN_BASE.port_north_east, true)
-        }, {
-            name: 'size4southwest',
-            dir: 'w',
-            pattern: PATTERN_BASE.port_south_west
-        }, {
-            name: 'size4southeast',
-            dir: 'e',
-            pattern: Tools2D.rotate(PATTERN_BASE.port_south_west, true)
-        }
+        '**--',
+        '.**-'
     ]
 };
 
 
+
 class SceneryGenerator {
+
+    constructor() {
+        this.PATTERNS = this.buildPatterns();
+    }
+
+    static getMatcher(sChar) {
+        if (sChar in PATTERN_CHAR_MATCHER) {
+            return PATTERN_CHAR_MATCHER[sChar];
+        } else {
+            throw new Error('this pattern char does not exist : "' + sChar + '"');
+        }
+    }
+
+    convertCharPattern(aCharPattern) {
+        return aCharPattern
+            .map(row => new Uint8Array(
+                row
+                    .split('')
+                    .map(SceneryGenerator.getMatcher)
+            ));
+    }
+
+    buildPatterns() {
+        const oBasePatterns = {};
+        for (let p in BASE_PATTERNS) {
+            oBasePatterns[p] = this.convertCharPattern(BASE_PATTERNS[p]);
+        }
+        return {
+            port: [
+                {
+                    name: 'size4east',
+                    dir: 'e',
+                    pattern: Tools2D.rotate(oBasePatterns.port_north)
+                }, {
+                    name: 'size4west',
+                    dir: 'w',
+                    pattern: Tools2D.rotate(oBasePatterns.port_north, true)
+                }, {
+                    name: 'size4south',
+                    dir: 's',
+                    pattern: Tools2D.rotateTwice(oBasePatterns.port_north)
+                }, {
+                    name: 'size4north',
+                    dir: 'n',
+                    pattern: oBasePatterns.port_north
+                }, {
+                    name: 'size4northeast',
+                    dir: 'n',
+                    pattern: oBasePatterns.port_north_east
+                }, {
+                    name: 'size4northwest',
+                    dir: 'n',
+                    pattern: Tools2D.rotate(oBasePatterns.port_north_east, true)
+                }, {
+                    name: 'size4southwest',
+                    dir: 'w',
+                    pattern: oBasePatterns.port_south_west
+                }, {
+                    name: 'size4southeast',
+                    dir: 'e',
+                    pattern: Tools2D.rotate(oBasePatterns.port_south_west, true)
+                }
+            ]
+        };
+    }
 
     _suitablePosition(nSize, {x, y}) {
         return x > 0 && y > 0 && x < nSize - 4 && y < nSize - 4;
@@ -107,7 +118,7 @@ class SceneryGenerator {
         let aResults = [];
         const nSize = physicMap.length;
 
-        PATTERNS.port.forEach(({name, dir, pattern}) => {
+        this.PATTERNS.port.forEach(({name, dir, pattern}) => {
             aPatterns = pf
                 .findPatterns(physicMap, pattern)
                 .filter(p => this._suitablePosition(nSize, p));
@@ -142,4 +153,4 @@ class SceneryGenerator {
     }
 }
 
-export default SceneryGenerator;
+module.exports = SceneryGenerator;

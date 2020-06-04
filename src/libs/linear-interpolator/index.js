@@ -7,11 +7,11 @@
  * @param yb {number}
  * @returns {number}
  */
-export function interpolateSegment(x, xa, ya, xb, yb) {
+function interpolateSegment(x, xa, ya, xb, yb) {
     return x * (ya - yb) / (xa - xb) + (xa * yb - xb * ya) / (xa - xb);
 }
 
-export function findSegment(x, aSegments, i0 = null, i1 = null) {
+function findSegment(x, aSegments, i0 = null, i1 = null) {
     const nLen = aSegments.length;
     if (i0 === null) {
         return findSegment(x, aSegments, 0, nLen -1)
@@ -35,7 +35,7 @@ export function findSegment(x, aSegments, i0 = null, i1 = null) {
     }
 }
 
-export function interpolate(x, aSegments) {
+function interpolate(x, aSegments) {
     const i0 = findSegment(x, aSegments);
     if (i0 === false) {
         return false;
@@ -45,7 +45,7 @@ export function interpolate(x, aSegments) {
     return interpolateSegment(x, p0.x, p0.y, p1.x, p1.y);
 }
 
-export function makeSegments(...coords) {
+function makeSegments(...coords) {
     const a = [];
     for (let i = 0, l = coords.length; i < l; i += 2) {
         const x = coords[i];
@@ -54,3 +54,10 @@ export function makeSegments(...coords) {
     }
     return a;
 }
+
+module.exports = {
+    interpolate,
+    findSegment,
+    interpolateSegment,
+    makeSegments
+};

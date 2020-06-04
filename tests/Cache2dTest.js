@@ -1,4 +1,4 @@
-const Cache2D = require('../src/libs/cache2d').default;
+const Cache2D = require('../src/libs/cache2d');
 
 describe('cache 2D basic testing', function() {
   it('check an item can be retrieved', function() {

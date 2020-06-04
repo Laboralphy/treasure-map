@@ -14,4 +14,4 @@ class CharRegistry {
     }
 }
 
-export default CharRegistry;
+module.exports = CharRegistry;

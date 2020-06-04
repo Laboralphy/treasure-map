@@ -131,4 +131,4 @@ class Cache2D {
   }
 }
 
-export default Cache2D;
+module.exports = Cache2D;

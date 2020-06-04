@@ -1,4 +1,4 @@
-import NameCrafter from '../name-crafter';
+const NameCrafter = require('../name-crafter');
 
 const DATA = {
     towns: null,
@@ -20,7 +20,7 @@ function generateTownName(seed) {
     return sName.substr(0, 1) + sName.substr(1).toLowerCase();
 }
 
-export default {
+module.exports = {
     generateTownName,
     setList
 }

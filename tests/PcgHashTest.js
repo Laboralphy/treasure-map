@@ -1,4 +1,4 @@
-const pcghash = require('../src/libs/pcghash').default;
+const pcghash = require('../src/libs/pcghash');
 
 describe('pcg basic testing', function() {
     it('check if 100 points are evenly distributed', function() {

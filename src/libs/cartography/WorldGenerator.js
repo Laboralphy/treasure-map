@@ -1,12 +1,12 @@
-import Geometry from '../geometry';
-import Cache2D from "../cache2d";
-import Random from "../random";
-import * as Tools2D from '../tools2d';
-import Rainbow from "../rainbow";
-import SceneryGenerator from "./SceneryGenerator";
-import Names from "../names";
+const Geometry = require('../geometry');
+const Cache2D = require("../cache2d");
+const Random = require("../random");
+const Tools2D = require('../tools2d');
+const Rainbow = require("../rainbow");
+const SceneryGenerator = require("./SceneryGenerator");
+const Names = require("../names");
 
-import computeHeightMap from './landscapes/continental-perlin';
+const computeHeightMap = require('./landscapes/continental-perlin');
 
 const {Vector, View, Point} = Geometry;
 
@@ -223,4 +223,4 @@ class WorldGenerator {
     }
 }
 
-export default WorldGenerator;
+module.exports = WorldGenerator;

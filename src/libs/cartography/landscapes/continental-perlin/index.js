@@ -1,10 +1,10 @@
-import HeightMapPerlinizer from "../../HeightMapPerlinizer";
-import * as Tools2D from "../../../tools2d";
-import * as LinearInterpolator from "../../../linear-interpolator";
-import {mod} from "../../../r-mod";
-import Cache2D from "../../../cache2d";
-import Geometry from "../../../geometry";
-import CONFIG from "./config.json"
+const HeightMapPerlinizer = require("../../HeightMapPerlinizer");
+const Tools2D = require("../../../tools2d");
+const LinearInterpolator = require("../../../linear-interpolator");
+const {mod} = require("../../../r-mod");
+const Cache2D = require("../../../cache2d");
+const Geometry = require("../../../geometry");
+const CONFIG = require("./config.json");
 
 const CONTINENT_SIZE = CONFIG.continentSize;
 
@@ -169,4 +169,4 @@ function main(heightMap, x, y, tileSize, seed= 0) {
     }
 }
 
-export default main;
+module.exports = main;

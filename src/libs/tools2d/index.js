@@ -7,7 +7,7 @@
  * @returns {[]}
  * @private
  */
-export function createArray2D (w, h, feed, pType = Array) {
+function createArray2D (w, h, feed, pType = Array) {
     const a = [];
     for (let y = 0; y < h; ++y) {
         const r = new pType(w);
@@ -37,7 +37,7 @@ function _createRow(aRow, pType = Array) {
  * @param aArray2D {array}
  * @param cb {function}
  */
-export function walk2D(aArray2D, cb) {
+function walk2D(aArray2D, cb) {
     for (let y = 0, h = aArray2D.length; y < h; ++y) {
         const row = aArray2D[y];
         for (let x = 0, w = row.length; x < w; ++x) {
@@ -52,11 +52,11 @@ export function walk2D(aArray2D, cb) {
  * @param pType {ArrayConstructor} row type (default : Array, can be Uint8Array, Float32Array ...)
  * @param cb
  */
-export function map2D(aArray2D, cb, pType = Array) {
+function map2D(aArray2D, cb, pType = Array) {
     return aArray2D.map((row, y) => _createRow(row.map((cell, x) => cb(x, y, cell))), pType);
 }
 
-export function rotate(aArray, bDirect = false) {
+function rotate(aArray, bDirect = false) {
     const n = aArray.length;
     if (n === 0) {
         return [];
@@ -67,7 +67,15 @@ export function rotate(aArray, bDirect = false) {
     );
 }
 
-export function rotateTwice(aArray) {
+function rotateTwice(aArray) {
     const a = rotate(aArray);
     return rotate(aArray, a);
 }
+
+module.exports = {
+    rotate,
+    createArray2D,
+    map2D,
+    rotateTwice,
+    walk2D
+};

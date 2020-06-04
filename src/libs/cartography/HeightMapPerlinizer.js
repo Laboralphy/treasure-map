@@ -1,7 +1,8 @@
-import Cache2D from "../cache2d";
-import * as Tools2D from "../tools2d";
-import Random from "../random";
-import Perlin from "../perlin";
+const Cache2D = require("../cache2d");
+const Tools2D  = require("../tools2d");
+const Random  = require("../random");
+const Perlin  = require("../perlin");
+const hash = require('../shashi');
 
 
 /**
@@ -54,28 +55,6 @@ class HeightMapPerlinizer {
         this._cache.pn.size = size;
     }
 
-    /**
-     * creation du hash d'une seule valeur
-     * @param a {number}
-     * @returns {number}
-     */
-    static hash (a) {
-        if (a < 0) {
-            let b = 0, h = HeightMapPerlinizer.hash(-a);
-            while (h) {
-                b = (b << 4) | h & 15;
-                h >>= 4;
-            }
-            return Math.abs(b);
-        }
-        a = (a ^ 61) ^ (a >> 16);
-        a = a + (a << 3);
-        a = a ^ (a >> 4);
-        a = a * 0x27d4eb2d;
-        a = a ^ (a >> 15);
-        return a;
-    }
-
     generateWhiteNoise() {
         const rand = this._rand;
         return Tools2D.createArray2D(this.size, this.size, (x, y) => {
@@ -89,8 +68,8 @@ class HeightMapPerlinizer {
      * et de raccorder seamlessly les région adjacente
      */
     static getPointHash(x, y) {
-        let xh = HeightMapPerlinizer.hash(x).toString().split('');
-        let yh = HeightMapPerlinizer.hash(y).toString().split('');
+        let xh = hash(x).toString().split('');
+        let yh = hash(y).toString().split('');
         let s = xh.shift() + yh.shift() + '.';
         while (xh.length || yh.length) {
             if (xh.length) {
@@ -169,4 +148,4 @@ class HeightMapPerlinizer {
     }
 }
 
-export default HeightMapPerlinizer;
+module.exports = HeightMapPerlinizer;
