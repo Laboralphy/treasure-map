@@ -1,13 +1,8 @@
 import WorldGenerator from './WorldGenerator';
 import Webworkio from 'webworkio';
-import * as CONSTS from './consts';
+import {VERSION} from './version';
 
 class Worker {
-
-    log(...args) {
-        console.log('[ww]', ...args);
-    }
-
     /**
      * Initialisation des options
      * palette {url}
@@ -23,25 +18,17 @@ class Worker {
         seed,
         cache,
         tileSize,
-        vorCellSize,
-        vorClusterSize,
         physicGridSize,
-        scale,
-        turbulence
+        scale
     }) {
-
-      this.log('creating world generator');
       this._wg = new WorldGenerator({
         seed,
         palette,
         cache,
         tileSize,
-        vorCellSize,
-        vorClusterSize,
         names,
         physicGridSize,
-        scale,
-        turbulence
+        scale
       });
       return true;
     }
@@ -65,6 +52,10 @@ class Worker {
           }
         });
 
+        wwio.on('version', (options, cb) => {
+            cb({version: VERSION});
+        });
+
         wwio.on('options', (options) => {
             this.actionOptions(options);
         });
@@ -72,33 +63,6 @@ class Worker {
         wwio.on('tile', ({x, y}, cb) => {
             cb(this._wg.computeTile(x, y));
         });
-
-        wwio.on('vor', ({x, y}, cb) => {
-            cb(this._wg.computeVoronoiHeightMap(x, y));
-        })
-
-        wwio.on('find-tile', (oSearch, cb) => {
-            let tile = null;
-            switch (oSearch.type) {
-                case CONSTS.FIND_TILE_CLOSEST_BELOW_ALTITUDE:
-                    tile = this._wg.findClosestTileBelowAltitude(
-                        oSearch.x,
-                        oSearch.y,
-                        oSearch.z,
-                        oSearch.p
-                    );
-                    break;
-
-                case CONSTS.FIND_TILE_COAST_NEAR_DIRECTION:
-                    tile = this._wg.findCoastalTileDirection(
-                        oSearch.x,
-                        oSearch.y,
-                        oSearch.a
-                    )
-            }
-            cb(tile);
-        });
-
         this._wwio = wwio;
     }
 }

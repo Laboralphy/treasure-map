@@ -13,4 +13,4 @@ function pcghash(x, y, seed = 0) {
         : 0x7fffffff - n
 }
 
-export default pcghash;
+module.exports = pcghash;

@@ -126,4 +126,4 @@ class Perlin {
 
 }
 
-export default Perlin;
+module.exports = Perlin;

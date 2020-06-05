@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@laboralphy/pixel-processor": "^1.0.1",
+    "pngjs": "^5.0.0",
     "webworkio": "^1.0.0"
   }
 }

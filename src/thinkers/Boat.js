@@ -1,6 +1,6 @@
 import Aerostat from './Aerostat';
-import {computeWallCollisions} from '../libs/wall-collider';
-import Geometry from '../libs/geometry';
+import {computeWallCollisions} from 'libs/wall-collider';
+import Geometry from 'libs/geometry';
 
 class Boat extends Aerostat {
 

@@ -1,5 +1,5 @@
-import Geometry from '../libs/geometry';
-import {mod} from '../libs/r-mod';
+import Geometry from 'libs/geometry';
+import {mod} from 'libs/r-mod';
 
 const Vector = Geometry.Vector;
 

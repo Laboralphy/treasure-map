@@ -1,25 +1,48 @@
 import Game from './Game';
 import parseSearch from "./libs/parse-search";
 import WorldMap from './WorldMap';
-import Voronoi from './libs/voronoi'
-import WorldGenerator from './libs/cartography/WorldGenerator'
+import CONTINENT_CONFIG from 'libs/cartography/landscapes/continental-perlin/config.json';
 
-async function drawMap() {
+async function drawMap(
+    {
+        size = "16",
+        x = "0",
+        y = "0",
+        seed = "0",
+        width = "1024",
+        height = "1024"
+    }) {
 	const wm = new WorldMap();
-	await wm.initCartography(0);
-	wm.installMapCanvas();
+	await wm.initCartography(parseInt(seed), {
+	    tileSize: parseInt(size),
+        seed: parseInt(seed)
+    });
+	wm.installMapCanvas({
+        width: parseInt(width),
+        height: parseInt(height),
+    });
 	window.wm = wm;
-	return wm.render(0, 0);
+	return wm.render(parseInt(x), parseInt(y));
 }
 
-async function drawVoronoi() {
-  const wm = new WorldMap();
-  await wm.initCartography(0);
-  wm.installMapCanvas();
-  window.wm = wm;
-  //wm._carto.renderVoronoiCluster(document.querySelector('canvas.world'), 0, 0);
-  wm._carto.renderVoronoiCluster(document.querySelector('canvas.world'), 2, 0);
+async function drawContinent(
+    {
+        size = "16",
+        x = "0",
+        y = "0",
+        seed = "0"
+    }) {
+    const css = size * CONTINENT_CONFIG.continentSize << 1;
+    return drawMap({
+        size,
+        x: x * css + (css >> 1),
+        y: y * css + (css >> 1),
+        seed,
+        width: css,
+        height: css
+    })
 }
+
 
 async function runGame() {
     const g = new Game();
@@ -32,12 +55,15 @@ async function runGame() {
 
 function main() {
     const params = parseSearch();
-    if (params.map == 1) {
-      return drawMap();
-    } else if (params.map == 2) {
-      return drawVoronoi();
-    } else {
-        return runGame()
+    switch (params.mode) {
+        case 'map':
+            return drawMap(params);
+
+        case 'cont':
+            return drawContinent(params);
+
+        default:
+            return runGame();
     }
 }
 

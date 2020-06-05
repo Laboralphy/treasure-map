@@ -29,7 +29,9 @@ class Random {
      * @returns {number} a number between 0 and 1
      */
     rand() {
-        return this._seed = Math.abs(((Math.sin(this._seed) * 1e12) % 1e6) / 1e6);
+        const n = Math.abs(((Math.sin(this._seed) * 1e12) % 1e6) / 1e6);
+        this._seed = n === 0 ? 0.000001 : n;
+        return n;
     }
 
     /**
@@ -114,4 +116,4 @@ class Random {
     }
 }
 
-export default Random;
+module.exports = Random;

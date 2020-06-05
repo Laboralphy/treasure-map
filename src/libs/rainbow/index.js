@@ -372,4 +372,4 @@ class Rainbow {
 	}
 }
 
-export default Rainbow;
+module.exports = Rainbow;

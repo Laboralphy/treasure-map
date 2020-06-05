@@ -2,9 +2,7 @@ import Geometry from './libs/geometry'
 import osge from './libs/osge';
 import Cartography from './libs/cartography';
 import Indicators from './Indicators';
-import THINKERS from './thinkers';
 import DATA from './data/index';
-import * as CARTOGRAPHY_CONSTS from './libs/cartography/consts';
 import CONFIG from "./config.json";
 import Entity from "./Entity";
 
@@ -174,7 +172,7 @@ class Game extends osge.Game {
       physicGridSize: 16,
       scale: 2,
       progress: Indicators.progress,
-      turbulence: 0.8
+      drawPhysicCodes: false
     });
   }
 
@@ -193,11 +191,11 @@ class Game extends osge.Game {
     await c.start();
 
     // il faut trouver le point de départ du sprite-joueur
-    const oStartingTile = await c.findTile(CARTOGRAPHY_CONSTS.FIND_TILE_COAST_NEAR_DIRECTION, {x: 0, y: 0, a: 4});
+    const oStartingTile = {x: 0, y: 0};
 
     // création du joueur
     this.state.player = await this.spawnEntity(
-      'raft_0',
+      CONFIG.player.blueprint,
       new Vector(oStartingTile.x * 256, oStartingTile.y * 256)
     ); // link below
     this.domevents.on(oCanvas, 'click', event => this.clickHandler(event));
@@ -256,7 +254,6 @@ class Game extends osge.Game {
     const xEnt = entity.data.position.x;
     const yEnt = entity.data.position.y;
     const aColliders = this._collidingEntities.filter(e => {
-      if (e.data.collision !== 1) throw "WTF";
       if (e === entity) {
         return false;
       } else {

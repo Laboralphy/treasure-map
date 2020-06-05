@@ -1,4 +1,4 @@
-import Geometry from '../libs/geometry';
+import Geometry from 'libs/geometry';
 const Vector = Geometry.Vector;
 
 class Cursor {

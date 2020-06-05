@@ -1,6 +1,6 @@
 
 
-export function checkPatternAt(xPM, yPM, physicMap, pattern) {
+function checkPatternAt(xPM, yPM, physicMap, pattern) {
     const ymax = pattern.length;
     const xmax = pattern[0].length;
     for (let y = 0; y < ymax; ++y) {
@@ -14,7 +14,7 @@ export function checkPatternAt(xPM, yPM, physicMap, pattern) {
     return true;
 }
 
-export function findPatterns(physicMap, pattern) {
+function findPatterns(physicMap, pattern) {
     const aPatterns = [];
     const firstPatternCell = pattern[0][0];
     const ymax = physicMap.length - pattern.length + 1;
@@ -33,3 +33,7 @@ export function findPatterns(physicMap, pattern) {
     return aPatterns;
 }
 
+module.exports = {
+    checkPatternAt,
+    findPatterns
+};

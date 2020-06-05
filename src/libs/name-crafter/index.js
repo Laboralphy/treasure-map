@@ -1,5 +1,5 @@
-import Random from "../random";
-import CharRegistry from './CharRegistry';
+const Random = require("../random");
+const CharRegistry = require('./CharRegistry');
 
 const MAX_TRIES = 1024;
 
@@ -121,4 +121,4 @@ class NameCrafter {
     }
 }
 
-export default NameCrafter;
+module.exports = NameCrafter;

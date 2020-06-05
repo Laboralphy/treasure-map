@@ -16,18 +16,21 @@ const PHYS_PEAK = 55;
 const COORDS_FONT_DEFINITION = 'italic 13px Times New Roman';
 const FONT_SIZE = 28;
 const FONT_PAD = 4;
+const FONT_STROKE_WIDTH = 2;
 const CITY_FONT_DEFINITION = 'px bold Times New Roman';
 
 class TileRenderer {
     constructor({
         drawGrid = true,
         drawCoords = true,
-        drawBrushes = true
+        drawBrushes = true,
+        drawPhysicCodes = false
     } = {}) {
         this._brushes = {};
         this._drawGrid = drawGrid;
         this._drawCoords = drawCoords;
         this._drawBrushes = drawBrushes;
+        this._drawPhysicCodes = drawPhysicCodes;
     }
 
     /**
@@ -56,6 +59,15 @@ class TileRenderer {
         return this._brushes;
     }
 
+    getBrushesStatus() {
+        const a = [];
+        for (let b in this._brushes) {
+            const brush = this._brushes[b];
+            a.push({type: b, count: Object.keys(brush).length})
+        }
+        return a;
+    }
+
     paintLinesCoordinates(tile, xCurs, yCurs) {
         let ctx = tile.getContext('2d');
         if (this._drawGrid) {
@@ -70,7 +82,8 @@ class TileRenderer {
             let sText;
             ctx.font = COORDS_FONT_DEFINITION;
             ctx.textBaseline = 'top';
-            ctx.strokeStyle = '#efce8c';
+            ctx.strokeStyle = '#c7ab74';
+            ctx.lineWidth = 2;
             ctx.fillStyle = 'rgba(57, 25, 7)';
             sText = 'lat:  ' + yCurs.toString();
             ctx.strokeText(sText, 25, 4);
@@ -86,13 +99,15 @@ class TileRenderer {
 
     setCityNameFont(ctx, nFontSize) {
         ctx.textBaseline = 'top';
-        ctx.strokeStyle = '#efce8c';
+        ctx.strokeStyle = '#c7ab74';
+        ctx.lineWidth = FONT_STROKE_WIDTH;
         ctx.fillStyle = 'rgba(57, 25, 7)';
         ctx.font = nFontSize + CITY_FONT_DEFINITION;
     }
 
 
     drawCity(oCanvas, data, physicGridSize) {
+        const sDebug = this._drawPhysicCodes ? '*' : '';
         const {x, y, width, height, name, seed, dir} = data;
         let nFontSize = FONT_SIZE;
         if (name.length > 10) {
@@ -111,7 +126,7 @@ class TileRenderer {
             .values(this._brushes.city)
             .filter(b => b.orientation === sOrient);
         const city = cities[seed % cities.length];
-        switch (dir) {
+        switch (sDebug + dir) {
             case 'w':
                 ctx.drawImage(city.img , xm + physicGridSize, ym);
                 break;
@@ -131,6 +146,7 @@ class TileRenderer {
             default:
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
                 ctx.fillRect(xm, ym, wm, hm);
+                ctx.fillText(x + ':' + y, 0, 0);
         }
 
         this.setCityNameFont(ctx, nFontSize);
@@ -156,8 +172,6 @@ class TileRenderer {
         ctx.fillText(name, xf, yf);
     }
 
-
-
     paintSceneries(oCanvas, data, physicGridSize) {
         if (this._drawBrushes) {
             data.forEach(d => {
@@ -182,8 +196,14 @@ class TileRenderer {
                 }
             }));
         }
+        if (this._drawPhysicCodes) {
+            ctx.textBaseline = 'top';
+            physicMap.forEach((row, y) => row.forEach((cell, x) => {
+                const xPix = x * physicGridSize, yPix = y * physicGridSize;
+                ctx.fillText(cell, xPix, yPix);
+            }));
+        }
     }
-
 
     render(oTileData, cvs) {
         const {colorMap, physicMap, sceneries, physicGridSize} = oTileData;

@@ -6,15 +6,18 @@ import DATA from "./data";
 class WorldMap {
     constructor() {
         this._carto = null;
-        window.carto = this;
         this._mapCanvas = null;
     }
 
-    installMapCanvas() {
+    get cartography() {
+        return this._carto;
+    }
+
+    installMapCanvas({width = 1024, height = 768} = {}) {
         const oCanvas = document.querySelector('canvas.world');
         const elemMapContainer = document.querySelector('div.world-container');
-        oCanvas.width = 1024;
-        oCanvas.height = 768;
+        oCanvas.width = width;
+        oCanvas.height = height;
         elemMapContainer.appendChild(oCanvas);
         this._mapCanvas = oCanvas;
         oCanvas.addEventListener('click', event => {
@@ -25,24 +28,23 @@ class WorldMap {
                     y - (oCanvas.height >> 1)
                 )
             );
+            console.info('viewing', v.x, v.y);
             this.render(v.x, v.y);
         });
     }
 
     render(x, y) {
         const vView = new Geometry.Vector(x, y);
-        console.log('view', x, y);
         return this._carto.view(this._mapCanvas, vView, true);
     }
 
 
-    initCartography(seed) {
+    initCartography(seed, params) {
         const c = new Cartography({
             seed,
             preload: 0,
             palette: DATA.palette,
-            cellSize: 25,
-            tileSize: 8,
+            tileSize: 16,
             worker: '../dist/worker.js',
             workerCount: Math.max(1, navigator.hardwareConcurrency - 1),
             brushes: DATA.brushes,
@@ -53,11 +55,11 @@ class WorldMap {
             drawGrid: true,
             drawBrushes: false,
             drawCoords: false,
-            turbulence: 0.3
+            ...params
         });
         this._carto = c;
         c.events.on('tilepaint', ({
-            canvas, x, y
+            canvas, x, y, sceneries
         }) => {
             const ctx = canvas.getContext("2d");
             if (x === 0 && y === 0) {
