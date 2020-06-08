@@ -9,6 +9,7 @@ class Random {
 
     constructor() {
         this._seed = Math.random();
+        this.rand = this._rand_bcxx;
     }
 
     /**
@@ -28,10 +29,15 @@ class Random {
      * Return a random generated number using the simple sine-66 function
      * @returns {number} a number between 0 and 1
      */
-    rand() {
+    _rand_sin() {
         const n = Math.abs(((Math.sin(this._seed) * 1e12) % 1e6) / 1e6);
         this._seed = n === 0 ? 0.000001 : n;
         return n;
+    }
+
+    _rand_bcxx() {
+        this._seed = (22695477 * this._seed + 1) & 0xFFFFFFFF;
+        return (this._seed >>> 16) / 65536;
     }
 
     /**

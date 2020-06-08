@@ -97,6 +97,20 @@ function drawTile(x, y, seed) {
     fs.writeFileSync('tile.s' + seed + '.x' + x + '.y' + y + '.png', buffy);
 }
 
+function drawRow(x, y, width, seed) {
+    for (let i = 0; i < width; ++i) {
+        drawTile(x + i, y, seed);
+    }
+}
+
+function drawRegion(x, y, width, height, seed) {
+    console.log('drawing region', x, y, width, height, seed)
+    for (let i = 0; i < height; ++i) {
+        drawRow(x, y + i, width, seed);
+    }
+}
+
+
 
 function getParameters() {
     ArgumentParser.setArgumentDefinition([
@@ -116,6 +130,26 @@ function getParameters() {
             value: {
                 required: true,
                 type: 'number'
+            }
+        },
+        {
+            name: 'cols',
+            short: 'c',
+            desc: 'number of columns',
+            value: {
+                required: false,
+                type: 'number',
+                default: 1
+            }
+        },
+        {
+            name: 'rows',
+            short: 'r',
+            desc: 'number of rows',
+            value: {
+                required: false,
+                type: 'number',
+                default: 1
             }
         },
         {
@@ -142,10 +176,10 @@ function getParameters() {
         return;
     }
     if (('x' in p) && ('y' in p) && ('seed' in p)) {
-        drawTile(p.x, p.y, p.seed);
+        drawRegion(p.x, p.y, p.cols || 1, p.rows || 1, p.seed);
         return;
     }
-    console.info('in order to draqw a tile you need to provide x, y and seed parameters.');
+    console.info('in order to draw a tile you need to provide x, y and seed parameters.');
     console.info('type --help for help');
 }
 

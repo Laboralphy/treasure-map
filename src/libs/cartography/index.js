@@ -23,7 +23,8 @@ class Service {
         drawCoords = true, // ajouter des coordonnée
         drawGrid = true, // ajouter des lignes sur le rendu
         drawBrushes = true, // dessiner les brush sur la carte
-        drawPhysicCodes = false // dessiner les codes physiques (debug)
+        drawPhysicCodes = false, // dessiner les codes physiques (debug)
+        drawFadeIn = true
     }) {
         this._worldDef = {
             worker,
@@ -41,7 +42,8 @@ class Service {
             drawCoords,
             drawGrid,
             drawBrushes,
-            drawPhysicCodes
+            drawPhysicCodes,
+            drawFadeIn
         };
 
         if (worker === undefined) {
@@ -404,7 +406,7 @@ class Service {
                 let xScreen = m.xOfs + xTilePix;
                 let yScreen = m.yOfs + yTilePix;
                 if (wt && wt.painted) {
-                    const bSemiTrans = wt.alpha < 1;
+                    const bSemiTrans = this.worldDef.drawFadeIn && wt.alpha < 1;
                     if (bSemiTrans) {
                         ctx.clearRect(xScreen, yScreen, this.worldDef.tileSize, this.worldDef.tileSize);
                         ctx.save();
