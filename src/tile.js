@@ -3,15 +3,16 @@ const ArgumentParser = require('./libs/o876-argument-parser');
 const WorldGenerator = require('./libs/cartography/WorldGenerator');
 const fs = require('fs');
 const Rainbow = require('./libs/rainbow');
+const path = require('path');
 
 function loadDataSync() {
     return {
-        names: JSON.parse(fs.readFileSync('./data/towns_fr.json').toString()),
-        palette: JSON.parse(fs.readFileSync('./data/palette.json').toString())
+        names: JSON.parse(fs.readFileSync(path.join(__dirname, './data/towns_fr.json')).toString()),
+        palette: JSON.parse(fs.readFileSync(path.join(__dirname, './data/palette.json')).toString())
     };
 }
 
-function drawTile(x, y, seed) {
+function drawTile(x, y, seed, sOutput = '') {
     const DATA = loadDataSync();
     const tileSize = 256;
     const oInit = {
@@ -40,75 +41,36 @@ function drawTile(x, y, seed) {
                 png.data[offset + 3] = color.a;
             }
         }
-        return png;
-    }
-
-    const renderMap = (xTile, yTile) => {
-        const oTile = wg.computeTile(xTile, yTile);
-        const png = new PNG({
-            width: tileSize / wg._physicGridSize,
-            height: tileSize / wg._physicGridSize
-        });
-        for (let y = 0; y < png.height; ++y) {
-            for (let x = 0; x < png.width; ++x) {
-                const offset = (y * png.width + x) << 2;
-                const pm = oTile.physicMap[y][x];
-                const c = pm === 11 ? 0 : Math.floor(128 * oTile.physicMap[y][x] / 55 + 127);
-                png.data[offset] = c;
-                png.data[offset + 1] = c;
-                png.data[offset + 2] = c;
-                png.data[offset + 3] = 255;
-            }
-        }
-        return png;
-    }
-
-    const renderPatch = (xTile, yTile, nWidth, nHeight) => {
-        const png = new PNG({
-            width: nWidth * (tileSize / wg._physicGridSize),
-            height: nHeight * (tileSize / wg._physicGridSize)
-        });
-        let n100 = 0;
-        for (let y = 0; y < nHeight; ++y) {
-            for (let x = 0; x < nWidth; ++x) {
-                const pngxy = renderMap(x + xTile, y + yTile);
-                pngxy.bitblt(
-                    png,
-                    0,
-                    0,
-                    pngxy.width,
-                    pngxy.height,
-                    x * pngxy.width,
-                    y * pngxy.height
-                );
-                let nx = Math.round(100 * (y * nWidth + x) / (nHeight * nWidth));
-                if (n100 !== nx) {
-                    n100 = nx;
-                    process.stdout.write('\r' + n100 + '%');
+        oTile.sceneries.forEach(({
+            type,
+            x: xt,
+            y: yt,
+            dir,
+            width,
+            height,
+            seed,
+            name
+        }) => {
+            for (let yi = 0; yi < height * wg._physicGridSize; ++yi) {
+                for (let xi = 0; xi < width * wg._physicGridSize; ++xi) {
+                    const offset = ((yt * wg._physicGridSize + yi) * png.width + (xt * wg._physicGridSize + xi)) << 2;
+                    png.data[offset] = 255;
+                    png.data[offset + 1] = 0;
+                    png.data[offset + 2] = 0;
+                    png.data[offset + 3] = 255;
                 }
             }
-        }
-        console.log('\r100% done.');
+            console.log('town', name, 'x', x, 'y', y);
+        });
         return png;
     }
 
-    const png = renderTile(x, y, 30, 30);
+    const png = renderTile(x, y);
     const buffy = PNG.sync.write(png);
-    fs.writeFileSync('tile.s' + seed + '.x' + x + '.y' + y + '.png', buffy);
+    const sName = !!sOutput ? sOutput : 'tile.s' + seed + '.x' + x + '.y' + y + '.png';
+    fs.writeFileSync(sName, buffy);
 }
 
-function drawRow(x, y, width, seed) {
-    for (let i = 0; i < width; ++i) {
-        drawTile(x + i, y, seed);
-    }
-}
-
-function drawRegion(x, y, width, height, seed) {
-    console.log('drawing region', x, y, width, height, seed)
-    for (let i = 0; i < height; ++i) {
-        drawRow(x, y + i, width, seed);
-    }
-}
 
 
 
@@ -135,6 +97,7 @@ function getParameters() {
         {
             name: 'cols',
             short: 'c',
+            long: 'cols',
             desc: 'number of columns',
             value: {
                 required: false,
@@ -145,6 +108,7 @@ function getParameters() {
         {
             name: 'rows',
             short: 'r',
+            long: 'rows',
             desc: 'number of rows',
             value: {
                 required: false,
@@ -163,6 +127,17 @@ function getParameters() {
             }
         },
         {
+            name: 'output',
+            short: 'o',
+            long: 'output',
+            desc: 'the of the output file',
+            value: {
+                required: false,
+                type: 'string',
+                default: ''
+            }
+        },
+        {
             name: 'help',
             short: 'h',
             long: 'help',
@@ -176,7 +151,7 @@ function getParameters() {
         return;
     }
     if (('x' in p) && ('y' in p) && ('seed' in p)) {
-        drawRegion(p.x, p.y, p.cols || 1, p.rows || 1, p.seed);
+        drawTile(p.x, p.y, p.seed, p.output);
         return;
     }
     console.info('in order to draw a tile you need to provide x, y and seed parameters.');

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+drawMapRow() {
+  local x="$1"
+  local y="$2"
+  local n="$3"
+  local s="$4"
+
+  local n1=`expr $n - 1`
+
+  for i in `seq 0 $n1`
+  do
+    local xi=`expr $x + $i`
+    # echo node ../src/tile --x="$xi" --y="$y" --output="tile.$i.png" --seed=$s
+    node ../src/tile --x="$xi" --y="$y" --output="tile.$i.png" --seed=$s
+  done
+  local aList=`ls tile.*.png | sort -t'.' -k2 -n`
+  convert $aList -resize 32x32 +append row.$y.png
+  rm tile.*.png
+}
+
+drawRegion() {
+  local x="$1"
+  local y="$2"
+  local w="$3"
+  local h="$4"
+  local s="$5"
+
+  local h1=`expr $h - 1`
+  for i in `seq 0 $h1`
+  do
+    yi=`expr $y + $i`
+    drawMapRow $x $yi $w $s
+  done
+  echo "done"
+  local aList=`ls row.*.png | sort -t'.' -k2 -n`
+  convert $aList -append map.x$x.y$y.s$s.png
+  rm row.*.png
+}
+
+drawRegion $*
