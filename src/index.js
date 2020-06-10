@@ -15,7 +15,8 @@ async function drawMap(
 	const wm = new WorldMap();
 	await wm.initCartography(parseInt(seed), {
 	    tileSize: parseInt(size),
-        seed: parseInt(seed)
+        seed: parseInt(seed),
+        drawFadeIn: false
     });
 	wm.installMapCanvas({
         width: parseInt(width),

@@ -133,7 +133,7 @@ class SceneryGenerator {
                     height: 4,
                     seed,
                     name: ''
-                })
+                });
             }
         });
         if (aResults.length > 0) {
