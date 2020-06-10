@@ -8,6 +8,7 @@ drawMapRow() {
 
   local n1=`expr $n - 1`
 
+
   for i in `seq 0 $n1`
   do
     local xi=`expr $x + $i`

@@ -1,3 +1,7 @@
+# maps
+maps/tile.*.png
+maps/row.*.png
+
 # Logs
 logs
 *.log

@@ -51,9 +51,10 @@ function drawTile(x, y, seed, sOutput = '') {
             seed,
             name
         }) => {
-            for (let yi = 0; yi < height * wg._physicGridSize; ++yi) {
-                for (let xi = 0; xi < width * wg._physicGridSize; ++xi) {
-                    const offset = ((yt * wg._physicGridSize + yi) * png.width + (xt * wg._physicGridSize + xi)) << 2;
+            const ps = wg._scaledPhysicGridSize;
+            for (let yi = 0; yi < height * ps; ++yi) {
+                for (let xi = 0; xi < width * ps; ++xi) {
+                    const offset = ((yt * ps + yi) * png.width + (xt * ps + xi)) << 2;
                     png.data[offset] = 255;
                     png.data[offset + 1] = 0;
                     png.data[offset + 2] = 0;
@@ -62,6 +63,21 @@ function drawTile(x, y, seed, sOutput = '') {
             }
             console.log('town', name, 'x', x, 'y', y);
         });
+
+        // grid
+        for (let xi = 0; xi < (tileSize >> 1); ++xi) {
+            const offset = xi << 2;
+            png.data[offset] >>>= 2;
+            png.data[offset + 1] >>>= 2;
+            png.data[offset + 2] >>>= 2;
+        }
+        for (let yi = 0; yi < (tileSize >> 1); ++yi) {
+            const offset = yi * png.width << 2;
+            png.data[offset] >>>= 2;
+            png.data[offset + 1] >>>= 2;
+            png.data[offset + 2] >>>= 2;
+        }
+
         return png;
     }
 
