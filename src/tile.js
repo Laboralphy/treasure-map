@@ -111,28 +111,6 @@ function getParameters() {
             }
         },
         {
-            name: 'cols',
-            short: 'c',
-            long: 'cols',
-            desc: 'number of columns',
-            value: {
-                required: false,
-                type: 'number',
-                default: 1
-            }
-        },
-        {
-            name: 'rows',
-            short: 'r',
-            long: 'rows',
-            desc: 'number of rows',
-            value: {
-                required: false,
-                type: 'number',
-                default: 1
-            }
-        },
-        {
             name: 'seed',
             short: 's',
             long: 'seed',
