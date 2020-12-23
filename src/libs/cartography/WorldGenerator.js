@@ -6,6 +6,7 @@ const Rainbow = require("../rainbow");
 const SceneryGenerator = require("./SceneryGenerator");
 const Names = require("../names");
 
+// c'est ce générateur qu'on utilise  :  continental perlin
 const computeHeightMap = require('./landscapes/continental-perlin');
 
 const {Vector, View, Point} = Geometry;
@@ -197,6 +198,17 @@ class WorldGenerator {
      * - sceneries : présence et position de villes
      * - x, y : position de la tile
      * - physicGridSize : taille pde la grille physique
+     *
+     * detail des sceneries : {
+            type: 'city',
+            x: number, // position de la scenery
+            y: number,
+            dir: number, // direction
+            width: number, // taille
+            height: number,
+            seed: number,
+            name: string
+     * }
      * @param x_rpt {number} coordonnée Tile
      * @param y_rpt {number} coordonnée Tile
      * @returns {null|{sceneries, x: *, physicGridSize: *, y: *, colorMap: *, physicMap}}
