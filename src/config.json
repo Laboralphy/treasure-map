@@ -1,9 +1,9 @@
 {
     "timer": 40,
     "player": {
-        "blueprint": "blimp"
+        "blueprint": "tugboat_1"
     },
     "world": {
-        "continent": 16
+        "continent": 4
     }
 }
