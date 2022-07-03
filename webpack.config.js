@@ -14,10 +14,8 @@ module.exports = {
         'worker': path.resolve(__dirname, 'src/worker.js')
     },
     output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: '[name].js',
-        libraryTarget: 'var',
-        publicPath: "/public/",
+        path: path.resolve(__dirname, 'public/dist'),
+        filename: '[name].js'
     },
     mode: 'development',
     devtool: 'source-map',

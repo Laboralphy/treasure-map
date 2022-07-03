@@ -165,7 +165,7 @@ class Game extends osge.Game {
       palette: DATA.palette,
       cellSize: 25,
       tileSize: 256,
-      worker: '../dist/worker.js',
+      worker: './dist/worker.js',
       workerCount: Math.max(1, navigator.hardwareConcurrency - 1),
       brushes: DATA.brushes,
       names: DATA.towns_fr,

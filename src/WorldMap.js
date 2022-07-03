@@ -45,7 +45,7 @@ class WorldMap {
             preload: 0,
             palette: DATA.palette,
             tileSize: 16,
-            worker: '../dist/worker.js',
+            worker: './dist/worker.js',
             workerCount: Math.max(1, navigator.hardwareConcurrency - 1),
             brushes: DATA.brushes,
             names: DATA.towns_fr,
