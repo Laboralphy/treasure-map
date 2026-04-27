@@ -1,6 +1,6 @@
 import Aerostat from './Aerostat';
 import { computeWallCollisions } from 'libs/wall-collider';
-import Geometry from 'libs/geometry';
+import { Helper, Vector } from 'libs/geometry';
 import type { IEntity, IGame } from '../types/game';
 
 class Boat extends Aerostat {
@@ -28,8 +28,8 @@ class Boat extends Aerostat {
             this.processWave(entity, game);
         }
         if (entity.input.fire) {
-            const offset = Geometry.Helper.polar2rect(entity.angle, 16);
-            game.spawnMissile(entity, entity.input.fire, new Geometry.Vector(offset.dx, offset.dy));
+            const offset = Helper.polar2rect(entity.angle, 16);
+            game.spawnMissile(entity, entity.input.fire, new Vector(offset.dx, offset.dy));
             entity.input.fire = false;
         }
     }

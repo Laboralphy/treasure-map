@@ -1,8 +1,8 @@
 import { BlueprintSchema } from './schemas/blueprint';
 import { TileSchema, type Tile } from './schemas/tile';
-import DATA from './data';
-import osge from './libs/osge';
-import THINKERS from './thinkers';
+import { DATA } from './data';
+import Sprite from './libs/osge/Sprite';
+import * as THINKERS from './thinkers';
 import { Vector } from './libs/geometry';
 import type { IThinker } from './types/game';
 
@@ -41,14 +41,14 @@ class Entity {
     thought?: boolean;
 
     // set by spawn()
-    sprite!: InstanceType<typeof osge.Sprite>;
+    sprite!: Sprite;
     thinker!: IThinker;
 
     // blueprint thinker name — kept separate from the thinker instance above
     thinkerName: string;
 
     // tile definition, consumed by spawn()
-    private _tileData: Tile & { ref: Vector };
+    private readonly _tileData: Tile & { ref: Vector };
 
     constructor(sResRef: string) {
         this.id = ++LAST_ENTITY_ID;
@@ -60,7 +60,7 @@ class Entity {
         const blueprint = BlueprintSchema.parse(rawBlueprint);
 
         const rawTile = (DATA as Record<string, unknown>)['tiles/' + blueprint.tileset];
-        const tile = TileSchema.parse(rawTile);
+        const tile: Tile = TileSchema.parse(rawTile);
 
         this.angleSpeed  = blueprint.angleSpeed  ?? 0;
         this.enginePower = blueprint.enginePower ?? 0;
@@ -73,11 +73,13 @@ class Entity {
         this.destination = new Vector();
         this.repulse     = new Vector();
 
-        this._tileData = { ...tile, ref: new Vector(tile.ref.x, tile.ref.y) };
+        const ref = new Vector(tile.ref.x, tile.ref.y);
+
+        this._tileData = { ...tile, ref };
     }
 
-    async spawn(vPosition: InstanceType<typeof Vector>) {
-        const sprite = new osge.Sprite();
+    async spawn(vPosition: Vector) {
+        const sprite = new Sprite();
         await sprite.define(this._tileData);
         sprite.z = this.z || 0;
         if (!(this.thinkerName in THINKERS)) {

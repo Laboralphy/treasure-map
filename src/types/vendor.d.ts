@@ -1,15 +1,3 @@
-declare module '@laboralphy/pixel-processor' {
-    interface PP {
-        x: number;
-        y: number;
-        color: { r: number; g: number; b: number; a: number };
-    }
-    const PixelProcessor: {
-        paint(canvas: HTMLCanvasElement, callback: (pp: PP) => void): void;
-    };
-    export default PixelProcessor;
-}
-
 declare module 'events' {
     class EventEmitter {
         on(event: string, listener: (...args: unknown[]) => void): this;

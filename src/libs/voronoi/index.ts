@@ -1,4 +1,4 @@
-import Geometry from '../geometry';
+import { Helper, Vector } from '../geometry';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyObj = any;
@@ -64,15 +64,15 @@ class Voronoi {
             .filter((p: AnyObj) => p.interior)
             .forEach((p: AnyObj) => {
                 this.computeNearestPoint(p, n);
-                p.regions.outer = Geometry.Helper.getRegion(p.nearest);
+                p.regions.outer = Helper.getRegion(p.nearest);
             });
     }
 
     isInsideSemiPlaneNearest(x: number, y: number, p: AnyObj, pn: AnyObj): boolean {
         const m = pn.median;
-        const vMedian = new Geometry.Vector(m.x, m.y);
-        const vSeed = new Geometry.Vector(p.x, p.y);
-        const vTarget = new Geometry.Vector(x, y);
+        const vMedian = new Vector(m.x, m.y);
+        const vSeed = new Vector(p.x, p.y);
+        const vTarget = new Vector(x, y);
         const vBase = vSeed.sub(vMedian);
         const vCheck = vTarget.sub(vMedian);
         if (vCheck.magnitude() === 0) {
@@ -87,10 +87,10 @@ class Voronoi {
     }
 
     _computeCellPointDistance(x: number, y: number, p: AnyObj): number {
-        const fDistSeed = Math.max(1, Geometry.Helper.squareDistance(x, y, p.x, p.y));
+        const fDistSeed = Math.max(1, Helper.squareDistance(x, y, p.x, p.y));
         const oBestNearest = p.nearest.map((n: AnyObj) => ({
             x: n.x, y: n.y,
-            d2: Geometry.Helper.squareDistance(x, y, n.x, n.y),
+            d2: Helper.squareDistance(x, y, n.x, n.y),
         })).sort((n1: AnyObj, n2: AnyObj) => n1.d2 - n2.d2).shift();
         if (!oBestNearest) {
             return 0;

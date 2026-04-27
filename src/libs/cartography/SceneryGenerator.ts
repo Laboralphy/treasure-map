@@ -68,14 +68,14 @@ class SceneryGenerator {
         }
         return {
             port: [
-                { name: 'size4east',      dir: 'e', pattern: rotate(oBasePatterns.port_north) as unknown as Uint8Array[] },
-                { name: 'size4west',      dir: 'w', pattern: rotate(oBasePatterns.port_north, true) as unknown as Uint8Array[] },
-                { name: 'size4south',     dir: 's', pattern: rotateTwice(oBasePatterns.port_north) as unknown as Uint8Array[] },
+                { name: 'size4east',      dir: 'e', pattern: rotate(oBasePatterns.port_north) as Uint8Array[] },
+                { name: 'size4west',      dir: 'w', pattern: rotate(oBasePatterns.port_north, true) as Uint8Array[] },
+                { name: 'size4south',     dir: 's', pattern: rotateTwice(oBasePatterns.port_north) as Uint8Array[] },
                 { name: 'size4north',     dir: 'n', pattern: oBasePatterns.port_north },
                 { name: 'size4northeast', dir: 'n', pattern: oBasePatterns.port_north_east },
-                { name: 'size4northwest', dir: 'n', pattern: rotate(oBasePatterns.port_north_east, true) as unknown as Uint8Array[] },
+                { name: 'size4northwest', dir: 'n', pattern: rotate(oBasePatterns.port_north_east, true) as Uint8Array[] },
                 { name: 'size4southwest', dir: 'w', pattern: oBasePatterns.port_south_west },
-                { name: 'size4southeast', dir: 'e', pattern: rotate(oBasePatterns.port_south_west, true) as unknown as Uint8Array[] }
+                { name: 'size4southeast', dir: 'e', pattern: rotate(oBasePatterns.port_south_west, true) as Uint8Array[] }
             ]
         };
     }
@@ -88,7 +88,7 @@ class SceneryGenerator {
         const aResults: SceneryItem[] = [];
         const nSize = physicMap.length;
         this.PATTERNS.port.forEach(({ dir, pattern }) => {
-            const aPatterns = findPatterns(physicMap as unknown as number[][], pattern as unknown as number[][])
+            const aPatterns = findPatterns(physicMap, pattern)
                 .filter(p => this._suitablePosition(nSize, p));
             if (aPatterns.length > 0) {
                 const p = aPatterns[seed % aPatterns.length];

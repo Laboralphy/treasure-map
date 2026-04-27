@@ -1,15 +1,13 @@
-import Geometry from 'libs/geometry';
+import { Helper, Vector } from 'libs/geometry';
 import type { IEntity, IGame, IThinker } from '../types/game';
-
-const Vector = Geometry.Vector;
 
 class Bullet implements IThinker {
     setup(entity: IEntity): void {
         const target = entity.target!;
-        entity.angle    = Geometry.Helper.angle(entity.position.x, entity.position.y, target.x, target.y);
-        entity.distance = Geometry.Helper.distance(entity.position.x, entity.position.y, target.x, target.y);
+        entity.angle    = Helper.angle(entity.position.x, entity.position.y, target.x, target.y);
+        entity.distance = Helper.distance(entity.position.x, entity.position.y, target.x, target.y);
         entity.lifetime = Math.floor(entity.distance / entity.maxSpeed);
-        const { dx, dy } = Geometry.Helper.polar2rect(entity.angle, entity.maxSpeed);
+        const { dx, dy } = Helper.polar2rect(entity.angle, entity.maxSpeed);
         entity.movement = new Vector(dx, dy);
     }
 

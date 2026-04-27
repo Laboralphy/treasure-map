@@ -9,18 +9,24 @@
     "dev": "node esbuild.config.js --serve",
     "watch": "node esbuild.config.js --watch",
     "typecheck": "tsc --noEmit",
-    "deploy": "sudo . ./bin/deploy"
+    "deploy": "sudo . ./bin/deploy",
+    "lint": "eslint . && prettier --check .",
+    "fix": "eslint --fix . && prettier --write ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "esbuild": "^0.28.0",
+    "eslint": "^10.2.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.3",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.1",
     "vitest": "^4.1.5"
   },
   "dependencies": {
-    "@laboralphy/pixel-processor": "^1.0.1",
+    "@laboralphy/pixel-processor": "^1.2.0",
     "events": "^3.3.0",
     "pngjs": "^5.0.0",
     "zod": "^4.3.6"

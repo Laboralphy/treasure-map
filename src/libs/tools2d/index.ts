@@ -31,7 +31,7 @@ function walk2D(aArray2D: RowType[], cb: (x: number, y: number, cell: number) =>
     }
 }
 
-function map2D(aArray2D: RowType[], cb: (x: number, y: number, cell: number) => number, pType: RowType = Array): RowType[] {
+function map2D(aArray2D: RowType[], cb: (x: number, y: number, cell: RowType) => number, pType: RowType = Array): RowType[] {
     return aArray2D.map((row: RowType, y: number) => _createRow(row.map((cell: number, x: number) => cb(x, y, cell))), pType);
 }
 
@@ -47,8 +47,7 @@ function rotate(aArray: RowType[], bDirect: boolean = false): RowType[] {
 }
 
 function rotateTwice(aArray: RowType[]): RowType[] {
-    const a = rotate(aArray);
-    return rotate(aArray, a as unknown as boolean);
+    return rotate(rotate(aArray));
 }
 
 export { rotate, createArray2D, map2D, rotateTwice, walk2D };

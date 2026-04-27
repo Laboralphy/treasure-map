@@ -1,14 +1,13 @@
-import Geometry from './libs/geometry';
-import osge from './libs/osge';
+import { Helper, Vector } from './libs/geometry';
+import OsgeGame from './libs/osge/Game';
+import SpriteLayer from './libs/osge/SpriteLayer';
 import Cartography from './libs/cartography';
 import Indicators from './Indicators';
-import DATA from './data/index';
+import { DATA } from './data';
 import CONFIG from './config.json';
 import Entity from './Entity';
 import type { IGame, IEntity, ICartography } from './types/game';
 
-const Vector = Geometry.Vector;
-const SpriteLayer = osge.SpriteLayer;
 const COLLISION_DISTANCE = 512;
 const MAX_RENDERING_THREADS = 4;
 
@@ -18,13 +17,13 @@ interface GameState {
     entities: Entity[];
     player: Entity | null;
     cursor: Entity | null;
-    view: InstanceType<typeof Vector>;
+    view: Vector;
 }
 
-class Game extends osge.Game implements IGame {
+class Game extends OsgeGame implements IGame {
     private _carto: Cartography | null;
     state: GameState;
-    private _spriteLayer: InstanceType<typeof SpriteLayer> | null;
+    private _spriteLayer: SpriteLayer | null;
     private _collidingEntities: Entity[];
 
     constructor() {
@@ -48,9 +47,9 @@ class Game extends osge.Game implements IGame {
     }
 
     clickHandler(event: MouseEvent): void {
-        const p = this.mouse.add((this.cartography as unknown as { _view: InstanceType<typeof Vector> })._view);
-        if ((event as unknown as { shiftKey: boolean }).shiftKey) {
-            this.state.player!.input.fire = new Vector(p);
+        const p = this.mouse.add(this.cartography.scrollPosition);
+        if (event.shiftKey) {
+            this.state.player!.input.fire = new Vector(p.x, p.y);
         } else {
             this.state.cursor!.position.set(p);
             this.state.player!.destination.set(p);
@@ -58,11 +57,11 @@ class Game extends osge.Game implements IGame {
     }
 
     keyUpHandler(event: KeyboardEvent): void {
-        this.state.input.keys[(event as unknown as { keys: string }).keys] = true;
+        this.state.input.keys[event.key] = true;
     }
 
     keyDownHandler(event: KeyboardEvent): void {
-        this.state.input.keys[(event as unknown as { keys: string }).keys] = false;
+        this.state.input.keys[event.key] = false;
     }
 
     async createEntity(sResRef: string): Promise<Entity> {
@@ -78,18 +77,18 @@ class Game extends osge.Game implements IGame {
         return entity;
     }
 
-    async spawnEntity(sResRef: string, vPosition: InstanceType<typeof Vector>): Promise<Entity> {
+    async spawnEntity(sResRef: string, vPosition: Vector): Promise<Entity> {
         const oEntity = await this.createEntity(sResRef);
         await oEntity.spawn(vPosition);
         this.linkEntity(oEntity);
         return oEntity;
     }
 
-    async spawnMissile(entity: Entity, vTarget: InstanceType<typeof Vector>, vOffset: InstanceType<typeof Vector>): Promise<Entity> {
+    async spawnMissile(entity: Entity, vTarget: Vector, vOffset: Vector): Promise<Entity> {
         const position = entity.position;
         const posBullet = position.add(vOffset);
         const bullet = await this.createEntity('bullet_0');
-        bullet.target = new Vector(vTarget);
+        bullet.target = new Vector(vTarget.x, vTarget.y);
         await bullet.spawn(posBullet);
         this.linkEntity(bullet);
         bullet.sprite.fadeIn(1);
@@ -115,12 +114,12 @@ class Game extends osge.Game implements IGame {
         return new Cartography({
             seed,
             preload: 1,
-            palette: (DATA as unknown as Record<string, unknown>).palette as Array<{ altitude: number; color: string }>,
+            palette: DATA.palette as Array<{ altitude: number; color: string }>,
             tileSize: 256,
             worker: './dist/worker.js',
             workerCount: Math.max(1, Math.min(MAX_RENDERING_THREADS, navigator.hardwareConcurrency - 1)),
-            brushes: (DATA as unknown as Record<string, unknown>).brushes as Array<{ type: string; src: string; code: string | number }>,
-            names: (DATA as unknown as Record<string, unknown>).towns_fr as string[],
+            brushes: DATA.brushes as Array<{ type: string; src: string; code: string | number }>,
+            names: DATA.towns_fr as string[],
             physicGridSize: 16,
             scale: 2,
             progress: Indicators.progress,
@@ -174,13 +173,13 @@ class Game extends osge.Game implements IGame {
             const otherSector = e.sector;
             return Math.abs(xm - otherSector.x) <= 1 &&
                 Math.abs(ym - otherSector.y) <= 1 &&
-                Geometry.Helper.squareDistance(xEnt, yEnt, e.position.x, e.position.y) < COLLISION_DISTANCE;
+                Helper.squareDistance(xEnt, yEnt, e.position.x, e.position.y) < COLLISION_DISTANCE;
         });
         const repulse = entity.repulse;
         const pEntity = entity.position;
         aColliders.forEach(other => {
             const pOther = other.position;
-            let r: InstanceType<typeof Vector>;
+            let r: Vector;
             if (pOther.x === pEntity.x && pOther.y === pEntity.y) {
                 r = new Vector(1, 0);
             } else {

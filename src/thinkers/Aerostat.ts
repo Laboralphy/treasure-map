@@ -1,8 +1,6 @@
-import Geometry from 'libs/geometry';
+import { Vector } from 'libs/geometry';
 import { mod } from 'libs/r-mod';
 import type { IEntity, IGame, IThinker } from '../types/game';
-
-const Vector = Geometry.Vector;
 
 class Aerostat implements IThinker {
     advance(entity: IEntity): void {

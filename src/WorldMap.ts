@@ -1,7 +1,7 @@
 import Cartography from './libs/cartography';
-import Geometry from './libs/geometry';
+import { Vector } from './libs/geometry';
 import Indicators from './Indicators';
-import DATA from './data';
+import { DATA } from './data';
 
 class WorldMap {
     private _carto: Cartography | null;
@@ -27,14 +27,14 @@ class WorldMap {
             const x = (event as MouseEvent).offsetX;
             const y = (event as MouseEvent).offsetY;
             const viewed = this._carto!.viewedPosition!;
-            const v = viewed.add(new Geometry.Vector(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1)));
+            const v = viewed.add(new Vector(x - (oCanvas.width >> 1), y - (oCanvas.height >> 1)));
             console.info('viewing', v.x, v.y);
             this.render(v.x, v.y);
         });
     }
 
     render(x: number, y: number): Promise<boolean> {
-        const vView = new Geometry.Vector(x, y);
+        const vView = new Vector(x, y);
         return this._carto!.view(this._mapCanvas!, vView, true);
     }
 
@@ -42,12 +42,12 @@ class WorldMap {
         const c = new Cartography({
             seed,
             preload: 0,
-            palette: (DATA as unknown as Record<string, unknown>).palette as Array<{ altitude: number; color: string }>,
+            palette: DATA.palette as Array<{ altitude: number; color: string }>,
             tileSize: 16,
             worker: './dist/worker.js',
             workerCount: Math.max(1, navigator.hardwareConcurrency - 1),
-            brushes: (DATA as unknown as Record<string, unknown>).brushes as Array<{ type: string; src: string; code: string | number }>,
-            names: (DATA as unknown as Record<string, unknown>).towns_fr as string[],
+            brushes: DATA.brushes as Array<{ type: string; src: string; code: string | number }>,
+            names: DATA.towns_fr as string[],
             physicGridSize: 8,
             scale: 2,
             progress: Indicators.progress,
