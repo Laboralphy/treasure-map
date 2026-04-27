@@ -1,8 +1,0 @@
-{
-    "angleSpeed": 0.1,
-    "enginePower": 0.1,
-    "maxSpeed": 2,
-    "tileset": "tugboat_0",
-    "thinker": "aiboatchaser",
-    "collision": 1
-}
