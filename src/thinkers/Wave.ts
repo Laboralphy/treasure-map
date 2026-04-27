@@ -1,21 +1,17 @@
-class Wave {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    processScaleAndAlpha(entity: any, game: any): void {
-        entity.sprite.scale += 0.04;
-        if (game.state.time > entity.lifetime) {
-            game.destroyEntity(entity);
-        }
-    }
+import type { IEntity, IGame, IThinker } from '../types/game';
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    think(entity: any, game: any): void {
+class Wave implements IThinker {
+    think(entity: IEntity, game: IGame): void {
         if (!entity.thought) {
             entity.sprite.scale = 0.1;
             entity.sprite.fadeOut(0.04);
             entity.lifetime = game.state.time + 32;
             entity.thought = true;
         }
-        this.processScaleAndAlpha(entity, game);
+        entity.sprite.scale += 0.04;
+        if (game.state.time > entity.lifetime!) {
+            game.destroyEntity(entity);
+        }
     }
 }
 

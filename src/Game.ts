@@ -5,10 +5,12 @@ import Indicators from './Indicators';
 import DATA from './data/index';
 import CONFIG from './config.json';
 import Entity from './Entity';
+import type { IGame, IEntity, ICartography } from './types/game';
 
 const Vector = Geometry.Vector;
 const SpriteLayer = osge.SpriteLayer;
 const COLLISION_DISTANCE = 512;
+const MAX_RENDERING_THREADS = 4;
 
 interface GameState {
     time: number;
@@ -19,7 +21,7 @@ interface GameState {
     view: InstanceType<typeof Vector>;
 }
 
-class Game extends osge.Game {
+class Game extends osge.Game implements IGame {
     private _carto: Cartography | null;
     state: GameState;
     private _spriteLayer: InstanceType<typeof SpriteLayer> | null;
@@ -116,7 +118,7 @@ class Game extends osge.Game {
             palette: (DATA as unknown as Record<string, unknown>).palette as Array<{ altitude: number; color: string }>,
             tileSize: 256,
             worker: './dist/worker.js',
-            workerCount: Math.max(1, navigator.hardwareConcurrency - 1),
+            workerCount: Math.max(1, Math.min(MAX_RENDERING_THREADS, navigator.hardwareConcurrency - 1)),
             brushes: (DATA as unknown as Record<string, unknown>).brushes as Array<{ type: string; src: string; code: string | number }>,
             names: (DATA as unknown as Record<string, unknown>).towns_fr as string[],
             physicGridSize: 16,

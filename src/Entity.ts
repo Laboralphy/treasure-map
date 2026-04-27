@@ -4,6 +4,7 @@ import DATA from './data';
 import osge from './libs/osge';
 import THINKERS from './thinkers';
 import { Vector } from './libs/geometry';
+import type { IThinker } from './types/game';
 
 let LAST_ENTITY_ID = 0;
 
@@ -41,7 +42,7 @@ class Entity {
 
     // set by spawn()
     sprite!: InstanceType<typeof osge.Sprite>;
-    thinker!: (typeof THINKERS)[keyof typeof THINKERS];
+    thinker!: IThinker;
 
     // blueprint thinker name — kept separate from the thinker instance above
     thinkerName: string;

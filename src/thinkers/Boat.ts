@@ -1,38 +1,25 @@
 import Aerostat from './Aerostat';
 import { computeWallCollisions } from 'libs/wall-collider';
 import Geometry from 'libs/geometry';
+import type { IEntity, IGame } from '../types/game';
 
 class Boat extends Aerostat {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async processWave(entity: any, game: any): Promise<void> {
-        const position = entity.position;
-        await game.spawnEntity('wave_0', position);
+    async processWave(entity: IEntity, game: IGame): Promise<void> {
+        await game.spawnEntity('wave_0', entity.position);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    think(entity: any, game: any): void {
+    think(entity: IEntity, game: IGame): void {
         const xLast = entity.position.x;
         const yLast = entity.position.y;
         super.think(entity, game);
-        const xNew = entity.position.x;
-        const yNew = entity.position.y;
-        const dx = xNew - xLast + entity.repulse.x;
-        const dy = yNew - yLast + entity.repulse.y;
+        const dx = entity.position.x - xLast + entity.repulse.x;
+        const dy = entity.position.y - yLast + entity.repulse.y;
         const c = computeWallCollisions(
-            xLast,
-            yLast,
-            dx,
-            dy,
-            6,
-            16,
-            false,
-            (x, y) => {
-                const p = game.cartography.getPhysicValue(x, y);
-                return p !== 11;
-            }
+            xLast, yLast, dx, dy, 6, 16, false,
+            (x, y) => game.cartography.getPhysicValue(x, y) !== 11
         );
         if (c.wcf.x || c.wcf.y) {
-            entity.stuck = (entity.stuck || 0) + 1;
+            entity.stuck = (entity.stuck ?? 0) + 1;
         }
         entity.position.set(c.pos.x, c.pos.y);
         if (!entity.nextWave || game.state.time > entity.nextWave) {
@@ -40,11 +27,10 @@ class Boat extends Aerostat {
             entity.nextWave = game.state.time + t;
             this.processWave(entity, game);
         }
-        const input = entity.input;
-        if (input.fire) {
+        if (entity.input.fire) {
             const offset = Geometry.Helper.polar2rect(entity.angle, 16);
-            game.spawnMissile(entity, input.fire, new Geometry.Vector(offset.dx, offset.dy));
-            input.fire = false;
+            game.spawnMissile(entity, entity.input.fire, new Geometry.Vector(offset.dx, offset.dy));
+            entity.input.fire = false;
         }
     }
 }

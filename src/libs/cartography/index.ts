@@ -1,9 +1,10 @@
-import Webworkio from 'webworkio';
+import { WorkerChannel } from '../worker-channel';
 import { mod } from '../r-mod';
 import { Helper, Vector } from '../geometry';
 import Cache2D from '../cache2d';
 import CanvasHelper from '../canvas-helper';
 import TileRenderer, { type BrushDef, type TileData } from './TileRenderer';
+import type { InitPayload } from './protocol';
 import Events from 'events';
 
 interface PaletteEntry {
@@ -81,10 +82,7 @@ class Service {
     private _verbose: boolean;
     private _events: Events;
     private _lastProgress: number;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private _wwio: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private _wwioHorde: any[];
+    private _wwioHorde: WorkerChannel[];
     private _viewedCanvas: HTMLCanvasElement | null;
     private _viewedPosition: Vector | null;
 
@@ -136,7 +134,6 @@ class Service {
         this._verbose = false;
         this._events = new Events();
         this._lastProgress = -1;
-        this._wwio = null;
         this._wwioHorde = [];
         this._viewedCanvas = null;
         this._viewedPosition = null;
@@ -178,30 +175,21 @@ class Service {
         return this._viewedPosition;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createWorker(): Promise<any> {
+    async createWorker(): Promise<WorkerChannel> {
         const wg = this._worldDef;
-        return new Promise((resolve, reject) => {
-            const wwio = new Webworkio();
-            wwio.worker(wg.worker);
-            this.log('web worker instance created', wg.worker);
-            wwio.emit('init', {
-                seed: wg.seed,
-                tileSize: wg.tileSize,
-                palette: wg.palette,
-                cache: this._cache.size,
-                names: wg.names,
-                physicGridSize: wg.physicGridSize,
-                altitudes: wg.altitudes,
-                scale: wg.scale
-            }, (response: { status: string; error?: string }) => {
-                if (response.status === 'error') {
-                    reject(new Error('web worker error: ' + response.error));
-                } else {
-                    resolve(wwio);
-                }
-            });
-        });
+        const channel = new WorkerChannel(wg.worker);
+        this.log('web worker instance created', wg.worker);
+        const payload: InitPayload = {
+            seed: wg.seed,
+            tileSize: wg.tileSize,
+            palette: wg.palette,
+            cache: this._cache.size,
+            names: wg.names,
+            physicGridSize: wg.physicGridSize,
+            scale: wg.scale
+        };
+        await channel.request<{ status: string }>('init', payload);
+        return channel;
     }
 
     async start(): Promise<void> {
@@ -211,18 +199,17 @@ class Service {
         this.log('brushes loaded');
         this._tr.getBrushesStatus().forEach(s => this.log('brush type :', s.type, s.count, 'item' + (s.count > 1 ? 's' : '')));
         const wwc = wd.workerCount;
-        this._wwioHorde = new Array(wwc);
+        this._wwioHorde = [];
         this.log('creation of', wwc, 'worker' + (wwc > 1 ? 's' : ''));
         for (let iw = 0; iw < wwc; ++iw) {
-            this._wwioHorde[iw] = await this.createWorker();
+            this._wwioHorde.push(await this.createWorker());
         }
-        this._wwio = this._wwioHorde[0];
         const sVersion = await this.version();
         console.info('cartography service version', sVersion);
     }
 
     terminate(): void {
-        this._wwio.terminate();
+        this._wwioHorde.forEach(w => w.terminate());
         this.log('service terminated');
     }
 
@@ -258,12 +245,9 @@ class Service {
         this._cacheAdjusted = false;
     }
 
-    version(): Promise<string> {
-        return new Promise(resolve => {
-            this._wwio.emit('version', {}, ({ version }: { version: string }) => {
-                resolve(version);
-            });
-        });
+    async version(): Promise<string> {
+        const result = await this._wwioHorde[0].request<{ version: string }>('version');
+        return result.version;
     }
 
     static getViewPointMetrics(x: number, y: number, width: number, height: number, tileSize: number, nBorder: number): ViewPointMetrics {
@@ -282,21 +266,17 @@ class Service {
         };
     }
 
-    fetchTile(x: number, y: number, iWorker: number = 0): Promise<CachedTile> {
-        return new Promise(resolve => {
-            const oCanvas = CanvasHelper.createCanvas(this._worldDef.tileSize, this._worldDef.tileSize);
-            const oTileData: CachedTile = { x, y, canvas: oCanvas, painted: false, alpha: 0, physicMap: null, sceneries: null };
-            this._cache.store(x, y, oTileData);
-            const ww = this._wwioHorde[iWorker];
-            ww.emit('tile', { x, y }, (result: TileData) => {
-                this._tr.render(result, oCanvas);
-                oTileData.physicMap = result.physicMap;
-                oTileData.sceneries = result.sceneries;
-                oTileData.painted = true;
-                this._events.emit('tilepaint', oTileData);
-                resolve(oTileData);
-            });
-        });
+    async fetchTile(x: number, y: number, iWorker: number = 0): Promise<CachedTile> {
+        const oCanvas = CanvasHelper.createCanvas(this._worldDef.tileSize, this._worldDef.tileSize);
+        const oTileData: CachedTile = { x, y, canvas: oCanvas, painted: false, alpha: 0, physicMap: null, sceneries: null };
+        this._cache.store(x, y, oTileData);
+        const result = await this._wwioHorde[iWorker].request<TileData>('tile', { x, y });
+        this._tr.render(result, oCanvas);
+        oTileData.physicMap = result.physicMap;
+        oTileData.sceneries = result.sceneries;
+        oTileData.painted = true;
+        this._events.emit('tilepaint', oTileData);
+        return oTileData;
     }
 
     getPhysicValue(x: number, y: number): number | undefined {
@@ -327,6 +307,22 @@ class Service {
         }
     }
 
+    private async _runWithWorkers<T>(
+        items: T[],
+        fn: (item: T, workerIndex: number) => Promise<void>
+    ): Promise<void> {
+        let i = 0;
+        await Promise.all(
+            this._wwioHorde.map((_, workerIdx) =>
+                (async () => {
+                    while (i < items.length) {
+                        await fn(items[i++], workerIdx);
+                    }
+                })()
+            )
+        );
+    }
+
     async preloadTiles(x: number, y: number, w: number, h: number): Promise<{ tileFetched: number; timeElapsed: number }> {
         this.log('preloading tiles', x, y, w, h);
         const tStart = performance.now();
@@ -334,7 +330,6 @@ class Service {
         const m = Service.getViewPointMetrics(x, y, w, h, tileSize, this._worldDef.preload);
         const nTileCount = (m.yTo - m.yFrom + 1) * (m.xTo - m.xFrom + 1);
         let nTileFetched = 0;
-        let n100 = 0;
         const xv = x / tileSize;
         const yv = y / tileSize;
 
@@ -349,27 +344,14 @@ class Service {
         }
         aTilesToLoad.sort((a, b) => a.d - b.d);
 
-        let ftPool: Promise<CachedTile>[] = [];
-        for (let iTile = 0, l = aTilesToLoad.length; iTile < l; ++iTile) {
-            const { xTile, yTile } = aTilesToLoad[iTile];
-            n100 = (100 * iTile / nTileCount | 0);
-            this.progress(n100);
+        await this._runWithWorkers(aTilesToLoad, async ({ xTile, yTile }, workerIdx) => {
+            this.progress(100 * nTileFetched / nTileCount | 0);
             ++nTileFetched;
-            if (ftPool.length < this._wwioHorde.length) {
-                const iww = ftPool.length;
-                ftPool.push(this.fetchTile(xTile, yTile, iww));
-            }
-            if (ftPool.length >= this._wwioHorde.length) {
-                await Promise.all(ftPool);
-                ftPool = [];
-            }
-        }
-        if (ftPool.length > 0) {
-            await Promise.all(ftPool);
-        }
+            await this.fetchTile(xTile, yTile, workerIdx);
+        });
+
         if (nTileFetched) {
-            n100 = 100;
-            this.progress(n100);
+            this.progress(100);
         }
         return { tileFetched: nTileFetched, timeElapsed: (performance.now() - tStart | 0) / 1000 };
     }

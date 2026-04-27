@@ -1,15 +1,3 @@
-declare module 'webworkio' {
-    class Webworkio {
-        worker(url?: string): void;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        on(event: string, handler: (...args: any[]) => void): void;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        emit(event: string, data: any, callback?: (result: any) => void): void;
-        terminate(): void;
-    }
-    export default Webworkio;
-}
-
 declare module '@laboralphy/pixel-processor' {
     interface PP {
         x: number;

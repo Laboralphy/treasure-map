@@ -27,6 +27,7 @@ const shared = {
 };
 
 const isWatch = process.argv.includes('--watch');
+const isServe = process.argv.includes('--serve');
 
 async function main() {
     const app = await esbuild.context({
@@ -40,7 +41,11 @@ async function main() {
         outfile: 'public/dist/worker.js',
     });
 
-    if (isWatch) {
+    if (isServe) {
+        await worker.watch();
+        const { host, port } = await app.serve({ servedir: 'public' });
+        console.log(`dev server: http://${host}:${port}`);
+    } else if (isWatch) {
         await app.watch();
         await worker.watch();
         console.log('watching...');

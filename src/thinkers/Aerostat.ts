@@ -1,93 +1,83 @@
 import Geometry from 'libs/geometry';
 import { mod } from 'libs/r-mod';
+import type { IEntity, IGame, IThinker } from '../types/game';
 
 const Vector = Geometry.Vector;
 
-class Aerostat {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    advance(entity: any): void {
-        const pdata = entity;
-        if (!pdata.destination.isEqual(pdata.position)) {
-            let vDiff = pdata.destination.sub(pdata.position);
-            let nDist = vDiff.magnitude();
-            let ms = pdata.maxSpeed;
-            let speed = pdata.speed;
-            let acc = pdata.enginePower;
-
+class Aerostat implements IThinker {
+    advance(entity: IEntity): void {
+        if (!entity.destination.isEqual(entity.position)) {
+            const vDiff = entity.destination.sub(entity.position);
+            const nDist = vDiff.magnitude();
+            let ms = entity.maxSpeed;
+            let speed = entity.speed;
+            const acc = entity.enginePower;
             const DECCEL_THRESHOLD_DIST = ms << 3;
-
             if (nDist < DECCEL_THRESHOLD_DIST) {
                 ms *= nDist / DECCEL_THRESHOLD_DIST;
             }
             speed = Math.min(ms, speed + acc);
-            let vMove = Vector.fromPolar(pdata.angle, 1);
+            const vMove = Vector.fromPolar(entity.angle, 1);
             vMove.scale(speed);
-            pdata.speed = speed;
-            pdata.position.translate(vMove);
+            entity.speed = speed;
+            entity.position.translate(vMove);
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    think(entity: any, _game: any): void {
-        const pdata = entity;
-        if (!pdata.destination.isEqual(pdata.position)) {
-            if (pdata.destination.sub(pdata.position).magnitude() <= pdata.maxSpeed) {
-                pdata.position.set(pdata.destination);
+    think(entity: IEntity, _game: IGame): void {
+        if (!entity.destination.isEqual(entity.position)) {
+            if (entity.destination.sub(entity.position).magnitude() <= entity.maxSpeed) {
+                entity.position.set(entity.destination);
                 return;
             }
 
-            if (!('angleVis' in pdata)) {
-                pdata.angleVis = pdata.angle;
+            if (!('angleVis' in entity)) {
+                entity.angleVis = entity.angle;
             }
-            let fAngleCurr = pdata.angle;
-            let fAngleDest = pdata.destination.sub(pdata.position).direction();
+            const fAngleCurr = entity.angle;
+            const fAngleDest = entity.destination.sub(entity.position).direction();
             let fAngle: number;
 
-            let vBlimp = Vector.fromPolar(fAngleCurr, 1);
-            let vCap = Vector.fromPolar(fAngleDest, 1);
-            let fAngleDeriv = Math.abs(vBlimp.angle(vCap));
-            if (fAngleDeriv < pdata.angleSpeed) {
+            const vBlimp = Vector.fromPolar(fAngleCurr, 1);
+            const vCap = Vector.fromPolar(fAngleDest, 1);
+            const fAngleDeriv = Math.abs(vBlimp.angle(vCap));
+            if (fAngleDeriv < entity.angleSpeed) {
                 fAngle = fAngleDest;
             } else {
-                let fAngleDestInv = pdata.position.sub(pdata.destination).direction();
-                pdata.aimedAngle = fAngleDest;
-                let fAngleMod = 0;
+                const fAngleDestInv = entity.position.sub(entity.destination).direction();
+                entity.aimedAngle = fAngleDest;
+                let fAngleMod: number;
                 if (Math.sign(fAngleDest) === Math.sign(fAngleCurr)) {
                     fAngleMod = Math.sign(fAngleDest - fAngleCurr);
                 } else {
                     fAngleMod = Math.sign(fAngleCurr - fAngleDestInv);
                 }
-                fAngleMod *= pdata.angleSpeed;
-                fAngle = pdata.angle + fAngleMod;
-                if (fAngle <= -Math.PI) {
-                    fAngle += 2 * Math.PI;
-                }
-                if (fAngle >= Math.PI) {
-                    fAngle -= 2 * Math.PI;
-                }
+                fAngleMod *= entity.angleSpeed;
+                fAngle = entity.angle + fAngleMod;
+                if (fAngle <= -Math.PI) { fAngle += 2 * Math.PI; }
+                if (fAngle >= Math.PI)  { fAngle -= 2 * Math.PI; }
             }
-            pdata.angle = fAngle;
-            let nFract = entity.sprite.frameCount();
-            let fAngleInt = fAngle < 0 ? 2 * Math.PI + fAngle : fAngle;
-            let fAngle1 = fAngle / (2 * Math.PI);
-            let fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
-            let iFract = mod(Math.floor(fAngleFract * nFract), nFract);
+            entity.angle = fAngle;
+
+            const nFract = entity.sprite.frameCount();
+            const fAngle1 = fAngle / (2 * Math.PI);
+            const fAngleFract = (fAngle1 + 1 / (nFract << 1)) % 1;
+            const iFract = mod(Math.floor(fAngleFract * nFract), nFract);
             if (iFract < 0) {
-                console.log({ nFract, fAngleInt, fAngle1, fAngleFract, iFract });
                 throw new Error('WTF iFract < 0 !');
             }
 
-            if (!('turning' in pdata)) {
-                pdata.turning = [iFract];
+            if (!('turning' in entity)) {
+                entity.turning = [iFract];
             }
-            if (pdata.turning[0] === iFract) {
-                pdata.turning = [iFract];
+            if (entity.turning![0] === iFract) {
+                entity.turning = [iFract];
             } else {
-                pdata.turning.push(iFract);
-                while (pdata.turning.length > 6) {
-                    pdata.turning.shift();
+                entity.turning!.push(iFract);
+                while (entity.turning!.length > 6) {
+                    entity.turning!.shift();
                 }
-                entity.sprite.frame = pdata.turning[0];
+                entity.sprite.frame = entity.turning![0];
             }
             this.advance(entity);
         }

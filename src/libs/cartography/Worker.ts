@@ -1,63 +1,33 @@
 import WorldGenerator from './WorldGenerator';
-import Webworkio from 'webworkio';
+import { WorkerServer } from '../worker-channel';
 import { VERSION } from './version';
+import type { InitPayload, TilePayload, OptionsPayload } from './protocol';
 
 class Worker {
-    private _wg: WorldGenerator | null;
-    private _wwio: InstanceType<typeof Webworkio>;
-
-    async actionInit({
-        palette,
-        names,
-        seed,
-        cache,
-        tileSize,
-        physicGridSize,
-        scale
-    }: {
-        palette: Array<{ altitude: number; color: string }>;
-        names: string[];
-        seed: number;
-        cache?: number;
-        tileSize: number;
-        physicGridSize: number;
-        scale?: number;
-    }): Promise<boolean> {
-        this._wg = new WorldGenerator({ seed, palette, cache, tileSize, names, physicGridSize, scale });
-        return true;
-    }
-
-    actionOptions({ cache }: { cache: number }): void {
-        this._wg!.options({ cache });
-    }
+    private _wg: WorldGenerator | null = null;
 
     constructor() {
-        this._wg = null;
-        const wwio = new Webworkio();
-        wwio.worker();
-
-        wwio.on('init', async (options: Parameters<Worker['actionInit']>[0], cb: (r: { status: string; error?: string }) => void) => {
-            try {
-                await this.actionInit(options);
-                cb({ status: 'done' });
-            } catch (e) {
-                cb({ status: 'error', error: (e as Error).message });
-            }
-        });
-
-        wwio.on('version', (_options: unknown, cb: (r: { version: string }) => void) => {
-            cb({ version: VERSION });
-        });
-
-        wwio.on('options', (options: { cache: number }) => {
-            this.actionOptions(options);
-        });
-
-        wwio.on('tile', ({ x, y }: { x: number; y: number }, cb: (r: ReturnType<WorldGenerator['computeTile']>) => void) => {
-            cb(this._wg!.computeTile(x, y));
-        });
-
-        this._wwio = wwio;
+        new WorkerServer()
+            .on<InitPayload, { status: string }>('init', async (payload) => {
+                this._wg = new WorldGenerator({
+                    seed: payload.seed,
+                    palette: payload.palette,
+                    cache: payload.cache,
+                    tileSize: payload.tileSize,
+                    names: payload.names,
+                    physicGridSize: payload.physicGridSize,
+                    scale: payload.scale
+                });
+                return { status: 'done' };
+            })
+            .on<unknown, { version: string }>('version', async () => ({ version: VERSION }))
+            .on<OptionsPayload, void>('options', async (payload) => {
+                this._wg!.options({ cache: payload.cache });
+            })
+            .on<TilePayload, ReturnType<WorldGenerator['computeTile']>>('tile', async ({ x, y }) => {
+                return this._wg!.computeTile(x, y);
+            })
+            .listen();
     }
 }
 

@@ -1,25 +1,22 @@
-class Balloon {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    think(entity: any, _game: any): void {
-        const pdata = entity;
-        if (!pdata.destination.isEqual(pdata.position)) {
-            const vDiff = pdata.destination.sub(pdata.position);
+import type { IEntity, IGame, IThinker } from '../types/game';
+
+class Balloon implements IThinker {
+    think(entity: IEntity, _game: IGame): void {
+        if (!entity.destination.isEqual(entity.position)) {
+            const vDiff = entity.destination.sub(entity.position);
             const nDist = vDiff.magnitude();
-
-            let ms = pdata.maxSpeed;
-            let speed = pdata.speed;
-            const acc = pdata.enginePower;
-
+            let ms = entity.maxSpeed;
+            let speed = entity.speed;
+            const acc = entity.enginePower;
             const DECCEL_THRESHOLD_DIST = ms << 2;
-
             if (nDist < DECCEL_THRESHOLD_DIST) {
                 ms *= nDist / DECCEL_THRESHOLD_DIST;
             }
             speed = Math.min(ms, speed + acc);
             const vNorm = vDiff.normalize();
             const vMove = vNorm.mul(speed);
-            pdata.speed = speed;
-            pdata.position.translate(vMove);
+            entity.speed = speed;
+            entity.position.translate(vMove);
         }
     }
 }
