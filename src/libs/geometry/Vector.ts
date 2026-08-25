@@ -1,17 +1,7 @@
 import Helper from './Helper.js';
 
 class Vector {
-    x: number;
-    y: number;
-
-    constructor(x?: Vector | number, y?: number) {
-        if (x instanceof Vector) {
-            this.x = x.x;
-            this.y = x.y;
-        } else {
-            this.x = typeof x === 'number' ? x : 0;
-            this.y = y ?? 0;
-        }
+    constructor(public x: number = 0, public y: number = 0) {
     }
 
     set(v: Vector): this;

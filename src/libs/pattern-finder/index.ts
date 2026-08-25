@@ -1,4 +1,6 @@
-function checkPatternAt(xPM: number, yPM: number, physicMap: number[][], pattern: number[][]): boolean {
+type NumberRow = ArrayLike<number>;
+
+function checkPatternAt(xPM: number, yPM: number, physicMap: NumberRow[], pattern: NumberRow[]): boolean {
     const ymax = pattern.length;
     const xmax = pattern[0].length;
     for (let y = 0; y < ymax; ++y) {
@@ -12,7 +14,7 @@ function checkPatternAt(xPM: number, yPM: number, physicMap: number[][], pattern
     return true;
 }
 
-function findPatterns(physicMap: number[][], pattern: number[][]): Array<{ x: number; y: number }> {
+function findPatterns(physicMap: NumberRow[], pattern: NumberRow[]): Array<{ x: number; y: number }> {
     const aPatterns: Array<{ x: number; y: number }> = [];
     const firstPatternCell = pattern[0][0];
     const ymax = physicMap.length - pattern.length + 1;

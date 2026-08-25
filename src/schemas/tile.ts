@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import z from 'zod';
 
 const AnimationSchema = z.object({
     start:    z.number(),
@@ -10,7 +10,10 @@ const AnimationSchema = z.object({
 export const TileSchema = z.object({
     image:      z.string(),
     frames:     z.number(),
-    ref:        z.object({ x: z.number(), y: z.number() }),
+    ref:        z.object({
+        x: z.number(),
+        y: z.number()
+    }),
     animations: z.array(AnimationSchema).optional(),
 });
 

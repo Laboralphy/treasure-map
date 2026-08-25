@@ -48,4 +48,4 @@ function getImage(src: string): HTMLImageElement {
     return IMAGE_CACHE[src];
 }
 
-export default { load, getImage };
+export { load, getImage };

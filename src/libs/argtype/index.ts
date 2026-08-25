@@ -15,7 +15,7 @@ function _getType(x: unknown): string {
 function main(...args: unknown[]): string {
     return args
         .map(_getType)
-        .map(x => x.substr(0, 1))
+        .map(x => x.substring(0, 1))
         .join('');
 }
 

@@ -16,7 +16,7 @@ class Perlin {
         return x0 * (1 - mu2) + x1 * mu2;
     }
 
-    static generateSmoothNoise(aBaseNoise: number[][], nOctave: number): Float32Array[] {
+    static generateSmoothNoise(aBaseNoise: Float32Array[], nOctave: number): Float32Array[] {
         const w = aBaseNoise.length;
         const h = aBaseNoise[0].length;
         const aSmoothNoise: Float32Array[] = new Array(h);
@@ -43,7 +43,7 @@ class Perlin {
         return aSmoothNoise;
     }
 
-    static generate(aBaseNoise: number[][], nOctaveCount: number): Float32Array[][] {
+    static generate(aBaseNoise: Float32Array[], nOctaveCount: number): Float32Array[] {
         const w = aBaseNoise.length;
         const h = aBaseNoise[0].length;
         const aSmoothNoise: Float32Array[][] = new Array(nOctaveCount);
@@ -83,13 +83,13 @@ class Perlin {
                 pny[x] /= fTotalAmp;
             }
         }
-        return aPerlinNoise as unknown as Float32Array[][];
+        return aPerlinNoise;
     }
 
-    static colorize(aNoise: Float32Array[][], aPalette: string[]): string[] {
+    static colorize(aNoise: Float32Array[], aPalette: string[]): string[] {
         const pl = aPalette.length;
         const data: string[] = [];
-        aNoise.forEach(r => (r as unknown as Float32Array).forEach((x: number) => {
+        aNoise.forEach(r => r.forEach((x: number) => {
             const nColor = Math.min(pl - 1, x * pl | 0);
             data.push(aPalette[nColor]);
         }));

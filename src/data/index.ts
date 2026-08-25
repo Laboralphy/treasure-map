@@ -23,7 +23,7 @@ import brushes from './brushes.json';
 import palette from './palette.json';
 import towns_fr from './towns_fr.json';
 
-export default {
+export const DATA = {
     'blueprints/blimp':       blueprints_blimp,
     'blueprints/bullet_0':    blueprints_bullet_0,
     'blueprints/cursor':      blueprints_cursor,

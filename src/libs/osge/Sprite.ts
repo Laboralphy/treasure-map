@@ -1,5 +1,5 @@
 import Animation from './Animation';
-import ImageLoader from '../image-loader';
+import { load } from '../image-loader';
 import { Vector } from '../geometry';
 
 interface SpriteDefinition {
@@ -76,7 +76,7 @@ class Sprite {
     }
 
     async define(data: SpriteDefinition): Promise<void> {
-        this.image = await ImageLoader.load('./assets/graphics/sprites/' + data.image + '.png') as HTMLImageElement;
+        this.image = await load('./assets/graphics/sprites/' + data.image + '.png') as HTMLImageElement;
         if ('width' in data && 'height' in data) {
             this.frameWidth = data.width!;
             this.frameHeight = data.height!;

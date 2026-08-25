@@ -7,13 +7,11 @@ import Vfx from './Vfx';
 import Bullet from './Bullet';
 import Smoke from './Smoke';
 
-export default {
-    cursor: new Cursor(),
-    balloon: new Balloon(),
-    aerostat: new Aerostat(),
-    boat: new Boat(),
-    bullet: new Bullet(),
-    wave: new Wave(),
-    vfx: new Vfx(),
-    smoke: new Smoke(),
-};
+export const cursor = new Cursor();
+export const balloon = new Balloon();
+export const aerostat = new Aerostat();
+export const boat = new Boat();
+export const bullet = new Bullet();
+export const wave = new Wave();
+export const vfx = new Vfx();
+export const smoke = new Smoke();

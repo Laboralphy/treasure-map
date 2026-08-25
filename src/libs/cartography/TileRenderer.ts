@@ -1,7 +1,7 @@
 import CanvasHelper from '../canvas-helper';
-import PixelProcessor from '@laboralphy/pixel-processor';
+import { PixelProcessor, type PixelContext } from '@laboralphy/pixel-processor';
 import Rainbow from '../rainbow';
-import ImageLoader from '../image-loader';
+import { load } from '../image-loader';
 import type { SceneryItem } from './SceneryGenerator';
 
 const PHYS_WATER = 11;
@@ -75,7 +75,7 @@ class TileRenderer {
                 this._brushes[type] = {};
             }
             this._brushes[type][brush.code] = {
-                img: await ImageLoader.load(brush.src),
+                img: await load(brush.src),
                 ...brush
             } as BrushEntry;
         }
@@ -189,7 +189,7 @@ class TileRenderer {
     paintLandBrushes(ctx: CanvasRenderingContext2D, physicMap: Uint8Array[], physicGridSize: number): void {
         if (this._drawBrushes) {
             const oLandBrushes = this._brushes.land;
-            physicMap.forEach((row, y) => (row as unknown as number[]).forEach((cell, x) => {
+            physicMap.forEach((row, y) => row.forEach((cell, x) => {
                 if ((x & 1) === (y & 1)) {
                     if (cell in oLandBrushes) {
                         ctx.drawImage(oLandBrushes[cell].img, x * physicGridSize, y * physicGridSize);
@@ -199,7 +199,7 @@ class TileRenderer {
         }
         if (this._drawPhysicCodes) {
             ctx.textBaseline = 'top';
-            physicMap.forEach((row, y) => (row as unknown as number[]).forEach((cell, x) => {
+            physicMap.forEach((row, y) => row.forEach((cell, x) => {
                 const xPix = x * physicGridSize, yPix = y * physicGridSize;
                 ctx.fillText(cell.toString(), xPix, yPix);
             }));
@@ -209,7 +209,7 @@ class TileRenderer {
     render(oTileData: TileData, cvs: HTMLCanvasElement): HTMLCanvasElement {
         const { colorMap, physicMap, sceneries, physicGridSize } = oTileData;
         const cvsColor = CanvasHelper.createCanvas(colorMap.length, colorMap.length);
-        PixelProcessor.paint(cvsColor, (pp: { x: number; y: number; color: { r: number; g: number; b: number; a: number } }) => {
+        PixelProcessor.paint(cvsColor, (pp: PixelContext) => {
             const nColor = colorMap[pp.y][pp.x];
             const oColor = Rainbow.parse(nColor);
             pp.color.r = oColor.r;

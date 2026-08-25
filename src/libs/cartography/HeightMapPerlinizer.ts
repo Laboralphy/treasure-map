@@ -131,7 +131,7 @@ class HeightMapPerlinizer {
 
         const a1 = merge33(a0);
         const a2 = !options.disabled
-            ? Perlin.generate(a1 as unknown as number[][], this._octaves) as unknown as Float32Array[]
+            ? Perlin.generate(a1, this._octaves)
             : a1;
         let a3 = extract33(a2);
         if (perlin) {

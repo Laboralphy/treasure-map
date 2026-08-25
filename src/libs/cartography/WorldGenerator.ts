@@ -97,10 +97,10 @@ class WorldGenerator {
             this._cache.tile.size = options.cache;
         }
         if ('palette' in options && options.palette !== undefined) {
-            const oPalette: Record<number, string> = {};
+            const oPalette: Record<string, string> = {};
             options.palette.forEach(p => { oPalette[p.altitude] = p.color; });
             this._palette = Rainbow
-                .gradient(oPalette as unknown as Record<string, string>)
+                .gradient(oPalette)
                 .map((x: string) => Rainbow.parse(x))
                 .map((x: RGBAColor) => x.r | x.g << 8 | x.b << 16 | 0xFF000000);
         }
@@ -134,7 +134,7 @@ class WorldGenerator {
         data.forEach((row, y) => {
             const yMesh = Math.floor(y / meshSize);
             if (!aMap[yMesh]) { aMap[yMesh] = []; }
-            (row as unknown as number[]).forEach((cell, x) => {
+            row.forEach((cell, x) => {
                 const xMesh = Math.floor(x / meshSize);
                 if (!aMap[yMesh][xMesh]) {
                     aMap[yMesh][xMesh] = { min: 5, max: 0 };
@@ -145,9 +145,8 @@ class WorldGenerator {
             });
         });
         return map2D(aMap, (x, y, m) => {
-            const cell = m as unknown as { min: number; max: number };
-            return disc(cell.min) * 10 + disc(cell.max);
-        }, Uint8Array) as unknown as Uint8Array[];
+            return disc(m.min) * 10 + disc(m.max);
+        }, Uint8Array) as Uint8Array[];
     }
 
     computeHeightMap(x_rpt: number, y_rpt: number): Float32Array[] {
@@ -167,7 +166,7 @@ class WorldGenerator {
         return map2D(
             heightMap,
             (x, y, value) => value < 0 ? -1 : PALETTE[Math.min(PALETTE_LENGTH - 1, value * PALETTE_LENGTH | 0)]
-        ) as unknown as number[][];
+        ) as number[][];
     }
 
     computeTile(x_rpt: number, y_rpt: number): TileData {

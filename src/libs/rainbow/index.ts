@@ -86,11 +86,11 @@ class Rainbow {
                 default: {
                     let rx = s.match(/^rgb\( *([0-9]{1,3}) *, *([0-9]{1,3}) *, *([0-9]{1,3}) *\)$/);
                     if (rx) {
-                        return { r: rx[1] as unknown as number | 0, g: rx[2] as unknown as number | 0, b: rx[3] as unknown as number | 0 };
+                        return { r: parseInt(rx[1], 10), g: parseInt(rx[2], 10), b: parseInt(rx[3], 10) };
                     } else {
                         rx = s.match(/^rgba\( *([0-9]{1,3}) *, *([0-9]{1,3}) *, *([0-9]{1,3}) *, *([.0-9]+) *\)$/);
                         if (rx) {
-                            return { r: rx[1] as unknown as number | 0, g: rx[2] as unknown as number | 0, b: rx[3] as unknown as number | 0, a: parseFloat(rx[4]) };
+                            return { r: parseInt(rx[1], 10), g: parseInt(rx[2], 10), b: parseInt(rx[3], 10), a: parseFloat(rx[4]) };
                         } else {
                             throw new Error('invalid color structure ' + s);
                         }
@@ -138,15 +138,15 @@ class Rainbow {
         let sLastColor: string | null = null;
         let nLastPal = 0;
         for (const iPal in oPalette) {
-            const nPal = iPal as unknown as number | 0;
+            const nPal = parseInt(iPal, 10);
             const sColor = oPalette[iPal];
             if (sLastColor !== null) {
-                aPalette = aPalette.concat(Rainbow.spectrum(sLastColor, sColor, (nPal as unknown as number) - nLastPal + 1).slice(1));
+                aPalette = aPalette.concat(Rainbow.spectrum(sLastColor, sColor, nPal - nLastPal + 1).slice(1));
             } else {
-                aPalette[nPal as unknown as number] = Rainbow.rgba(sColor);
+                aPalette[nPal] = Rainbow.rgba(sColor);
             }
             sLastColor = sColor;
-            nLastPal = nPal as unknown as number;
+            nLastPal = nPal;
         }
         return aPalette;
     }
