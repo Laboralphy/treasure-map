@@ -5,6 +5,8 @@
     "moduleResolution": "bundler",
     "strict": true,
     "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "types": ["node"],
     "noEmit": true,
     "paths": {
       "libs/*": ["./src/libs/*"]

@@ -28,8 +28,27 @@ const shared = {
 
 const isWatch = process.argv.includes('--watch');
 const isServe = process.argv.includes('--serve');
+const isTile = process.argv.includes('--tile');
+
+// the offline tile renderer : same generation code as the web worker, but run under node
+async function buildTile() {
+    await esbuild.build({
+        ...shared,
+        platform: 'node',
+        format: 'cjs',
+        sourcemap: false,
+        external: ['pngjs'],
+        entryPoints: ['src/tile.ts'],
+        outfile: 'dist/tile.cjs',
+        logLevel: 'warning',
+    });
+}
 
 async function main() {
+    if (isTile) {
+        return buildTile();
+    }
+
     const app = await esbuild.context({
         ...shared,
         entryPoints: ['src/index.ts'],

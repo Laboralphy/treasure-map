@@ -10,15 +10,15 @@ declare module '@laboralphy/pixel-processor' {
     export default PixelProcessor;
 }
 
-declare module 'events' {
-    class EventEmitter {
-        on(event: string, listener: (...args: unknown[]) => void): this;
-        off(event: string, listener: (...args: unknown[]) => void): this;
-        emit(event: string, ...args: unknown[]): boolean;
-        once(event: string, listener: (...args: unknown[]) => void): this;
-        removeListener(event: string, listener: (...args: unknown[]) => void): this;
-        removeAllListeners(event?: string): this;
-        listeners(event: string): ((...args: unknown[]) => void)[];
+declare module 'pngjs' {
+    export class PNG {
+        constructor(options?: { width?: number; height?: number });
+        width: number;
+        height: number;
+        data: Buffer;
+        static sync: {
+            read(buffer: Buffer): PNG;
+            write(png: PNG): Buffer;
+        };
     }
-    export default EventEmitter;
 }

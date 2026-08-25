@@ -10,40 +10,50 @@
  * @date 2019-06-12
  */
 
-let ARGUMENTS = [];
+export interface ArgumentValueDef {
+    required?: boolean;
+    type?: string;
+    default?: string | number | boolean;
+}
 
+export interface ArgumentDef {
+    name: string;
+    long?: string;
+    short?: string;
+    required?: boolean;
+    desc: string;
+    value?: ArgumentValueDef;
+}
+
+export type ParsedArguments = Record<string, string | number | boolean>;
+
+interface Switch {
+    value: string;
+}
+
+export interface CommandLineArguments {
+    switches: Record<string, Switch>;
+    words: string[];
+}
+
+let ARGUMENTS: ArgumentDef[] = [];
 
 /**
  * Get the previously set argument definition (see setArgumentDefinition)
- * @return {Array}
  */
-function getArgumentDefinition() {
+export function getArgumentDefinition(): ArgumentDef[] {
     return ARGUMENTS;
 }
 
-
 /**
  * Set argument definition (see setArgumentDefinition)
- * @param a {Array} argument definition
- * {
- *     name: string,
- *     long: string,
- *     short: string
- *     required: boolean,
- *     desc: string,
- *     value: {
- *         required: boolean,
- *         type: string
- *     }
- * }
  */
-function setArgumentDefinition(a) {
+export function setArgumentDefinition(a: ArgumentDef[]): void {
     ARGUMENTS = a;
 }
 
-
-function getArgumentLongValueString(oArg) {
-    if ('value' in oArg) {
+export function getArgumentLongValueString(oArg: ArgumentDef): string {
+    if (oArg.value) {
         const sType = oArg.value.type || 'any';
         if (oArg.value.required) {
             return '=<' + sType + '>';
@@ -55,8 +65,8 @@ function getArgumentLongValueString(oArg) {
     }
 }
 
-function getArgumentShortValueString(oArg) {
-    if ('value' in oArg) {
+export function getArgumentShortValueString(oArg: ArgumentDef): string {
+    if (oArg.value) {
         const sType = oArg.value.type || 'any';
         if (oArg.value.required) {
             return ' <' + sType + '>';
@@ -68,18 +78,15 @@ function getArgumentShortValueString(oArg) {
     }
 }
 
-
 /**
  * Returns a string describing the syntax of the specified argument definition
- * @param oArg {*}
- * @return {string}
  */
-function getArgumentSyntax(oArg) {
-    const aVars = [];
-    if ('short' in oArg && oArg.short.length > 0) {
+export function getArgumentSyntax(oArg: ArgumentDef): string {
+    const aVars: string[] = [];
+    if (oArg.short !== undefined && oArg.short.length > 0) {
         aVars.push('-' + oArg.short + getArgumentShortValueString(oArg));
     }
-    if ('long' in oArg && oArg.long.length > 0) {
+    if (oArg.long !== undefined && oArg.long.length > 0) {
         aVars.push('--' + oArg.long + getArgumentLongValueString(oArg));
     }
     return aVars.join(', ');
@@ -87,38 +94,28 @@ function getArgumentSyntax(oArg) {
 
 /**
  * Returns a string of the specified argument definition
- * @param oArg {*}
- * @return {string}
  */
-function getArgumentString(oArg) {
-    return "\t" + getArgumentSyntax(oArg) + "\n\t\t" + oArg.desc;
+export function getArgumentString(oArg: ArgumentDef): string {
+    return '\t' + getArgumentSyntax(oArg) + '\n\t\t' + oArg.desc;
 }
-
-
-
-
 
 /**
  * Checks if all required arguments are present
- * @param oArgs {*} registry of specified arguments and values
- * @param aArgDef [] argument definition
  */
-function checkRequiredArguments(oArgs, aArgDef) {
+export function checkRequiredArguments(oArgs: Record<string, Switch>, aArgDef: ArgumentDef[]): void {
     const r = aArgDef
-        .filter(a => a.required && !(a.short in oArgs) && !(a.long in oArgs));
+        .filter(a => a.required && !(a.short !== undefined && a.short in oArgs) && !(a.long !== undefined && a.long in oArgs));
     if (r.length > 0) {
         throw new Error('some missing arguments : ' + r.map(a => getArgumentSyntax(a)) + ' - given argument are : ' + Object.keys(oArgs).join(', '));
     }
 }
 
-function searchArgumentDefinition(sArg, aArgDef) {
-    return aArgDef.find(a =>
-        a.long === sArg || a.short === sArg
-    );
+function searchArgumentDefinition(sArg: string, aArgDef: ArgumentDef[]): ArgumentDef | undefined {
+    return aArgDef.find(a => a.long === sArg || a.short === sArg);
 }
 
-function checkRequiredArgumentValues(oArgs, aArgDef) {
-    for (let sArg in oArgs) {
+export function checkRequiredArgumentValues(oArgs: Record<string, Switch>, aArgDef: ArgumentDef[]): void {
+    for (const sArg in oArgs) {
         if (oArgs[sArg].value.length === 0) {
             const oSearched = searchArgumentDefinition(sArg, aArgDef);
             if (oSearched && oSearched.value && oSearched.value.required) {
@@ -128,11 +125,11 @@ function checkRequiredArgumentValues(oArgs, aArgDef) {
     }
 }
 
-function buildArgumentStructure(oArgs, aArgDef) {
+export function buildArgumentStructure(oArgs: Record<string, Switch>, aArgDef: ArgumentDef[]): ParsedArguments {
     checkRequiredArguments(oArgs, aArgDef);
     checkRequiredArgumentValues(oArgs, aArgDef);
-    const oOutput = {};
-    for (let sArg in oArgs) {
+    const oOutput: ParsedArguments = {};
+    for (const sArg in oArgs) {
         if (sArg === '') {
             continue;
         }
@@ -166,39 +163,31 @@ function buildArgumentStructure(oArgs, aArgDef) {
 
 /**
  * Returns the command line parameters
- * @params aArgs {string[]} command line parameters
- * @return {*}
  */
-function parseCommandLineArguments(aArgs) {
+export function getCommandLineArguments(aArgs: string[]): CommandLineArguments {
     const REG = /^([-_.a-zA-Z0-9]+)=(.*)/;
-    let oSwitches = {};
-    let aAlone = [];
+    const oSwitches: Record<string, Switch> = {};
+    const aAlone: string[] = [];
     let sLastSwitch = '';
     for (let i = 0; i < aArgs.length; ++i) {
         const sWord = aArgs[i];
         if (sWord.startsWith('--')) {
-            const w = sWord.substr(2);
+            const w = sWord.substring(2);
             const r = w.match(REG);
             sLastSwitch = '';
             if (r) {
-                oSwitches[r[1]] = {
-                    value: r[2]
-                };
+                oSwitches[r[1]] = { value: r[2] };
             } else {
-                oSwitches[w] = {
-                    value: ''
-                };
+                oSwitches[w] = { value: '' };
             }
         } else if (sWord.startsWith('-')) {
             sWord
-                .substr(1)
+                .substring(1)
                 .split('')
                 .forEach(w => {
                     sLastSwitch = w;
-                    oSwitches[sLastSwitch] = {
-                        value: ''
-                    };
-                })
+                    oSwitches[sLastSwitch] = { value: '' };
+                });
         } else {
             if (sLastSwitch.length) {
                 oSwitches[sLastSwitch].value = sWord;
@@ -214,20 +203,20 @@ function parseCommandLineArguments(aArgs) {
     };
 }
 
-function parse(aArgs) {
+export function parse(aArgs: string[]): ParsedArguments {
     if (!Array.isArray(aArgs)) {
-        throw new TypeError('ArgumentParser.parse : This function requires an array.')
+        throw new TypeError('ArgumentParser.parse : This function requires an array.');
     }
-    const r = parseCommandLineArguments(aArgs);
+    const r = getCommandLineArguments(aArgs);
     return buildArgumentStructure(r.switches, getArgumentDefinition());
 }
 
-function getHelpString() {
+export function getHelpString(): string {
     return getArgumentDefinition().map(d => getArgumentString(d)).join('\n\n');
 }
 
-module.exports = {
-    getCommandLineArguments: parseCommandLineArguments,
+export default {
+    getCommandLineArguments,
     checkRequiredArguments,
     checkRequiredArgumentValues,
     getArgumentString,
