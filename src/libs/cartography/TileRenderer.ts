@@ -4,14 +4,19 @@ import Rainbow from '../rainbow';
 import { load } from '../image-loader';
 import type { SceneryItem } from './SceneryGenerator';
 
-const PHYS_WATER = 11;
-const PHYS_SHORE = 12;
-const PHYS_COAST = 22;
-const PHYS_PLAIN = 23;
-const PHYS_FOREST = 33;
-const PHYS_PEAK = 55;
+const PHYS_WATER: number = 11;
+const PHYS_SHORE: number = 12;
+const PHYS_COAST: number = 22;
+const PHYS_PLAIN: number = 23;
+const PHYS_FOREST: number = 33;
+const PHYS_PEAK: number = 55;
 
-void PHYS_WATER; void PHYS_SHORE; void PHYS_COAST; void PHYS_PLAIN; void PHYS_FOREST; void PHYS_PEAK;
+void PHYS_WATER;
+void PHYS_SHORE;
+void PHYS_COAST;
+void PHYS_PLAIN;
+void PHYS_FOREST;
+void PHYS_PEAK;
 
 const COORDS_FONT_DEFINITION = 'italic 13px Times New Roman';
 const FONT_SIZE = 28;
@@ -58,7 +63,7 @@ class TileRenderer {
         drawGrid = true,
         drawCoords = true,
         drawBrushes = true,
-        drawPhysicCodes = false
+        drawPhysicCodes = false,
     }: TileRendererOptions = {}) {
         this._brushes = {};
         this._drawGrid = drawGrid;
@@ -67,7 +72,9 @@ class TileRenderer {
         this._drawPhysicCodes = drawPhysicCodes;
     }
 
-    async loadBrushes(brushes: BrushDef[]): Promise<Record<string, Record<string | number, BrushEntry>>> {
+    async loadBrushes(
+        brushes: BrushDef[]
+    ): Promise<Record<string, Record<string | number, BrushEntry>>> {
         for (let i = 0, l = brushes.length; i < l; ++i) {
             const brush = brushes[i];
             const type = brush.type;
@@ -76,7 +83,7 @@ class TileRenderer {
             }
             this._brushes[type][brush.code] = {
                 img: await load(brush.src),
-                ...brush
+                ...brush,
             } as BrushEntry;
         }
         return this._brushes;
@@ -135,11 +142,12 @@ class TileRenderer {
             nFontSize *= 0.8;
         }
         const ctx = oCanvas.getContext('2d')!;
-        const xm = x * physicGridSize, ym = y * physicGridSize;
+        const xm = x * physicGridSize,
+            ym = y * physicGridSize;
         const wm = width * physicGridSize;
         const hm = height * physicGridSize;
         const sOrient = dir === 'n' || dir === 's' ? 'ns' : 'ew';
-        const cities = Object.values(this._brushes.city).filter(b => b.orientation === sOrient);
+        const cities = Object.values(this._brushes.city).filter((b) => b.orientation === sOrient);
         const city = cities[seed % cities.length];
         switch (sDebug + dir) {
             case 'w':
@@ -160,7 +168,8 @@ class TileRenderer {
                 ctx.fillText(x + ':' + y, 0, 0);
         }
         this.setCityNameFont(ctx, nFontSize);
-        let xf = xm, yf = ym + hm;
+        let xf = xm,
+            yf = ym + hm;
         ctx.textBaseline = 'top';
         if (yf + FONT_SIZE >= oCanvas.height) {
             ctx.textBaseline = 'bottom';
@@ -176,33 +185,51 @@ class TileRenderer {
 
     paintSceneries(oCanvas: HTMLCanvasElement, data: SceneryItem[], physicGridSize: number): void {
         if (this._drawBrushes) {
-            data.forEach(d => {
+            data.forEach((d) => {
                 switch (d.type) {
-                    case 'city':
+                    case 'city': {
                         this.drawCity(oCanvas, d, physicGridSize);
                         break;
+                    }
+
+                    default: {
+                        throw new Error(`unknown type ${d.type}`);
+                    }
                 }
             });
         }
     }
 
-    paintLandBrushes(ctx: CanvasRenderingContext2D, physicMap: Uint8Array[], physicGridSize: number): void {
+    paintLandBrushes(
+        ctx: CanvasRenderingContext2D,
+        physicMap: Uint8Array[],
+        physicGridSize: number
+    ): void {
         if (this._drawBrushes) {
             const oLandBrushes = this._brushes.land;
-            physicMap.forEach((row, y) => row.forEach((cell, x) => {
-                if ((x & 1) === (y & 1)) {
-                    if (cell in oLandBrushes) {
-                        ctx.drawImage(oLandBrushes[cell].img, x * physicGridSize, y * physicGridSize);
+            physicMap.forEach((row, y) =>
+                row.forEach((cell, x) => {
+                    if ((x & 1) === (y & 1)) {
+                        if (cell in oLandBrushes) {
+                            ctx.drawImage(
+                                oLandBrushes[cell].img,
+                                x * physicGridSize,
+                                y * physicGridSize
+                            );
+                        }
                     }
-                }
-            }));
+                })
+            );
         }
         if (this._drawPhysicCodes) {
             ctx.textBaseline = 'top';
-            physicMap.forEach((row, y) => row.forEach((cell, x) => {
-                const xPix = x * physicGridSize, yPix = y * physicGridSize;
-                ctx.fillText(cell.toString(), xPix, yPix);
-            }));
+            physicMap.forEach((row, y) =>
+                row.forEach((cell, x) => {
+                    const xPix = x * physicGridSize,
+                        yPix = y * physicGridSize;
+                    ctx.fillText(cell.toString(), xPix, yPix);
+                })
+            );
         }
     }
 

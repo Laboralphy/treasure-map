@@ -47,7 +47,7 @@ function renderTiles({
     scale,
     physicGridSize,
     grid,
-    output
+    output,
 }: TileOptions): void {
     // same payload shape the web worker gets on 'init'
     const oInit: InitPayload = {
@@ -56,7 +56,7 @@ function renderTiles({
         names,
         tileSize,
         physicGridSize,
-        scale
+        scale,
     };
     const wg = new WorldGenerator(oInit);
     const nScaledTileSize = wg.getScaledValue(tileSize);
@@ -64,7 +64,7 @@ function renderTiles({
 
     const png = new PNG({
         width: cols * nScaledTileSize,
-        height: rows * nScaledTileSize
+        height: rows * nScaledTileSize,
     });
 
     const putPixel = (px: number, py: number, r: number, g: number, b: number, a: number): void => {
@@ -95,7 +95,10 @@ function renderTiles({
                         putPixel(
                             xOfs + xt * nScaledPhysicGridSize + px,
                             yOfs + yt * nScaledPhysicGridSize + py,
-                            TOWN_COLOR.r, TOWN_COLOR.g, TOWN_COLOR.b, 255
+                            TOWN_COLOR.r,
+                            TOWN_COLOR.g,
+                            TOWN_COLOR.b,
+                            255
                         );
                     }
                 }
@@ -110,7 +113,7 @@ function renderTiles({
                     png.data[offset + 2] >>>= 2;
                 }
                 for (let py = 0; py < nScaledTileSize; ++py) {
-                    const offset = (((yOfs + py) * png.width + xOfs)) << 2;
+                    const offset = ((yOfs + py) * png.width + xOfs) << 2;
                     png.data[offset] >>>= 2;
                     png.data[offset + 1] >>>= 2;
                     png.data[offset + 2] >>>= 2;
@@ -119,14 +122,27 @@ function renderTiles({
         }
     }
 
-    const sName = output.length > 0
-        ? output
-        : 'tile.s' + seed + '.x' + x + '.y' + y + '.png';
+    const sName = output.length > 0 ? output : 'tile.s' + seed + '.x' + x + '.y' + y + '.png';
     fs.writeFileSync(sName, PNG.sync.write(png));
     console.log(
-        sName + ' : ' + png.width + 'x' + png.height + 'px' +
-        ' - ' + cols + 'x' + rows + ' tiles of ' + nScaledTileSize + 'px' +
-        ' (tileSize ' + tileSize + ' / scale ' + scale + ')'
+        sName +
+            ' : ' +
+            png.width +
+            'x' +
+            png.height +
+            'px' +
+            ' - ' +
+            cols +
+            'x' +
+            rows +
+            ' tiles of ' +
+            nScaledTileSize +
+            'px' +
+            ' (tileSize ' +
+            tileSize +
+            ' / scale ' +
+            scale +
+            ')'
     );
 }
 
@@ -135,71 +151,71 @@ const ARGUMENT_DEFINITION: ArgumentDef[] = [
         name: 'x',
         short: 'x',
         desc: 'x coordinate of the first tile to be rendered',
-        value: { required: true, type: 'number' }
+        value: { required: true, type: 'number' },
     },
     {
         name: 'y',
         short: 'y',
         desc: 'y coordinate of the first tile to be rendered',
-        value: { required: true, type: 'number' }
+        value: { required: true, type: 'number' },
     },
     {
         name: 'seed',
         short: 's',
         long: 'seed',
         desc: 'seed value for RNG',
-        value: { required: true, type: 'number' }
+        value: { required: true, type: 'number' },
     },
     {
         name: 'cols',
         short: 'c',
         long: 'cols',
         desc: 'number of tiles to render horizontally (default 1)',
-        value: { required: false, type: 'number' }
+        value: { required: false, type: 'number' },
     },
     {
         name: 'rows',
         short: 'r',
         long: 'rows',
         desc: 'number of tiles to render vertically (default 1)',
-        value: { required: false, type: 'number' }
+        value: { required: false, type: 'number' },
     },
     {
         name: 'tileSize',
         long: 'tile-size',
         desc: 'tile size in world units before scaling (default 256 ; the game uses 16)',
-        value: { required: false, type: 'number' }
+        value: { required: false, type: 'number' },
     },
     {
         name: 'scale',
         long: 'scale',
         desc: 'world unit / pixel ratio : a tile is rendered tileSize/scale px wide (default 2)',
-        value: { required: false, type: 'number' }
+        value: { required: false, type: 'number' },
     },
     {
         name: 'physicGridSize',
         long: 'physic-grid-size',
         desc: 'size of a physic mesh cell, in world units (default 16 ; the game uses 8)',
-        value: { required: false, type: 'number' }
+        value: { required: false, type: 'number' },
     },
     {
         name: 'noGrid',
         long: 'no-grid',
-        desc: 'do not darken the tile borders'
+        desc: 'do not darken the tile borders',
     },
     {
         name: 'output',
         short: 'o',
         long: 'output',
         desc: 'the name of the output file',
-        value: { required: false, type: 'string' }
+        value: { required: false, type: 'string' },
     },
     {
         name: 'help',
         short: 'h',
         long: 'help',
-        desc: 'show command line options and usage'
-    }
+        desc: 'show command line options and usage',
+    },
 ];
 
 function num(p: ArgumentParserResult, sName: string, nDefault: number): number {
@@ -230,7 +246,7 @@ function main(): void {
         scale: num(p, 'scale', 2),
         physicGridSize: num(p, 'physicGridSize', 16),
         grid: !p.noGrid,
-        output: 'output' in p ? String(p.output) : ''
+        output: 'output' in p ? String(p.output) : '',
     });
 }
 

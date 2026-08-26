@@ -8,7 +8,7 @@
     "build": "node esbuild.config.js",
     "dev": "node esbuild.config.js --serve",
     "watch": "node esbuild.config.js --watch",
-    "tile": "node esbuild.config.js --tile && node dist/tile.cjs",
+    "tile": "tsx src/tile.ts",
     "typecheck": "tsc --noEmit",
     "deploy": "sudo . ./bin/deploy",
     "lint": "eslint . && prettier --check .",
@@ -23,6 +23,7 @@
     "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.3",
+    "tsx": "^4.23.12",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.1",
     "vitest": "^4.1.5"

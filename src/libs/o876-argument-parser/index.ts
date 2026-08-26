@@ -102,30 +102,50 @@ export function getArgumentString(oArg: ArgumentDef): string {
 /**
  * Checks if all required arguments are present
  */
-export function checkRequiredArguments(oArgs: Record<string, Switch>, aArgDef: ArgumentDef[]): void {
-    const r = aArgDef
-        .filter(a => a.required && !(a.short !== undefined && a.short in oArgs) && !(a.long !== undefined && a.long in oArgs));
+export function checkRequiredArguments(
+    oArgs: Record<string, Switch>,
+    aArgDef: ArgumentDef[]
+): void {
+    const r = aArgDef.filter(
+        (a) =>
+            a.required &&
+            !(a.short !== undefined && a.short in oArgs) &&
+            !(a.long !== undefined && a.long in oArgs)
+    );
     if (r.length > 0) {
-        throw new Error('some missing arguments : ' + r.map(a => getArgumentSyntax(a)) + ' - given argument are : ' + Object.keys(oArgs).join(', '));
+        throw new Error(
+            'some missing arguments : ' +
+                r.map((a) => getArgumentSyntax(a)) +
+                ' - given argument are : ' +
+                Object.keys(oArgs).join(', ')
+        );
     }
 }
 
 function searchArgumentDefinition(sArg: string, aArgDef: ArgumentDef[]): ArgumentDef | undefined {
-    return aArgDef.find(a => a.long === sArg || a.short === sArg);
+    return aArgDef.find((a) => a.long === sArg || a.short === sArg);
 }
 
-export function checkRequiredArgumentValues(oArgs: Record<string, Switch>, aArgDef: ArgumentDef[]): void {
+export function checkRequiredArgumentValues(
+    oArgs: Record<string, Switch>,
+    aArgDef: ArgumentDef[]
+): void {
     for (const sArg in oArgs) {
         if (oArgs[sArg].value.length === 0) {
             const oSearched = searchArgumentDefinition(sArg, aArgDef);
             if (oSearched && oSearched.value && oSearched.value.required) {
-                throw new Error('value required for argument "' + sArg + '" : ' + getArgumentSyntax(oSearched));
+                throw new Error(
+                    'value required for argument "' + sArg + '" : ' + getArgumentSyntax(oSearched)
+                );
             }
         }
     }
 }
 
-export function buildArgumentStructure(oArgs: Record<string, Switch>, aArgDef: ArgumentDef[]): ParsedArguments {
+export function buildArgumentStructure(
+    oArgs: Record<string, Switch>,
+    aArgDef: ArgumentDef[]
+): ParsedArguments {
     checkRequiredArguments(oArgs, aArgDef);
     checkRequiredArgumentValues(oArgs, aArgDef);
     const oOutput: ParsedArguments = {};
@@ -166,6 +186,9 @@ export function buildArgumentStructure(oArgs: Record<string, Switch>, aArgDef: A
  */
 export function getCommandLineArguments(aArgs: string[]): CommandLineArguments {
     const REG = /^([-_.a-zA-Z0-9]+)=(.*)/;
+    // a lone negative number is the value of the previous switch, not a pack of short
+    // switches : "-x -20" must not be read as the three switches x, 2 and 0
+    const NEGATIVE_NUMBER = /^-\d*\.?\d+$/;
     const oSwitches: Record<string, Switch> = {};
     const aAlone: string[] = [];
     let sLastSwitch = '';
@@ -180,11 +203,11 @@ export function getCommandLineArguments(aArgs: string[]): CommandLineArguments {
             } else {
                 oSwitches[w] = { value: '' };
             }
-        } else if (sWord.startsWith('-')) {
+        } else if (sWord.startsWith('-') && !NEGATIVE_NUMBER.test(sWord)) {
             sWord
                 .substring(1)
                 .split('')
-                .forEach(w => {
+                .forEach((w) => {
                     sLastSwitch = w;
                     oSwitches[sLastSwitch] = { value: '' };
                 });
@@ -199,7 +222,7 @@ export function getCommandLineArguments(aArgs: string[]): CommandLineArguments {
     }
     return {
         switches: oSwitches,
-        words: aAlone
+        words: aAlone,
     };
 }
 
@@ -212,7 +235,9 @@ export function parse(aArgs: string[]): ParsedArguments {
 }
 
 export function getHelpString(): string {
-    return getArgumentDefinition().map(d => getArgumentString(d)).join('\n\n');
+    return getArgumentDefinition()
+        .map((d) => getArgumentString(d))
+        .join('\n\n');
 }
 
 export default {
@@ -225,5 +250,5 @@ export default {
     getArgumentLongValueString,
     buildArgumentStructure,
     parse,
-    getHelpString
+    getHelpString,
 };
